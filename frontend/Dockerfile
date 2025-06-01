@@ -1,42 +1,29 @@
 # ---------------------------------------------
-# 1) Сборка фронтенда
+# 1) Этап сборки (Node.js)
 # ---------------------------------------------
 FROM node:18-alpine AS build
 
 WORKDIR /app
 
-# Скопируем только package.json и package-lock.json/ yarn.lock, чтобы быстрее закешировать зависимости
 COPY package*.json ./
-# Если у вас yarn: COPY yarn.lock ./
-
 RUN npm install
-# или:
-# RUN yarn install
 
-# Скопируем весь исходный код
 COPY . .
-
-# Собираем production-бандл
-RUN npm run build
-# или:
-# RUN yarn build
+RUN npm run build   # соберётся dist/ в /app/dist
 
 # ---------------------------------------------
-# 2) Сервирование статических файлов через nginx
+# 2) Этап «runtime» (Nginx)
 # ---------------------------------------------
 FROM nginx:stable-alpine
 
-# Удалим дефолтный контент nginx
+# Удаляем стандартные html-файлы nginx
 RUN rm -rf /usr/share/nginx/html/*
 
-# Скопируем собранный build из предыдущего шага
+# Копируем наш скомпилированный dist/
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Если нужно, можно добавить свой конфиг nginx:
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Копируем свой nginx.conf поверх дефолтного
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Открываем порт 80 (внутри контейнера)
 EXPOSE 80
-
-# Запускаем nginx
 CMD ["nginx", "-g", "daemon off;"]
