@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    background-color: #FFFFFF;
+    color: #1C1C1C;
+  }
+  body {
+    margin: 0;
+    background-color: #f0f9ff;
+  }
+}
+/* Сброс margin у инпутов и textarea */
+input, textarea, select, button {
+  margin: 0;
+}
+button, .form-button, .modal-close, input[type="button"], input[type="submit"] {
+  cursor: pointer;
+}
+
+
+@layer components {
+  .container {
+    @apply max-w-[800px] mx-auto px-4;
+  }
+  /* теперь все инпуты и textarea с радиусом 4px */
+  .form-input {
+    @apply block w-full bg-gray-100 border-0 rounded-md py-2 px-4 mb-4
+           placeholder-gray-400 text-base focus:outline-none focus:ring-2 focus:ring-blue-500;
+  }
+  /* кнопки тоже с мягкими углами */
+  .form-button {
+    @apply inline-block text-center py-2 bg-blue-500 text-white
+           rounded-md font-semibold hover:bg-blue-600 transition;
+  }
+  .form-select {
+    @apply block w-full bg-gray-100 border-0 rounded-md py-2 px-4 mb-4
+           text-base focus:outline-none focus:ring-2 focus:ring-blue-500;
+  }
+  .form-label {
+    @apply block mb-1 font-medium text-gray-700;
+  }
+}
