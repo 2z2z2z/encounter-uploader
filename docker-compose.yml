@@ -3,7 +3,7 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "80:80"               # фронтенд (Nginx) слушает порт 80 на хосте
+      - "127.0.0.1:8099:80"               # фронтенд (Nginx) слушает порт 80 на хосте
     depends_on:
       - backend
       - server
