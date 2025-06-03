@@ -29,12 +29,22 @@
         </div>
 
         <div>
-          <label class="form-label">ID уровня</label>
+          <!-- Лейбл изменён на "№ уровня" -->
+          <label class="form-label">№ уровня</label>
           <input
             v-model="store.levelId"
-            placeholder="ID уровня"
+            placeholder="№ уровня"
             class="form-input h-10 w-full"
+            @input="onLevelIdInput"
+            :class="{ 'border-red-500': levelValidationError }"
           />
+          <!-- Сообщение об ошибке валидации -->
+          <p
+            v-if="levelValidationError"
+            class="text-red-500 text-sm mt-1"
+          >
+            {{ levelValidationError }}
+          </p>
         </div>
 
         <div>
@@ -45,6 +55,7 @@
         </div>
       </div>
 
+      <!-- Ошибка общего порядка (проверка домена/игры и авторизации) -->
       <div v-if="error" class="text-red-500 text-sm">
         {{ error }}
       </div>
@@ -68,16 +79,41 @@ import { useAuthStore } from '../store/auth'
 const store = useUploadStore()
 const authStore = useAuthStore()
 const router = useRouter()
+
+// Общая ошибка проверки (домен/игра/авторизация)
 const error = ref('')
+
+// Ошибка валидации поля "№ уровня"
+const levelValidationError = ref('')
 
 async function fetchGamesList() {
   const url = `https://${store.domain}.en.cx/home?json=1`
   return axios.get(url)
 }
 
+/**
+ * onLevelIdInput — оставляет в поле только цифры и проверяет непустоту.
+ */
+function onLevelIdInput(event: Event) {
+  const input = event.target as HTMLInputElement
+  const raw = input.value
+  // Оставляем только цифры
+  const filtered = raw.replace(/[^0-9]/g, '')
+  if (filtered !== raw) {
+    store.levelId = filtered
+  }
+  // Валидация: непустое и только цифры
+  if (!filtered) {
+    levelValidationError.value = 'Поле «№ уровня» обязательно и должно содержать только цифры'
+  } else {
+    levelValidationError.value = ''
+  }
+}
+
 async function onContinue() {
   error.value = ''
 
+  // Проверяем домен и ID игры
   if (!store.domain.trim()) {
     error.value = 'Пожалуйста, укажите домен.'
     return
@@ -86,6 +122,16 @@ async function onContinue() {
     error.value = 'Пожалуйста, укажите ID игры.'
     return
   }
+  // Проверяем "№ уровня"
+  if (!String(store.levelId).trim()) {
+    levelValidationError.value = 'Поле «№ уровня» обязательно и должно содержать только цифры'
+    return
+  }
+  if (!/^[0-9]+$/.test(store.levelId)) {
+    levelValidationError.value = 'Поле «№ уровня» должно содержать только цифры'
+    return
+  }
+  levelValidationError.value = ''
 
   try {
     const res = await fetchGamesList()
@@ -105,13 +151,22 @@ async function onContinue() {
     return
   }
 
-  // вызываем action authenticate — теперь TS видит эту функцию
+  // Авторизуемся через authStore
   await authStore.authenticate(store.domain)
   if (!authStore.loggedIn) {
     error.value = `Ошибка авторизации: ${authStore.error}`
     return
   }
 
+  // Переходим к загрузке
   router.push('/upload')
 }
 </script>
+
+<style scoped>
+/* Опционально обводка красным при ошибке */
+.border-red-500 {
+  border-color: #f56565;
+  border-width: 2px;
+}
+</style>

@@ -1,4 +1,3 @@
-<!-- src/components/types/Olymp15/index.vue -->
 <template>
   <div class="min-h-screen bg-blue-50 py-8">
     <div class="container mx-auto bg-white p-12 rounded-md shadow-sm">
@@ -390,14 +389,23 @@ const olympTableHtml = computed(() => {
 
 // --- ФУНКЦИИ ОТПРАВКИ ---
 
-// 1) отправка «Задания»
+// 1) отправка «Задания» (теперь всегда закрытая таблица)
 async function onSendTask() {
   try {
+    // Сохраняем текущий режим предпросмотра
+    const prevMode = previewMode.value
+    // Принудительно переключаем на закрытый режим
+    previewMode.value = 'closed'
+    // Формируем HTML только с закрытым содержимым
+    const htmlClosed = olympTableHtml.value
+    // Восстанавливаем прежний режим (чтобы UI не сбрасывался)
+    previewMode.value = prevMode
+
     await sendTask(
       store.domain,
       store.gameId,
       store.levelId,
-      olympTableHtml.value
+      htmlClosed
     )
     alert('✅ Задание отправлено')
   } catch (e: any) {
