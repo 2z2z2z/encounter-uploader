@@ -368,7 +368,7 @@ const olympTableHtml = computed(() => {
     html += '<tr>'
     row.forEach((cell) => {
       if (!cell.id) return
-      const num = parseInt(cell.id.slice(-2), 10)
+      const num = parseInt(cell.id.split('_')[1], 10)
       // Выбираем между closed и open
       let rawText =
         previewMode.value === 'closed'
