@@ -1,0 +1,9 @@
+{
+  "name": "encounter-uploader-root",
+  "private": true,
+  "scripts": {
+    "build:frontend": "npm --prefix frontend run build",
+    "test:backend": "npm --prefix backend test",
+    "start:server": "npm --prefix server start"
+  }
+}

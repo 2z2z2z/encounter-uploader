@@ -154,7 +154,7 @@ export const useUploadStore = defineStore(
   },
   {
     persist: {
-      paths: ['domain', 'gameId', 'levelId', 'uploadType'],
+      pick: ['domain', 'gameId', 'levelId', 'uploadType'],
     },
   }
 )
