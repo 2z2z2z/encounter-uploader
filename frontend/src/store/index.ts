@@ -90,7 +90,10 @@ export const useUploadStore = defineStore(
 
     function loadTypeData(type = uploadType.value) {
       const raw = localStorage.getItem(storageKey(type))
-      const desired = type === 'olymp31' ? 31 : 15
+      let desired = 15
+      if (type === 'olymp31') desired = 31
+      else if (type === 'olymp63') desired = 63
+      else if (type === 'olymp127') desired = 127
       if (raw) {
         try {
           const obj = JSON.parse(raw)
@@ -117,7 +120,10 @@ export const useUploadStore = defineStore(
     }
 
     function clearTypeData() {
-      const desired = uploadType.value === 'olymp31' ? 31 : 15
+      let desired = 15
+      if (uploadType.value === 'olymp31') desired = 31
+      else if (uploadType.value === 'olymp63') desired = 63
+      else if (uploadType.value === 'olymp127') desired = 127
       answers.value = createAnswers(desired)
       closedPattern.value = ''
       config.sectorMode = 'all'
