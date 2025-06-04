@@ -109,8 +109,9 @@ export const useUploadStore = defineStore(
       }
     }
 
-    function setUploadType(type: string) {
-      saveTypeData(uploadType.value)
+    function setUploadType(type: string, prevType?: string) {
+      const oldType = prevType ?? uploadType.value
+      saveTypeData(oldType)
       uploadType.value = type
       loadTypeData(type)
     }

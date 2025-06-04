@@ -83,8 +83,8 @@ const router = useRouter()
 
 watch(
   () => store.uploadType,
-  (val) => {
-    store.setUploadType(val)
+  (val, oldVal) => {
+    store.setUploadType(val, oldVal)
   },
   { immediate: true }
 )
