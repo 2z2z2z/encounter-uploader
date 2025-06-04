@@ -30,13 +30,34 @@ export const useAuthStore = defineStore('auth', {
   persist: true,  // сохраняем в localStorage
 })
 
+function createAnswerEntry(num: number) {
+  return {
+    number: num,
+    inSector: true,
+    inBonus: true,
+    bonusTime: {
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+      negative: false,
+    },
+    variants: [''],
+    closedText: '',
+    displayText: '',
+  }
+}
+
+function createAnswers(count: number) {
+  return Array.from({ length: count }, (_, i) => createAnswerEntry(i + 1))
+}
+
 export const useUploadStore = defineStore('upload', {
   state: () => ({
     // Шаг «Настройки»
-    domain: '' as string,            // например '126'
+    domain: '' as string, // например '126'
     gameId: '' as string,
     levelId: '' as string,
-    uploadType: 'olymp' as string,   // «Олимпийка (15 секторов)»
+    uploadType: 'olymp' as string, // «Олимпийка (15 секторов)»
 
     // Параметры загрузки
     config: {
@@ -52,21 +73,21 @@ export const useUploadStore = defineStore('upload', {
     // Шаблон закрытого сектора (& → номер)
     closedPattern: '' as string,
 
-    // Данные по 15 ответам
-    answers: Array.from({ length: 15 }, (_, i) => ({
-      number: i + 1,                 // порядковый номер
-      inSector: true,                // закрывать сектор?
-      inBonus: true,                 // начислять бонус?
-      bonusTime: {                   // своё время бонуса
-        hours: 0,
-        minutes: 0,
-        seconds: 0,
-        negative: false,
-      },
-      variants: [''],                // варианты ответов
-      closedText: '',                // текст для закрытого сектора
-      displayText: '',               // текст для открытого сектора
-    })),
+    // Данные по ответам (по умолчанию 15 секторов)
+    answers: createAnswers(15),
   }),
+  actions: {
+    setUploadType(type: string) {
+      this.uploadType = type
+      const desired = type === 'olymp31' ? 31 : 15
+      if (this.answers.length > desired) {
+        this.answers = this.answers.slice(0, desired)
+      } else if (this.answers.length < desired) {
+        for (let i = this.answers.length; i < desired; i++) {
+          this.answers.push(createAnswerEntry(i + 1))
+        }
+      }
+    },
+  },
   persist: true,
 })

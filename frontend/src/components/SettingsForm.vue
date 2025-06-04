@@ -51,6 +51,7 @@
           <label class="form-label">Тип уровня</label>
           <select v-model="store.uploadType" class="form-select h-10 w-full">
             <option value="olymp">Олимпийка (15 секторов)</option>
+            <option value="olymp31">Олимпийка (31 сектор)</option>
           </select>
         </div>
       </div>
@@ -70,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { useUploadStore } from '../store'
@@ -79,6 +80,14 @@ import { useAuthStore } from '../store/auth'
 const store = useUploadStore()
 const authStore = useAuthStore()
 const router = useRouter()
+
+watch(
+  () => store.uploadType,
+  (val) => {
+    store.setUploadType(val)
+  },
+  { immediate: true }
+)
 
 // Общая ошибка проверки (домен/игра/авторизация)
 const error = ref('')
