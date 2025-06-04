@@ -105,6 +105,13 @@
         </div>
         <div class="flex flex-wrap gap-2 px-4">
           <button
+            @click="onClear"
+            type="button"
+            class="form-button h-10 px-4"
+          >
+            Очистить
+          </button>
+          <button
             @click="exportData"
             type="button"
             class="form-button h-10 px-4"
@@ -289,6 +296,10 @@ function fillOpenSectors() {
   store.answers.forEach((r) => {
     r.displayText = r.variants[0] || ''
   })
+}
+
+function onClear() {
+  store.clearTypeData()
 }
 
 // Экспорт состояния в JSON

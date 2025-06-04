@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { loginApi } from '../services/api'
+import { ref, reactive, watch } from 'vue'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -51,16 +52,17 @@ function createAnswers(count: number) {
   return Array.from({ length: count }, (_, i) => createAnswerEntry(i + 1))
 }
 
-export const useUploadStore = defineStore('upload', {
-  state: () => ({
-    // Шаг «Настройки»
-    domain: '' as string, // например '126'
-    gameId: '' as string,
-    levelId: '' as string,
-    uploadType: 'olymp' as string, // «Олимпийка (15 секторов)»
+export const useUploadStore = defineStore(
+  'upload',
+  () => {
+    // --- базовые настройки (храним через pinia-plugin-persistedstate) ---
+    const domain = ref('')
+    const gameId = ref('')
+    const levelId = ref('')
+    const uploadType = ref('olymp')
 
-    // Параметры загрузки
-    config: {
+    // --- параметры конкретного уровня (храним отдельно для каждого типа) ---
+    const config = reactive({
       sectorMode: 'all' as 'all' | 'initialAndFinal' | 'finalOnly',
       bonusTime: {
         hours: 0,
@@ -68,26 +70,85 @@ export const useUploadStore = defineStore('upload', {
         seconds: 0,
         negative: false,
       },
-    },
+    })
 
-    // Шаблон закрытого сектора (& → номер)
-    closedPattern: '' as string,
+    const closedPattern = ref('')
+    const answers = ref(createAnswers(15))
 
-    // Данные по ответам (по умолчанию 15 секторов)
-    answers: createAnswers(15),
-  }),
-  actions: {
-    setUploadType(type: string) {
-      this.uploadType = type
-      const desired = type === 'olymp31' ? 31 : 15
-      if (this.answers.length > desired) {
-        this.answers = this.answers.slice(0, desired)
-      } else if (this.answers.length < desired) {
-        for (let i = this.answers.length; i < desired; i++) {
-          this.answers.push(createAnswerEntry(i + 1))
-        }
+    function storageKey(type: string) {
+      return `upload-${type}`
+    }
+
+    function saveTypeData(type = uploadType.value) {
+      const data = {
+        config: JSON.parse(JSON.stringify(config)),
+        closedPattern: closedPattern.value,
+        answers: JSON.parse(JSON.stringify(answers.value)),
       }
-    },
+      localStorage.setItem(storageKey(type), JSON.stringify(data))
+    }
+
+    function loadTypeData(type = uploadType.value) {
+      const raw = localStorage.getItem(storageKey(type))
+      const desired = type === 'olymp31' ? 31 : 15
+      if (raw) {
+        try {
+          const obj = JSON.parse(raw)
+          Object.assign(config, obj.config || {})
+          closedPattern.value = obj.closedPattern || ''
+          answers.value = Array.isArray(obj.answers)
+            ? obj.answers
+            : createAnswers(desired)
+        } catch {
+          closedPattern.value = ''
+          answers.value = createAnswers(desired)
+        }
+      } else {
+        closedPattern.value = ''
+        answers.value = createAnswers(desired)
+      }
+    }
+
+    function setUploadType(type: string, prevType?: string) {
+      const oldType = prevType ?? uploadType.value
+      saveTypeData(oldType)
+      uploadType.value = type
+      loadTypeData(type)
+    }
+
+    function clearTypeData() {
+      const desired = uploadType.value === 'olymp31' ? 31 : 15
+      answers.value = createAnswers(desired)
+      closedPattern.value = ''
+      config.sectorMode = 'all'
+      config.bonusTime = { hours: 0, minutes: 0, seconds: 0, negative: false }
+      saveTypeData(uploadType.value)
+    }
+
+    watch(
+      [config, closedPattern, answers],
+      () => saveTypeData(uploadType.value),
+      { deep: true }
+    )
+
+    // загрузка данных для текущего типа при инициализации
+    loadTypeData(uploadType.value)
+
+    return {
+      domain,
+      gameId,
+      levelId,
+      uploadType,
+      config,
+      closedPattern,
+      answers,
+      setUploadType,
+      clearTypeData,
+    }
   },
-  persist: true,
-})
+  {
+    persist: {
+      paths: ['domain', 'gameId', 'levelId', 'uploadType'],
+    },
+  }
+)
