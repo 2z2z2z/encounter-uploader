@@ -42,6 +42,9 @@ export interface Answer {
   }
   closedText: string
   displayText: string
+  sectorName?: string
+  bonusName?: string
+  noHint?: boolean
 }
 
 /**
@@ -84,19 +87,21 @@ export async function sendTask(
 
 /**
  * 2) Отправка «Секторов» — POST /api/admin/sector
- * Теперь txtSectorName всегда остаётся пустым.
- */
+ * Для олимпийки поле txtSectorName пустое, но при необходимости
+ * можно передать его через параметр sectorName.
+*/
 export async function sendSector(
   domain: string,
   gameid: string | number,
   level: string | number,
   variants: string[],
-  closedRaw: string
+  closedRaw: string,
+  sectorName = ''
 ) {
   const url = '/api/admin/sector'
 
   // Для предпросмотра будет использоваться formatClosedText(closedRaw),
-  // но в самом запросе txtSectorName = ''.
+  // но в самом запросе txtSectorName может быть передано отдельно.
   const formattedClosed = formatClosedText(closedRaw)
 
   const params = new URLSearchParams()
@@ -104,8 +109,8 @@ export async function sendSector(
   params.append('gid', String(gameid))
   params.append('level', String(level))
 
-  // Поле txtSectorName должно быть всегда пустым:
-  params.append('txtSectorName', '')
+  // Название сектора (если не указано — пустая строка)
+  params.append('txtSectorName', sectorName)
   params.append('savesector', ' ')
   variants.forEach((v, idx) => {
     params.append(`txtAnswer_${idx}`, v)
@@ -217,17 +222,19 @@ export async function sendBonuses(
     params.append('gid', String(gameid))
     params.append('level', String(level))
 
-    // txtBonusName — всегда пустая строка
-    params.append('txtBonusName', '')
+    // Название бонуса (если не указано — пустая строка)
+    params.append('txtBonusName', bonus.bonusName || '')
 
     // txtHelp — вставка «открытого сектора» в таблицу
-    const hint = `<script type="text/javascript">document.getElementById("01_${String(
-      bonus.number
-    ).padStart(2, '0')}").innerHTML="${
-      bonus.displayText
-        ? `<p class='up'>${bonus.displayText.replace(/"/g, '\\"')}</p>`
-        : bonus.closedText.replace(/"/g, '\\"')
-    }";</script>`
+    const hint = bonus.noHint
+      ? ''
+      : `<script type="text/javascript">document.getElementById("01_${String(
+          bonus.number
+        ).padStart(2, '0')}").innerHTML="${
+          bonus.displayText
+            ? `<p class='up'>${bonus.displayText.replace(/"/g, '\\"')}</p>`
+            : bonus.closedText.replace(/"/g, '\\"')
+        }";</script>`
     params.append('txtHelp', hint)
 
     // Варианты бонуса: answer_-1, answer_-2, …
