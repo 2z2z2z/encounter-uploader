@@ -80,6 +80,7 @@ export const useUploadStore = defineStore(
     }
 
     function saveTypeData(type = uploadType.value) {
+      if (type === '100500') return
       const data = {
         config: JSON.parse(JSON.stringify(config)),
         closedPattern: closedPattern.value,
@@ -89,6 +90,13 @@ export const useUploadStore = defineStore(
     }
 
     function loadTypeData(type = uploadType.value) {
+      if (type === '100500') {
+        closedPattern.value = ''
+        answers.value = createAnswers(15)
+        config.sectorMode = 'all'
+        config.bonusTime = { hours: 0, minutes: 0, seconds: 0, negative: false }
+        return
+      }
       const raw = localStorage.getItem(storageKey(type))
       let desired = 15
       if (type === 'olymp31') desired = 31
@@ -120,6 +128,7 @@ export const useUploadStore = defineStore(
     }
 
     function clearTypeData() {
+      if (uploadType.value === '100500') return
       let desired = 15
       if (uploadType.value === 'olymp31') desired = 31
       else if (uploadType.value === 'olymp63') desired = 63
@@ -133,7 +142,9 @@ export const useUploadStore = defineStore(
 
     watch(
       [config, closedPattern, answers],
-      () => saveTypeData(uploadType.value),
+      () => {
+        if (uploadType.value !== '100500') saveTypeData(uploadType.value)
+      },
       { deep: true }
     )
 

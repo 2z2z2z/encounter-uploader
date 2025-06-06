@@ -23,6 +23,13 @@
           Блок {{ idx + 1 }}
         </button>
         <button @click="addTab" class="px-4 py-2 rounded-md bg-green-500 text-white">＋</button>
+        <button
+          v-if="tabs.length > 1"
+          @click="removeCurrentTab"
+          class="px-4 py-2 rounded-md bg-red-500 text-white"
+        >
+          Удалить блок
+        </button>
       </div>
 
       <!-- Tab content -->
@@ -31,11 +38,19 @@
         <div class="flex flex-wrap items-end gap-4">
           <div class="flex-1 min-w-[200px]">
             <label class="form-label">Название секторов</label>
-            <input v-model="currentTab.sectorPattern" class="form-input h-10 w-full" />
+            <input
+              v-model="currentTab.sectorPattern"
+              placeholder="Текст или &"
+              class="form-input h-10 w-full"
+            />
           </div>
           <div class="flex-1 min-w-[200px]">
             <label class="form-label">Название бонусов</label>
-            <input v-model="currentTab.bonusPattern" class="form-input h-10 w-full" />
+            <input
+              v-model="currentTab.bonusPattern"
+              placeholder="Текст или &"
+              class="form-input h-10 w-full"
+            />
           </div>
           <div>
             <label class="form-label">Бонусное время (ч, м, с)</label>
@@ -59,6 +74,8 @@
               <tr>
                 <th class="p-2 text-left w-8">#</th>
                 <th class="p-2 text-left w-1/3">Ответ</th>
+                <th class="p-2 text-center">Сектор</th>
+                <th class="p-2 text-center">Бонус</th>
                 <th class="p-2 text-left w-32">Бонусное время</th>
                 <th class="p-2 text-left">Название сектора</th>
                 <th class="p-2 text-left">Название бонуса</th>
@@ -69,6 +86,12 @@
                 <td class="p-2">{{ row.number }}</td>
                 <td class="p-2">
                   <input v-model="row.answer" class="form-input h-8 w-full" placeholder="код" />
+                </td>
+                <td class="p-2 text-center">
+                  <input type="checkbox" v-model="row.inSector" class="cursor-pointer" />
+                </td>
+                <td class="p-2 text-center">
+                  <input type="checkbox" v-model="row.inBonus" class="cursor-pointer" />
                 </td>
                 <td class="p-2">
                   <div class="flex items-center gap-1">
@@ -116,9 +139,14 @@
     <!-- Add codes modal -->
     <transition name="fade">
       <div v-if="showCodes" class="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
-        <div class="bg-white p-6 rounded-md w-[90%] max-w-xl space-y-4">
+        <div class="bg-white p-6 rounded-md w-[90%] max-w-xl space-y-4 relative">
+          <button
+            @click="showCodes = false"
+            type="button"
+            class="absolute top-2 right-2 text-gray-400 hover:text-black cursor-pointer"
+          >✕</button>
           <textarea v-model="codesText" class="form-input h-40 w-full" placeholder="Коды, каждый с новой строки"></textarea>
-          <div class="text-right">
+          <div class="text-right mt-4">
             <button @click="applyCodes" class="form-button h-10 px-4">Готово</button>
           </div>
         </div>
@@ -142,6 +170,8 @@ interface Row {
   bonusTime: { hours: number; minutes: number; seconds: number; negative: boolean }
   sectorName: string
   bonusName: string
+  inSector: boolean
+  inBonus: boolean
 }
 interface TabData {
   sectorPattern: string
@@ -170,60 +200,76 @@ function addTab() {
   activeTab.value = tabs.value.length - 1
 }
 
+function removeCurrentTab() {
+  if (tabs.value.length <= 1) return
+  tabs.value.splice(activeTab.value, 1)
+  if (activeTab.value >= tabs.value.length) {
+    activeTab.value = tabs.value.length - 1
+  }
+}
+
 const currentTab = computed(() => tabs.value[activeTab.value])
 
 onMounted(() => {
   const raw = localStorage.getItem(storageKey)
   if (raw) {
     try {
-      tabs.value = JSON.parse(raw)
+      const arr = JSON.parse(raw)
+      if (Array.isArray(arr)) {
+        tabs.value = arr.map((t: any) => ({ ...createTab(), rows: t.rows || [] }))
+      } else {
+        tabs.value = [createTab()]
+      }
     } catch {
       tabs.value = [createTab()]
     }
   } else {
     tabs.value = [createTab()]
   }
+
+  watch(
+    tabs,
+    (val) => {
+      const plain = val.map((t) => ({ rows: t.rows }))
+      localStorage.setItem(storageKey, JSON.stringify(plain))
+    },
+    { deep: true }
+  )
+
+  watch(
+    () => currentTab.value?.sectorPattern,
+    (val, old) => {
+      if (val === old) return
+      const t = currentTab.value
+      if (!t || val === undefined) return
+      t.rows.forEach((r, idx) => {
+        r.sectorName = val.replace(/&/g, String(idx + 1))
+      })
+    }
+  )
+
+  watch(
+    () => currentTab.value?.bonusPattern,
+    (val, old) => {
+      if (val === old) return
+      const t = currentTab.value
+      if (!t || val === undefined) return
+      t.rows.forEach((r, idx) => {
+        r.bonusName = val.replace(/&/g, String(idx + 1))
+      })
+    }
+  )
+
+  watch(
+    () => ({ ...currentTab.value?.quickTime }),
+    (qt, old) => {
+      if (!currentTab.value) return
+      if (JSON.stringify(qt) === JSON.stringify(old)) return
+      currentTab.value.rows.forEach((r) => (r.bonusTime = { ...qt }))
+    },
+    { deep: true }
+  )
 })
-
-watch(
-  tabs,
-  (val) => {
-    localStorage.setItem(storageKey, JSON.stringify(val))
-  },
-  { deep: true }
-)
-
-watch(
-  () => currentTab.value?.sectorPattern,
-  (val) => {
-    const t = currentTab.value
-    if (!t || val === undefined) return
-    t.rows.forEach((r, idx) => {
-      r.sectorName = val.replace(/&/g, String(idx + 1))
-    })
-  }
-)
-
-watch(
-  () => currentTab.value?.bonusPattern,
-  (val) => {
-    const t = currentTab.value
-    if (!t || val === undefined) return
-    t.rows.forEach((r, idx) => {
-      r.bonusName = val.replace(/&/g, String(idx + 1))
-    })
-  }
-)
-
-watch(
-  () => ({ ...currentTab.value?.quickTime }),
-  (qt) => {
-    const t = currentTab.value
-    if (!t) return
-    t.rows.forEach((r) => (r.bonusTime = { ...qt }))
-  },
-  { deep: true }
-)
 
 function applyCodes() {
   const t = currentTab.value
@@ -237,6 +283,8 @@ function applyCodes() {
       bonusTime: { ...t.quickTime },
       sectorName: t.sectorPattern.replace(/&/g, String(num)),
       bonusName: t.bonusPattern.replace(/&/g, String(num)),
+      inSector: true,
+      inBonus: true,
     })
   })
   codesText.value = ''
@@ -248,7 +296,8 @@ function onClear() {
 }
 
 function exportData() {
-  const blob = new Blob([JSON.stringify(tabs.value, null, 2)], { type: 'application/json' })
+  const plain = tabs.value.map((t) => ({ rows: t.rows }))
+  const blob = new Blob([JSON.stringify(plain, null, 2)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
@@ -265,7 +314,7 @@ function importData(e: Event) {
     try {
       const arr = JSON.parse(reader.result as string)
       if (Array.isArray(arr)) {
-        tabs.value = arr
+        tabs.value = arr.map((t: any) => ({ ...createTab(), rows: t.rows || [] }))
         activeTab.value = 0
       } else {
         alert('Неверный формат JSON')
@@ -280,6 +329,7 @@ function importData(e: Event) {
 async function onSendSectors() {
   for (const t of tabs.value) {
     for (const row of t.rows) {
+      if (!row.inSector) continue
       await sendSector(
         store.domain,
         store.gameId,
@@ -296,6 +346,7 @@ async function onSendSectors() {
 async function onSendBonuses() {
   for (const t of tabs.value) {
     for (const row of t.rows) {
+      if (!row.inBonus) continue
       const b: Answer = {
         number: row.number,
         variants: [row.answer],
