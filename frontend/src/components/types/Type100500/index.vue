@@ -146,8 +146,25 @@
             class="absolute top-2 right-2 text-gray-400 hover:text-black cursor-pointer"
           >✕</button>
           <textarea v-model="codesText" class="form-input h-40 w-full" placeholder="Коды, каждый с новой строки"></textarea>
-          <div class="text-right mt-4">
-            <button @click="applyCodes" class="form-button h-10 px-4">Готово</button>
+          <div class="flex flex-wrap justify-between items-end mt-4 gap-2">
+            <div class="flex flex-wrap items-end gap-2">
+              <label class="form-label">Сгенерировать</label>
+              <input
+                type="number"
+                min="1"
+                v-model.number="genCount"
+                class="form-input h-10 w-20"
+              />
+              <button @click="generateCodes(4)" type="button" class="form-button h-10 px-2 whitespace-nowrap">
+                4-х знаков
+              </button>
+              <button @click="generateCodes(5)" type="button" class="form-button h-10 px-2 whitespace-nowrap">
+                5-ти знаков
+              </button>
+            </div>
+            <div class="text-right">
+              <button @click="applyCodes" class="form-button h-10 px-4">Готово</button>
+            </div>
           </div>
         </div>
       </div>
@@ -185,6 +202,7 @@ const tabs = ref<TabData[]>([])
 const activeTab = ref(0)
 const showCodes = ref(false)
 const codesText = ref('')
+const genCount = ref(1)
 
 function createTab(): TabData {
   return {
@@ -270,6 +288,39 @@ onMounted(() => {
     { deep: true }
   )
 })
+
+function generateRandomCode(len: number, used: Set<string>): string {
+  while (true) {
+    let code = ''
+    while (code.length < len) {
+      const d = Math.floor(Math.random() * 10).toString()
+      if (code.length >= 2 && code[code.length - 1] === d && code[code.length - 2] === d) {
+        continue
+      }
+      code += d
+    }
+    if (!used.has(code)) {
+      used.add(code)
+      return code
+    }
+  }
+}
+
+function generateCodes(len: number) {
+  const existing = new Set<string>()
+  tabs.value.forEach((t) => t.rows.forEach((r) => existing.add(r.answer.trim())))
+  codesText.value
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l)
+    .forEach((c) => existing.add(c))
+
+  const arr: string[] = []
+  for (let i = 0; i < genCount.value; i++) {
+    arr.push(generateRandomCode(len, existing))
+  }
+  codesText.value = arr.join('\n')
+}
 
 function applyCodes() {
   const t = currentTab.value
