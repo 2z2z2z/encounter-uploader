@@ -129,7 +129,11 @@
             <input type="file" @change="importData" accept=".json" class="hidden" />
           </label>
         </div>
-        <div class="flex flex-wrap gap-2">
+        <div class="flex flex-wrap gap-2 items-center">
+          <label class="flex items-center gap-1">
+            <input type="checkbox" v-model="combineSectors" class="cursor-pointer" />
+            <span>Объединить секторы (БМП)</span>
+          </label>
           <button @click="onSendSectors" type="button" class="form-button h-10 px-4">Залить секторы</button>
           <button @click="onSendBonuses" type="button" class="form-button h-10 px-4">Залить бонусы</button>
         </div>
@@ -203,6 +207,7 @@ const activeTab = ref(0)
 const showCodes = ref(false)
 const codesText = ref('')
 const genCount = ref(1)
+const combineSectors = ref(false)
 
 function createTab(): TabData {
   return {
@@ -378,17 +383,42 @@ function importData(e: Event) {
 }
 
 async function onSendSectors() {
-  for (const t of tabs.value) {
-    for (const row of t.rows) {
-      if (!row.inSector) continue
+  if (combineSectors.value) {
+    if (tabs.value.length <= 1) {
+      alert('❌ Для объединения необходимо больше одного блока')
+      return
+    }
+    const firstLen = tabs.value[0].rows.length
+    if (!tabs.value.every((t) => t.rows.length === firstLen)) {
+      alert('❌ Количество ответов во всех блоках должно совпадать')
+      return
+    }
+    for (let i = 0; i < firstLen; i++) {
+      const rows = tabs.value.map((t) => t.rows[i])
+      if (!rows.every((r) => r.inSector)) continue
+      const variants = rows.map((r) => r.answer)
       await sendSector(
         store.domain,
         store.gameId,
         store.levelId,
-        [row.answer],
+        variants,
         '',
-        row.sectorName
+        rows[0].sectorName
       )
+    }
+  } else {
+    for (const t of tabs.value) {
+      for (const row of t.rows) {
+        if (!row.inSector) continue
+        await sendSector(
+          store.domain,
+          store.gameId,
+          store.levelId,
+          [row.answer],
+          '',
+          row.sectorName
+        )
+      }
     }
   }
   alert('✅ Все сектора отправлены')
