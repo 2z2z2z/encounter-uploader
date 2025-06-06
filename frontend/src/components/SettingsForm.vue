@@ -54,6 +54,7 @@
             <option value="olymp31">Олимпийка (31 сектор)</option>
             <option value="olymp63">Олимпийка (63 сектора)</option>
             <option value="olymp127">Олимпийка (127 сектора)</option>
+            <option value="100500">100500 секторов и бонусов</option>
           </select>
         </div>
       </div>
