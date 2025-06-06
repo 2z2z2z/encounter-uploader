@@ -200,6 +200,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { useProgressStore } from '../../../store/progress'
 import { useUploadStore } from '../../../store'
 import { useAuthStore } from '../../../store/auth'
 import Answers from './Answers.vue'
@@ -228,6 +229,7 @@ type Cell = { id?: string; rs?: number }
 
 const store = useUploadStore()
 const authStore = useAuthStore()
+const progress = useProgressStore()
 
 const error = ref('')
 const showPreview = ref(false)
@@ -429,17 +431,19 @@ async function onSendTask() {
 // 2) отправка «Секторов»
 async function onSendSector() {
   try {
-    for (const row of store.answers) {
-      if (!row.inSector) continue
+    const sectors = store.answers.filter((r) => r.inSector)
+    progress.start('sector', sectors.length)
+    for (const row of sectors) {
+      progress.update(`Сектор ${row.number}`)
       await sendSector(
         store.domain,
         store.gameId,
         store.levelId,
         row.variants,
-        // передаём raw closedText, обработка произойдёт внутри sendSector
         row.closedText
       )
     }
+    progress.finish()
     alert('✅ Все отмеченные сектора отправлены')
   } catch (e: any) {
     alert('❌ Ошибка отправки секторов: ' + e.message)
@@ -454,7 +458,9 @@ async function onSendBonus() {
       alert('ℹ️ Нет отмеченных бонусов для отправки')
       return
     }
+    progress.start('bonus', bonusesToSend.length)
     for (const bonusRow of bonusesToSend) {
+      progress.update(`Бонус ${bonusRow.number}`)
       await sendBonuses(
         store.domain,
         store.gameId,
@@ -462,6 +468,7 @@ async function onSendBonus() {
         [bonusRow]
       )
     }
+    progress.finish()
     alert('✅ Все отмеченные бонусы отправлены')
   } catch (e: any) {
     alert('❌ Ошибка отправки бонусов: ' + e.message)

@@ -180,10 +180,12 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useUploadStore } from '../../../store'
 import { useAuthStore } from '../../../store/auth'
+import { useProgressStore } from '../../../store/progress'
 import { sendSector, sendBonuses, Answer } from '../../../services/uploader'
 
 const store = useUploadStore()
 const authStore = useAuthStore()
+const progress = useProgressStore()
 
 interface Row {
   number: number
@@ -393,10 +395,19 @@ async function onSendSectors() {
       alert('❌ Количество ответов во всех блоках должно совпадать')
       return
     }
+    const total = firstLen
+    const rowsList: Row[][] = []
     for (let i = 0; i < firstLen; i++) {
-      const rows = tabs.value.map((t) => t.rows[i])
-      if (!rows.every((r) => r.inSector)) continue
+      rowsList.push(tabs.value.map((t) => t.rows[i]))
+    }
+    progress.start('sector', total)
+    for (const rows of rowsList) {
+      if (!rows.every((r) => r.inSector)) {
+        progress.update('Пропуск')
+        continue
+      }
       const variants = rows.map((r) => r.answer)
+      progress.update(`Сектор ${rows[0].number}`)
       await sendSector(
         store.domain,
         store.gameId,
@@ -406,29 +417,38 @@ async function onSendSectors() {
         rows[0].sectorName
       )
     }
+    progress.finish()
   } else {
+    const rowsToSend: Row[] = []
     for (const t of tabs.value) {
       for (const row of t.rows) {
         if (!row.inSector) continue
-        await sendSector(
-          store.domain,
-          store.gameId,
-          store.levelId,
-          [row.answer],
-          '',
-          row.sectorName
-        )
+        rowsToSend.push(row)
       }
     }
+    progress.start('sector', rowsToSend.length)
+    for (const row of rowsToSend) {
+      progress.update(`Сектор ${row.number}`)
+      await sendSector(
+        store.domain,
+        store.gameId,
+        store.levelId,
+        [row.answer],
+        '',
+        row.sectorName
+      )
+    }
+    progress.finish()
   }
   alert('✅ Все сектора отправлены')
 }
 
 async function onSendBonuses() {
+  const bonusRows: Answer[] = []
   for (const t of tabs.value) {
     for (const row of t.rows) {
       if (!row.inBonus) continue
-      const b: Answer = {
+      bonusRows.push({
         number: row.number,
         variants: [row.answer],
         inSector: true,
@@ -438,10 +458,15 @@ async function onSendBonuses() {
         displayText: '',
         bonusName: row.bonusName,
         noHint: true,
-      }
-      await sendBonuses(store.domain, store.gameId, store.levelId, [b])
+      })
     }
   }
+  progress.start('bonus', bonusRows.length)
+  for (const b of bonusRows) {
+    progress.update(`Бонус ${b.number}`)
+    await sendBonuses(store.domain, store.gameId, store.levelId, [b])
+  }
+  progress.finish()
   alert('✅ Все бонусы отправлены')
 }
 </script>
