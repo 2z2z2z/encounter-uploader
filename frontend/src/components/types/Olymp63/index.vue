@@ -307,7 +307,8 @@ function onClear() {
 
 // Экспорт состояния в JSON
 function exportData() {
-  const blob = new Blob([JSON.stringify(store.$state, null, 2)], {
+  const { levelId, ...state } = store.$state as any
+  const blob = new Blob([JSON.stringify(state, null, 2)], {
     type: 'application/json',
   })
   const url = URL.createObjectURL(blob)
@@ -327,7 +328,8 @@ function importData(e: Event) {
     try {
       const obj = JSON.parse(reader.result as string)
       if (Array.isArray(obj.answers) && obj.config) {
-        store.$patch(obj)
+        const { levelId, ...rest } = obj
+        store.$patch(rest)
       } else {
         alert('Неверный формат JSON')
       }
