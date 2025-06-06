@@ -14,7 +14,7 @@
       <!-- Tabs -->
       <div class="flex items-center gap-2 mt-6 mb-4">
         <button
-          v-for="(t, idx) in tabs"
+          v-for="(_, idx) in tabs"
           :key="idx"
           @click="activeTab = idx"
           :class="activeTab === idx ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'"
@@ -181,7 +181,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useUploadStore } from '../../../store'
 import { useAuthStore } from '../../../store/auth'
 import { useProgressStore } from '../../../store/progress'
-import { sendSector, sendBonuses, Answer } from '../../../services/uploader'
+import { sendSector, sendBonuses, type Answer } from '../../../services/uploader'
 
 const store = useUploadStore()
 const authStore = useAuthStore()
