@@ -150,31 +150,55 @@
             class="absolute top-2 right-2 text-gray-400 hover:text-black cursor-pointer"
           >✕</button>
           <textarea v-model="codesText" class="form-input h-40 w-full" placeholder="Каждый код с новой строки"></textarea>
-          <div class="flex flex-wrap justify-between items-end mt-4 gap-2">
-            <div class="flex flex-wrap items-end gap-2">
-              <label class="form-label">Сгенерить:</label>
-              <input
-                type="number"
-                min="1"
-                v-model.number="genCount"
-                class="form-input h-10 w-25"
-                placeholder="кол-во"
-              />
-              <input
-                type="number"
-                min="2"
-                max="10"
-                v-model.number="genDigits"
-                class="form-input h-10 w-25"
-                placeholder="знаков"
-              />
-              <button @click="generateCodes(genDigits)" type="button" class="form-button h-10 px-2 whitespace-nowrap">
+          <div class="flex flex-col sm:flex-row sm:items-end mt-4 gap-4">
+            <div class="flex flex-col sm:flex-row flex-1 items-end gap-2">
+              <div class="relative sm:w-auto flex-1">
+                <input
+                  id="gen-count"
+                  type="number"
+                  min="1"
+                  v-model.number="genCount"
+                  class="form-input h-10 w-full sm:w-24 placeholder-transparent peer mb-0"
+                  placeholder=" "
+                />
+                <label
+                  for="gen-count"
+                  class="absolute left-3 top-2 text-gray-500 transition-all pointer-events-none
+                         peer-placeholder-shown:top-2 peer-placeholder-shown:text-base
+                         peer-focus:-top-3 peer-focus:text-xs bg-white px-1"
+                >Количество</label>
+              </div>
+              <div class="relative sm:w-auto flex-1">
+                <input
+                  id="gen-digits"
+                  type="number"
+                  min="2"
+                  max="10"
+                  v-model.number="genDigits"
+                  class="form-input h-10 w-full sm:w-24 placeholder-transparent peer mb-0"
+                  placeholder=" "
+                />
+                <label
+                  for="gen-digits"
+                  class="absolute left-3 top-2 text-gray-500 transition-all pointer-events-none
+                         peer-placeholder-shown:top-2 peer-placeholder-shown:text-base
+                         peer-focus:-top-3 peer-focus:text-xs bg-white px-1"
+                >Знаков</label>
+              </div>
+              <button
+                @click="generateCodes(genDigits)"
+                type="button"
+                class="form-button h-10 px-4 whitespace-nowrap flex-shrink-0"
+              >
                 Сгенерировать
               </button>
             </div>
-            <div class="text-right">
-              <button @click="applyCodes" class="form-button h-10 px-4">Готово</button>
-            </div>
+            <button
+              @click="applyCodes"
+              class="form-button h-10 px-4 self-end sm:self-auto"
+            >
+              Готово
+            </button>
           </div>
         </div>
       </div>
@@ -321,6 +345,11 @@ function generateRandomCode(len: number, used: Set<string>): string {
 }
 
 function generateCodes(len: number) {
+  if (len < 2 || len > 10) {
+    alert('Количество знаков должно быть от 2 до 10')
+    return
+  }
+
   const existing = new Set<string>()
   tabs.value.forEach((t) => t.rows.forEach((r) => existing.add(r.answer.trim())))
   codesText.value
@@ -328,6 +357,15 @@ function generateCodes(len: number) {
     .map((l) => l.trim())
     .filter((l) => l)
     .forEach((c) => existing.add(c))
+
+  const max = Math.pow(10, len)
+  const available = max - existing.size
+  if (genCount.value > available) {
+    alert(
+      `Невозможно сгенерировать ${genCount.value} уникальных кодов. Доступно только ${available}.`
+    )
+    return
+  }
 
   const arr: string[] = []
   for (let i = 0; i < genCount.value; i++) {
