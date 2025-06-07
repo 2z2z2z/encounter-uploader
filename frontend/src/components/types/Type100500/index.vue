@@ -143,13 +143,14 @@
     <!-- Add codes modal -->
     <transition name="fade">
       <div v-if="showCodes" class="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
-        <div class="bg-white p-6 rounded-md w-[90%] max-w-xl space-y-4 relative">
+        <div class="bg-white p-6 rounded-md w-[90%] max-w-2xl space-y-4 relative">
           <button
             @click="showCodes = false"
             type="button"
             class="absolute top-2 right-2 text-gray-400 hover:text-black cursor-pointer"
           >✕</button>
           <textarea v-model="codesText" class="form-input h-40 w-full" placeholder="Каждый код с новой строки"></textarea>
+          <p class="text-sm text-right text-gray-500">{{ codesCount }} кодов</p>
           <div class="flex flex-col sm:flex-row sm:items-end mt-4 gap-4">
             <div class="flex flex-1 w-full sm:w-auto items-stretch gap-0">
               <select
@@ -172,12 +173,10 @@
                 Сгенерировать
               </button>
             </div>
-            <button
-              @click="applyCodes"
-              class="form-button h-10 px-4 self-end sm:self-auto"
-            >
-              Готово
-            </button>
+            <div class="flex gap-2 self-end sm:self-auto">
+              <button @click="applyCodes" class="form-button h-10 px-4">Готово</button>
+              <button @click="codesText = ''" class="form-button h-10 px-4">Очистить</button>
+            </div>
           </div>
         </div>
       </div>
@@ -217,6 +216,12 @@ const tabs = ref<TabData[]>([])
 const activeTab = ref(0)
 const showCodes = ref(false)
 const codesText = ref('')
+const codesCount = computed(() =>
+  codesText.value
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l).length
+)
 const genCount = ref(1)
 const genDigits = ref(4)
 const combineSectors = ref(false)
