@@ -160,11 +160,16 @@
                 class="form-input h-10 w-25"
                 placeholder="кол-во"
               />
-              <button @click="generateCodes(4)" type="button" class="form-button h-10 px-2 whitespace-nowrap">
-                4-х знаков
-              </button>
-              <button @click="generateCodes(5)" type="button" class="form-button h-10 px-2 whitespace-nowrap">
-                5-ти знаков
+              <input
+                type="number"
+                min="2"
+                max="10"
+                v-model.number="genDigits"
+                class="form-input h-10 w-25"
+                placeholder="знаков"
+              />
+              <button @click="generateCodes(genDigits)" type="button" class="form-button h-10 px-2 whitespace-nowrap">
+                Сгенерировать
               </button>
             </div>
             <div class="text-right">
@@ -210,6 +215,7 @@ const activeTab = ref(0)
 const showCodes = ref(false)
 const codesText = ref('')
 const genCount = ref(1)
+const genDigits = ref(4)
 const combineSectors = ref(false)
 
 function createTab(): TabData {
