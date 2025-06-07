@@ -155,27 +155,33 @@
             <div class="flex flex-1 w-full sm:w-auto items-stretch gap-0">
               <select
                 v-model.number="genDigits"
-                class="form-select h-10 w-20 sm:w-24 rounded-r-none mb-0"
+                class="form-select h-10 w-24 sm:w-30 rounded-r-none mb-0 border border-gray-200"
               >
-                <option v-for="n in 9" :key="n" :value="n + 1">{{ n + 1 }}</option>
+                <option v-for="n in 9" :key="n" :value="n + 1">{{ n + 1 }} знак.</option>
               </select>
-              <input
-                type="number"
-                min="1"
-                v-model.number="genCount"
-                class="form-input h-10 flex-1 sm:w-24 rounded-none mb-0"
-              />
+              <div class="relative">
+                <div class="absolute inset-y-0 end-0 flex items-center pe-5 pointer-events-none">
+                  <label class="w-4 h-6 text-gray-500 dark:text-gray-400">шт.</label>
+                </div>
+                <input
+                  type="number"
+                  min="1"
+                  v-model.number="genCount"
+                  class="form-input h-10 flex-1 w-full bg-white rounded-none mb-0 border border-gray-200"
+                  placeholder="количество"
+                />
+              </div>
               <button
                 @click="generateCodes(genDigits)"
                 type="button"
                 class="form-button h-10 px-4 rounded-l-none whitespace-nowrap"
               >
-                Сгенерировать
+                Сгенерить
               </button>
             </div>
             <div class="flex gap-2 self-end sm:self-auto">
+              <button @click="codesText = ''" class="form-button bg-red-500 h-10 px-4">Очистить</button>
               <button @click="applyCodes" class="form-button h-10 px-4">Готово</button>
-              <button @click="codesText = ''" class="form-button h-10 px-4">Очистить</button>
             </div>
           </div>
         </div>
