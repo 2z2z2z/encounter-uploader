@@ -1,6 +1,10 @@
 @import "tailwindcss";
 
 @layer base {
+  :root, :host {
+    --color-red-500: #e76f51;
+    --color-green-500: #76c893;
+  }
   html {
     font-family: 'Inter', system-ui, sans-serif;
     background-color: #FFFFFF;

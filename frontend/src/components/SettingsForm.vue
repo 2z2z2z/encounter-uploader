@@ -2,12 +2,12 @@
   <div class="min-h-screen flex items-center justify-center bg-blue-50 py-8">
     <div class="bg-white p-12 rounded-md shadow-sm w-full max-w-lg space-y-6">
       <h1 class="text-2xl font-semibold text-center">Настройки</h1>
-      <p class="text-sm text-gray-500 text-center mb-4">
+      <!--<p class="text-sm text-gray-500 text-center mb-4">
         автор: <strong>{{ authStore.username }}</strong>,
         домен: <strong>{{ store.domain }}</strong>,
         игра: <strong>{{ store.gameId }}</strong>,
         уровень: <strong>{{ store.levelId }}</strong>
-      </p>
+      </p>-->
 
       <div class="space-y-4">
         <div>
@@ -65,7 +65,7 @@
       </div>
 
       <div class="flex justify-end">
-        <button @click="onContinue" class="form-button h-10 px-6">
+        <button @click="onContinue" class="form-button h-10 px-6 flex-1">
           Продолжить
         </button>
       </div>

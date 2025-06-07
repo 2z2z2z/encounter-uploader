@@ -38,7 +38,8 @@
                 <input
                   v-model="row.variants[idx]"
                   placeholder="ответ"
-                  class="form-input h-8 flex-1"
+                  class="form-input h-8 min-w-[150px] flex-1"
+                  
                 />
                 <button
                   v-if="idx === row.variants.length - 1 && idx < 9"
@@ -107,14 +108,14 @@
             <input
               v-model="row.closedText"
               placeholder="Текст или картинка"
-              class="form-input h-8 w-full"
+              class="form-input h-8 w-full min-w-[200px]"
             />
           </td>
           <td class="p-2">
             <input
               v-model="row.displayText"
-              placeholder="Отображение разгаданного слова"
-              class="form-input h-8 w-full"
+              placeholder="Отображение ответа"
+              class="form-input h-8 w-full min-w-[200px]"
             />
           </td>
         </tr>

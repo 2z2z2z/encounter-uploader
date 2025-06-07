@@ -12,28 +12,28 @@
       </p>
 
       <!-- Tabs -->
-      <div class="flex items-center gap-2 mt-6 mb-4">
+      <div class="flex flex-wrap items-center gap-2 mt-6 mb-6">
         <button
           v-for="(_, idx) in tabs"
           :key="idx"
           @click="activeTab = idx"
           :class="activeTab === idx ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'"
-          class="px-4 py-2 rounded-md"
+          class="px-4 py-2 rounded-md min-w-[100px]"
         >
           Блок {{ idx + 1 }}
         </button>
-        <button @click="addTab" class="px-4 py-2 rounded-md bg-green-500 text-white">＋</button>
+        <button @click="addTab" class="px-4 py-2 rounded-md bg-green-500 text-white">+</button>
         <button
           v-if="tabs.length > 1"
           @click="removeCurrentTab"
           class="px-4 py-2 rounded-md bg-red-500 text-white"
         >
-          Удалить блок
+          -
         </button>
       </div>
 
       <!-- Tab content -->
-      <div v-if="currentTab" class="space-y-4">
+      <div v-if="currentTab" class="space-y-8">
         <!-- Controls -->
         <div class="flex flex-wrap items-end gap-4">
           <div class="flex-1 min-w-[200px]">
@@ -64,7 +64,7 @@
               </label>
             </div>
           </div>
-          <button @click="showCodes = true" type="button" class="form-button h-10 px-4">Добавить коды</button>
+          <button @click="showCodes = true" type="button" class="form-button h-10 px-4 flex-1">Добавить коды</button>
         </div>
 
         <!-- Table -->
@@ -85,7 +85,7 @@
               <tr v-for="row in currentTab.rows" :key="row.number" class="border-t border-gray-200">
                 <td class="p-2">{{ row.number }}</td>
                 <td class="p-2">
-                  <input v-model="row.answer" class="form-input h-8 w-full" placeholder="код" />
+                  <input v-model="row.answer" class="form-input h-8 w-full min-w-[150px]" placeholder="код" />
                 </td>
                 <td class="p-2 text-center">
                   <input type="checkbox" v-model="row.inSector" class="cursor-pointer" />
@@ -105,10 +105,10 @@
                   </div>
                 </td>
                 <td class="p-2">
-                  <input v-model="row.sectorName" class="form-input h-8 w-full" placeholder="Название сектора" />
+                  <input v-model="row.sectorName" class="form-input h-8 w-full min-w-[150px]" placeholder="Название сектора" />
                 </td>
                 <td class="p-2">
-                  <input v-model="row.bonusName" class="form-input h-8 w-full" placeholder="Название бонуса" />
+                  <input v-model="row.bonusName" class="form-input h-8 w-full min-w-[150px]" placeholder="Название бонуса" />
                 </td>
               </tr>
             </tbody>
@@ -149,15 +149,16 @@
             type="button"
             class="absolute top-2 right-2 text-gray-400 hover:text-black cursor-pointer"
           >✕</button>
-          <textarea v-model="codesText" class="form-input h-40 w-full" placeholder="Коды, каждый с новой строки"></textarea>
+          <textarea v-model="codesText" class="form-input h-40 w-full" placeholder="Каждый код с новой строки"></textarea>
           <div class="flex flex-wrap justify-between items-end mt-4 gap-2">
             <div class="flex flex-wrap items-end gap-2">
-              <label class="form-label">Сгенерировать</label>
+              <label class="form-label">Сгенерить:</label>
               <input
                 type="number"
                 min="1"
                 v-model.number="genCount"
-                class="form-input h-10 w-20"
+                class="form-input h-10 w-25"
+                placeholder="кол-во"
               />
               <button @click="generateCodes(4)" type="button" class="form-button h-10 px-2 whitespace-nowrap">
                 4-х знаков
