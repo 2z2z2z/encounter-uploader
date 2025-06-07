@@ -143,32 +143,39 @@
     <!-- Add codes modal -->
     <transition name="fade">
       <div v-if="showCodes" class="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
-        <div class="bg-white p-6 rounded-md w-[90%] max-w-xl space-y-4 relative">
+        <div class="bg-white p-6 rounded-md w-[90%] max-w-2xl space-y-4 relative">
           <button
             @click="showCodes = false"
             type="button"
             class="absolute top-2 right-2 text-gray-400 hover:text-black cursor-pointer"
           >✕</button>
           <textarea v-model="codesText" class="form-input h-40 w-full" placeholder="Каждый код с новой строки"></textarea>
-          <div class="flex flex-wrap justify-between items-end mt-4 gap-2">
-            <div class="flex flex-wrap items-end gap-2">
-              <label class="form-label">Сгенерить:</label>
+          <p class="text-sm text-right text-gray-500">{{ codesCount }} кодов</p>
+          <div class="flex flex-col sm:flex-row sm:items-end mt-4 gap-4">
+            <div class="flex flex-1 w-full sm:w-auto items-stretch gap-0">
+              <select
+                v-model.number="genDigits"
+                class="form-select h-10 w-20 sm:w-24 rounded-r-none mb-0"
+              >
+                <option v-for="n in 9" :key="n" :value="n + 1">{{ n + 1 }}</option>
+              </select>
               <input
                 type="number"
                 min="1"
                 v-model.number="genCount"
-                class="form-input h-10 w-25"
-                placeholder="кол-во"
+                class="form-input h-10 flex-1 sm:w-24 rounded-none mb-0"
               />
-              <button @click="generateCodes(4)" type="button" class="form-button h-10 px-2 whitespace-nowrap">
-                4-х знаков
-              </button>
-              <button @click="generateCodes(5)" type="button" class="form-button h-10 px-2 whitespace-nowrap">
-                5-ти знаков
+              <button
+                @click="generateCodes(genDigits)"
+                type="button"
+                class="form-button h-10 px-4 rounded-l-none whitespace-nowrap"
+              >
+                Сгенерировать
               </button>
             </div>
-            <div class="text-right">
+            <div class="flex gap-2 self-end sm:self-auto">
               <button @click="applyCodes" class="form-button h-10 px-4">Готово</button>
+              <button @click="codesText = ''" class="form-button h-10 px-4">Очистить</button>
             </div>
           </div>
         </div>
@@ -209,7 +216,14 @@ const tabs = ref<TabData[]>([])
 const activeTab = ref(0)
 const showCodes = ref(false)
 const codesText = ref('')
+const codesCount = computed(() =>
+  codesText.value
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l).length
+)
 const genCount = ref(1)
+const genDigits = ref(4)
 const combineSectors = ref(false)
 
 function createTab(): TabData {
@@ -315,6 +329,11 @@ function generateRandomCode(len: number, used: Set<string>): string {
 }
 
 function generateCodes(len: number) {
+  if (len < 2 || len > 10) {
+    alert('Количество знаков должно быть от 2 до 10')
+    return
+  }
+
   const existing = new Set<string>()
   tabs.value.forEach((t) => t.rows.forEach((r) => existing.add(r.answer.trim())))
   codesText.value
@@ -322,6 +341,15 @@ function generateCodes(len: number) {
     .map((l) => l.trim())
     .filter((l) => l)
     .forEach((c) => existing.add(c))
+
+  const max = Math.pow(10, len)
+  const available = max - existing.size
+  if (genCount.value > available) {
+    alert(
+      `Невозможно сгенерировать ${genCount.value} уникальных кодов. Доступно только ${available}.`
+    )
+    return
+  }
 
   const arr: string[] = []
   for (let i = 0; i < genCount.value; i++) {
