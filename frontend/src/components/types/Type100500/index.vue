@@ -151,44 +151,23 @@
           >✕</button>
           <textarea v-model="codesText" class="form-input h-40 w-full" placeholder="Каждый код с новой строки"></textarea>
           <div class="flex flex-col sm:flex-row sm:items-end mt-4 gap-4">
-            <div class="flex flex-col sm:flex-row flex-1 items-end gap-2">
-              <div class="relative sm:w-auto flex-1">
-                <input
-                  id="gen-count"
-                  type="number"
-                  min="1"
-                  v-model.number="genCount"
-                  class="form-input h-10 w-full sm:w-24 placeholder-transparent peer mb-0"
-                  placeholder=" "
-                />
-                <label
-                  for="gen-count"
-                  class="absolute left-3 top-2 text-gray-500 transition-all pointer-events-none
-                         peer-placeholder-shown:top-2 peer-placeholder-shown:text-base
-                         peer-focus:-top-3 peer-focus:text-xs bg-white px-1"
-                >Количество</label>
-              </div>
-              <div class="relative sm:w-auto flex-1">
-                <input
-                  id="gen-digits"
-                  type="number"
-                  min="2"
-                  max="10"
-                  v-model.number="genDigits"
-                  class="form-input h-10 w-full sm:w-24 placeholder-transparent peer mb-0"
-                  placeholder=" "
-                />
-                <label
-                  for="gen-digits"
-                  class="absolute left-3 top-2 text-gray-500 transition-all pointer-events-none
-                         peer-placeholder-shown:top-2 peer-placeholder-shown:text-base
-                         peer-focus:-top-3 peer-focus:text-xs bg-white px-1"
-                >Знаков</label>
-              </div>
+            <div class="flex flex-1 w-full sm:w-auto items-stretch gap-0">
+              <select
+                v-model.number="genDigits"
+                class="form-select h-10 w-20 sm:w-24 rounded-r-none mb-0"
+              >
+                <option v-for="n in 9" :key="n" :value="n + 1">{{ n + 1 }}</option>
+              </select>
+              <input
+                type="number"
+                min="1"
+                v-model.number="genCount"
+                class="form-input h-10 flex-1 sm:w-24 rounded-none mb-0"
+              />
               <button
                 @click="generateCodes(genDigits)"
                 type="button"
-                class="form-button h-10 px-4 whitespace-nowrap flex-shrink-0"
+                class="form-button h-10 px-4 rounded-l-none whitespace-nowrap"
               >
                 Сгенерировать
               </button>
