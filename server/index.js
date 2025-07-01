@@ -22,6 +22,43 @@ app.use(
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 
+// Добавлено: утилита для обновления authCookie при получении нового Set-Cookie
+/**
+ * Проверяет заголовок Set-Cookie ответа proxyRes и, если там пришёл новый
+ * ASP.NET_SessionId (или любой другой куки), обновляет сохранённый authCookie
+ * в сессии пользователя.
+ */
+function refreshAuthCookie(req, proxyRes) {
+  const setCookie = proxyRes?.headers?.['set-cookie']
+  if (!setCookie || setCookie.length === 0) return
+
+  // Текущие куки в виде объекта { name: value }
+  const current = {}
+  if (req.session.authCookie) {
+    req.session.authCookie.split('; ').forEach(kv => {
+      const [k, ...rest] = kv.split('=')
+      current[k] = rest.join('=') // значение может содержать '='
+    })
+  }
+
+  // Обновляем/добавляем куки из Set-Cookie
+  const cookiesArr = Array.isArray(setCookie) ? setCookie : [setCookie]
+  cookiesArr.forEach(c => {
+    const [pair] = c.split(';') // берём «name=value»
+    const idx = pair.indexOf('=')
+    if (idx > -1) {
+      const name = pair.slice(0, idx)
+      const value = pair.slice(idx + 1)
+      current[name] = value
+    }
+  })
+
+  // Собираем обратно
+  req.session.authCookie = Object.entries(current)
+    .map(([k, v]) => `${k}=${v}`)
+    .join('; ')
+}
+
 // === Логин ===
 app.post('/api/auth/login', async (req, res) => {
   const { login, password, domain } = req.body
@@ -78,6 +115,8 @@ app.post('/api/admin/task', async (req, res) => {
         validateStatus: null,
       }
     )
+    // Обновляем authCookie, если EN прислал новый
+    refreshAuthCookie(req, proxyRes)
     const clientStatus = proxyRes.status === 302 ? 200 : proxyRes.status
     console.log('[proxyAdminTask] ◀', proxyRes.status, '→ client', clientStatus)
     res.status(clientStatus).send(proxyRes.data)
@@ -111,6 +150,8 @@ app.post('/api/admin/sector', async (req, res) => {
         validateStatus: null,
       }
     )
+    // Обновляем authCookie, если EN прислал новый
+    refreshAuthCookie(req, proxyRes)
     const clientStatus = proxyRes.status === 302 ? 200 : proxyRes.status
     console.log('[proxyAdminSector] ◀', proxyRes.status, '→ client', clientStatus)
     res.status(clientStatus).send(proxyRes.data)
@@ -139,6 +180,8 @@ app.post('/api/admin/bonus', async (req, res) => {
         validateStatus: null,
       }
     )
+    // Обновляем authCookie, если EN прислал новый
+    refreshAuthCookie(req, proxyRes)
     const clientStatus = proxyRes.status === 302 ? 200 : proxyRes.status
     console.log('[proxyAdminBonus] ◀', proxyRes.status, '→ client', clientStatus)
     res.status(clientStatus).send(proxyRes.data)
@@ -164,6 +207,8 @@ app.get('/api/admin/bonus-form', async (req, res) => {
     const proxyRes = await axios.get(url, {
       headers: { Cookie: req.session.authCookie },
     })
+    // Обновляем authCookie, если EN прислал новый
+    refreshAuthCookie(req, proxyRes)
     // Возвращаем чистый HTML страницы
     res.status(200).send(proxyRes.data)
   } catch (err) {

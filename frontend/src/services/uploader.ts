@@ -192,6 +192,11 @@ export async function sendBonuses(
         console.warn(
           `[sendBonuses] ❗ Чекбокс для уровня ${level} не найден (attempt ${attempt})`
         )
+        if (attempt < MAX_RETRIES) {
+          console.log(`[sendBonuses] Ждём ${SLEEP_MS}ms, затем повтор…`)
+          await sleep(SLEEP_MS)
+          continue
+        }
       }
       break
     } catch (err: any) {
@@ -202,7 +207,6 @@ export async function sendBonuses(
       if (attempt < MAX_RETRIES) {
         console.log(`[sendBonuses] Ждём ${SLEEP_MS}ms, затем повтор…`)
         await sleep(SLEEP_MS)
-        continue
       } else {
         console.error('[sendBonuses] Все попытки получить форму бонуса исчерпаны.')
       }

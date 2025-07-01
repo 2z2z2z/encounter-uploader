@@ -7,14 +7,14 @@ services:
     depends_on:
       - backend
       - server
-    restart: always
+    restart: no
 
   backend:
     build: ./backend
     # Внешний порт для backend не публикуем (доступен через фронтенд)
-    restart: always
+    restart: no
 
   server:
     build: ./server
     # Внешний порт для server не публикуем (доступен через фронтенд)
-    restart: always
+    restart: no

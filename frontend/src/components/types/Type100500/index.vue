@@ -479,6 +479,8 @@ async function onSendSectors() {
 }
 
 async function onSendBonuses() {
+  // Перелогинимся перед массовой загрузкой, чтобы продлить сессию
+  await authStore.authenticate(store.domain)
   const bonusRows: Answer[] = []
   for (const t of tabs.value) {
     for (const row of t.rows) {
@@ -497,9 +499,15 @@ async function onSendBonuses() {
     }
   }
   progress.start('bonus', bonusRows.length)
-  for (const b of bonusRows) {
+  for (let idx = 0; idx < bonusRows.length; idx++) {
+    const b = bonusRows[idx]
     progress.update(`Бонус ${b.number}`)
     await sendBonuses(store.domain, store.gameId, store.levelId, [b])
+
+    // Каждые 25 бонусов обновляем авторизацию, чтобы избежать истечения сессии
+    if ((idx + 1) % 25 === 0) {
+      await authStore.authenticate(store.domain)
+    }
   }
   progress.finish()
   alert('✅ Все бонусы отправлены')
