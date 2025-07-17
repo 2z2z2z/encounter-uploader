@@ -204,7 +204,7 @@ import { useUploadStore } from '../../../store'
 import { useAuthStore } from '../../../store/auth'
 import { useProgressStore } from '../../../store/progress'
 import Answers from '../Olymp15/Answers.vue'
-import { generateOlympLayout } from '../../../utils/olymp'
+import { generateOlympLayout, type Cell } from '../../../utils/olymp'
 import { showUploadWarning, startUploadVisibilityTracking, stopUploadVisibilityTracking, showCompletionNotification } from '../../../utils/visibility'
 
 // Функции отправки из единого uploader.ts
@@ -227,7 +227,6 @@ function formatClosedText(text: string): string {
 
 // Типы
 type SectorMode = 'all' | 'initialAndFinal' | 'finalOnly' | 'custom'
-type Cell = { id?: string; rs?: number }
 
 const store = useUploadStore()
 const authStore = useAuthStore()
@@ -360,7 +359,7 @@ const olympTableHtml = computed(() => {
       h3 {display: none !important;}
       .timer, .bonus_count, .color_bonus, .color_correct {display: block !important;}
     </style>`
-  const layout: Cell[][] = generateOlympLayout(63)
+  const layout: Cell[][] = generateOlympLayout(63, store.levelId)
 
   let html = style + '<table class="olymp">'
   layout.forEach((row) => {

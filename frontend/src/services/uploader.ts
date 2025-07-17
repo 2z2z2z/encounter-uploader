@@ -232,7 +232,7 @@ export async function sendBonuses(
     // txtHelp — вставка «открытого сектора» в таблицу
     const hint = bonus.noHint
       ? ''
-      : `<script type="text/javascript">document.getElementById("01_${String(
+      : `<script type="text/javascript">document.getElementById("${level}_${String(
           bonus.number
         ).padStart(2, '0')}").innerHTML="${
           bonus.displayText

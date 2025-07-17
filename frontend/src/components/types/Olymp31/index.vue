@@ -204,6 +204,7 @@ import { useUploadStore } from '../../../store'
 import { useAuthStore } from '../../../store/auth'
 import { useProgressStore } from '../../../store/progress'
 import Answers from '../Olymp15/Answers.vue'
+import { generateOlympLayout, type Cell } from '../../../utils/olymp'
 import { showUploadWarning, startUploadVisibilityTracking, stopUploadVisibilityTracking, showCompletionNotification } from '../../../utils/visibility'
 
 // Функции отправки из единого uploader.ts
@@ -226,7 +227,6 @@ function formatClosedText(text: string): string {
 
 // Типы
 type SectorMode = 'all' | 'initialAndFinal' | 'finalOnly' | 'custom'
-type Cell = { id?: string; rs?: number }
 
 const store = useUploadStore()
 const authStore = useAuthStore()
@@ -359,24 +359,7 @@ const olympTableHtml = computed(() => {
       h3 {display: none !important;}
       .timer, .bonus_count, .color_bonus, .color_correct {display: block !important;}
     </style>`
-  const layout: Cell[][] = [
-    [{ id: '01_01' }, { id: '01_17', rs: 2 }, { id: '01_25', rs: 4 }, { id: '01_29', rs: 8 }, { id: '01_31', rs: 16 }],
-    [{ id: '01_02' }, {}],
-    [{ id: '01_03' }, { id: '01_18', rs: 2 }],
-    [{ id: '01_04' }],
-    [{ id: '01_05' }, { id: '01_19', rs: 2 }, { id: '01_26', rs: 4 }],
-    [{ id: '01_06' }],
-    [{ id: '01_07' }, { id: '01_20', rs: 2 }],
-    [{ id: '01_08' }],
-    [{ id: '01_09' }, { id: '01_21', rs: 2 }, { id: '01_27', rs: 4 }, { id: '01_30', rs: 8 },],
-    [{ id: '01_10' }],
-    [{ id: '01_11' }, { id: '01_22', rs: 2 }],
-    [{ id: '01_12' }],
-    [{ id: '01_13' }, { id: '01_23', rs: 2 }, { id: '01_28', rs: 4 }],
-    [{ id: '01_14' }],
-    [{ id: '01_15' }, { id: '01_24', rs: 2 }],
-    [{ id: '01_16' }],
-  ]
+  const layout: Cell[][] = generateOlympLayout(31, store.levelId)
 
   let html = style + '<table class="olymp">'
   layout.forEach((row) => {

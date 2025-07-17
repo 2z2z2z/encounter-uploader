@@ -204,6 +204,7 @@ import { useProgressStore } from '../../../store/progress'
 import { useUploadStore } from '../../../store'
 import { useAuthStore } from '../../../store/auth'
 import Answers from './Answers.vue'
+import { generateOlympLayout, type Cell } from '../../../utils/olymp'
 import { showUploadWarning, startUploadVisibilityTracking, stopUploadVisibilityTracking, showCompletionNotification } from '../../../utils/visibility'
 
 // Функции отправки из единого uploader.ts
@@ -226,7 +227,6 @@ function formatClosedText(text: string): string {
 
 // Типы
 type SectorMode = 'all' | 'initialAndFinal' | 'finalOnly' | 'custom'
-type Cell = { id?: string; rs?: number }
 
 const store = useUploadStore()
 const authStore = useAuthStore()
@@ -357,16 +357,7 @@ const olympTableHtml = computed(() => {
       h3 {display: none !important;}
       .timer, .bonus_count, .color_bonus, .color_correct {display: block !important;}
     </style>`
-  const layout: Cell[][] = [
-    [{ id: '01_01' }, { id: '01_09', rs: 2 }, { id: '01_13', rs: 4 }, { id: '01_15', rs: 8 }],
-    [{ id: '01_02' }, {}],
-    [{ id: '01_03' }, { id: '01_10', rs: 2 }],
-    [{ id: '01_04' }],
-    [{ id: '01_05' }, { id: '01_11', rs: 2 }, { id: '01_14', rs: 4 }],
-    [{ id: '01_06' }],
-    [{ id: '01_07' }, { id: '01_12', rs: 2 }],
-    [{ id: '01_08' }],
-  ]
+  const layout: Cell[][] = generateOlympLayout(15, store.levelId)
 
   let html = style + '<table class="olymp">'
   layout.forEach((row) => {
