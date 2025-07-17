@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { loginApi } from '../services/api'
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, watch, nextTick } from 'vue'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -121,8 +121,10 @@ export const useUploadStore = defineStore(
     }
 
     function setUploadType(type: string, prevType?: string) {
-      const oldType = prevType ?? uploadType.value
-      saveTypeData(oldType)
+      // Сохраняем данные старого типа только если это реальное переключение
+      if (prevType !== undefined && prevType !== type) {
+        saveTypeData(prevType)
+      }
       uploadType.value = type
       loadTypeData(type)
     }
@@ -148,8 +150,11 @@ export const useUploadStore = defineStore(
       { deep: true }
     )
 
-    // загрузка данных для текущего типа при инициализации
-    loadTypeData(uploadType.value)
+    // Инициализация данных для текущего типа при запуске
+    // Выполняется в nextTick чтобы persist успел восстановить uploadType
+    nextTick(() => {
+      loadTypeData(uploadType.value)
+    })
 
     return {
       domain,

@@ -204,6 +204,7 @@ import { useProgressStore } from '../../../store/progress'
 import { useUploadStore } from '../../../store'
 import { useAuthStore } from '../../../store/auth'
 import Answers from './Answers.vue'
+import { showUploadWarning, startUploadVisibilityTracking, stopUploadVisibilityTracking, showCompletionNotification } from '../../../utils/visibility'
 
 // Функции отправки из единого uploader.ts
 import {
@@ -432,6 +433,19 @@ async function onSendTask() {
 async function onSendSector() {
   try {
     const sectors = store.answers.filter((r) => r.inSector)
+    if (sectors.length === 0) {
+      alert('ℹ️ Нет отмеченных секторов для отправки')
+      return
+    }
+
+    // Показываем предупреждение пользователю
+    if (!showUploadWarning('сектора')) {
+      return
+    }
+
+    // Начинаем отслеживание видимости
+    startUploadVisibilityTracking('сектора')
+
     progress.start('sector', sectors.length)
     for (const row of sectors) {
       progress.update(`Сектор ${row.number}`)
@@ -444,8 +458,14 @@ async function onSendSector() {
       )
     }
     progress.finish()
+    
+    // Останавливаем отслеживание и показываем уведомление о завершении
+    stopUploadVisibilityTracking()
+    showCompletionNotification('сектора', sectors.length)
     alert('✅ Все отмеченные сектора отправлены')
   } catch (e: any) {
+    // Останавливаем отслеживание в случае ошибки
+    stopUploadVisibilityTracking()
     alert('❌ Ошибка отправки секторов: ' + e.message)
   }
 }
@@ -458,8 +478,21 @@ async function onSendBonus() {
       alert('ℹ️ Нет отмеченных бонусов для отправки')
       return
     }
+
+    // Показываем предупреждение пользователю
+    if (!showUploadWarning('бонусы')) {
+      return
+    }
+
+    // Начинаем отслеживание видимости
+    startUploadVisibilityTracking('бонусы')
+
+    // Перелогинимся перед массовой загрузкой, чтобы продлить сессию
+    await authStore.authenticate(store.domain)
+    
     progress.start('bonus', bonusesToSend.length)
-    for (const bonusRow of bonusesToSend) {
+    for (let idx = 0; idx < bonusesToSend.length; idx++) {
+      const bonusRow = bonusesToSend[idx]
       progress.update(`Бонус ${bonusRow.number}`)
       await sendBonuses(
         store.domain,
@@ -467,10 +500,21 @@ async function onSendBonus() {
         store.levelId,
         [bonusRow]
       )
+
+      // Каждые 25 бонусов обновляем авторизацию, чтобы избежать истечения сессии
+      if ((idx + 1) % 25 === 0) {
+        await authStore.authenticate(store.domain)
+      }
     }
     progress.finish()
+    
+    // Останавливаем отслеживание и показываем уведомление о завершении
+    stopUploadVisibilityTracking()
+    showCompletionNotification('бонусы', bonusesToSend.length)
     alert('✅ Все отмеченные бонусы отправлены')
   } catch (e: any) {
+    // Останавливаем отслеживание в случае ошибки
+    stopUploadVisibilityTracking()
     alert('❌ Ошибка отправки бонусов: ' + e.message)
   }
 }

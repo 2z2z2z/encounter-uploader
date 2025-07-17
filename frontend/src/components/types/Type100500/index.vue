@@ -196,6 +196,7 @@ import { useUploadStore } from '../../../store'
 import { useAuthStore } from '../../../store/auth'
 import { useProgressStore } from '../../../store/progress'
 import { sendSector, sendBonuses, type Answer } from '../../../services/uploader'
+import { showUploadWarning, startUploadVisibilityTracking, stopUploadVisibilityTracking, showCompletionNotification } from '../../../utils/visibility'
 
 const store = useUploadStore()
 const authStore = useAuthStore()
@@ -420,97 +421,152 @@ function importData(e: Event) {
 }
 
 async function onSendSectors() {
-  if (combineSectors.value) {
-    if (tabs.value.length <= 1) {
-      alert('❌ Для объединения необходимо больше одного блока')
+  try {
+    // Показываем предупреждение пользователю
+    if (!showUploadWarning('сектора')) {
       return
     }
-    const firstLen = tabs.value[0].rows.length
-    if (!tabs.value.every((t) => t.rows.length === firstLen)) {
-      alert('❌ Количество ответов во всех блоках должно совпадать')
-      return
-    }
-    const total = firstLen
-    const rowsList: Row[][] = []
-    for (let i = 0; i < firstLen; i++) {
-      rowsList.push(tabs.value.map((t) => t.rows[i]))
-    }
-    progress.start('sector', total)
-    for (const rows of rowsList) {
-      if (!rows.every((r) => r.inSector)) {
-        progress.update('Пропуск')
-        continue
+
+    // Начинаем отслеживание видимости
+    startUploadVisibilityTracking('сектора')
+
+    if (combineSectors.value) {
+      if (tabs.value.length <= 1) {
+        alert('❌ Для объединения необходимо больше одного блока')
+        stopUploadVisibilityTracking()
+        return
       }
-      const variants = rows.map((r) => r.answer)
-      progress.update(`Сектор ${rows[0].number}`)
-      await sendSector(
-        store.domain,
-        store.gameId,
-        store.levelId,
-        variants,
-        '',
-        rows[0].sectorName
-      )
-    }
-    progress.finish()
-  } else {
-    const rowsToSend: Row[] = []
-    for (const t of tabs.value) {
-      for (const row of t.rows) {
-        if (!row.inSector) continue
-        rowsToSend.push(row)
+      const firstLen = tabs.value[0].rows.length
+      if (!tabs.value.every((t) => t.rows.length === firstLen)) {
+        alert('❌ Количество ответов во всех блоках должно совпадать')
+        stopUploadVisibilityTracking()
+        return
       }
+      const total = firstLen
+      const rowsList: Row[][] = []
+      for (let i = 0; i < firstLen; i++) {
+        rowsList.push(tabs.value.map((t) => t.rows[i]))
+      }
+      progress.start('sector', total)
+      for (const rows of rowsList) {
+        if (!rows.every((r) => r.inSector)) {
+          progress.update('Пропуск')
+          continue
+        }
+        const variants = rows.map((r) => r.answer)
+        progress.update(`Сектор ${rows[0].number}`)
+        await sendSector(
+          store.domain,
+          store.gameId,
+          store.levelId,
+          variants,
+          '',
+          rows[0].sectorName
+        )
+      }
+      progress.finish()
+    } else {
+      const rowsToSend: Row[] = []
+      for (const t of tabs.value) {
+        for (const row of t.rows) {
+          if (!row.inSector) continue
+          rowsToSend.push(row)
+        }
+      }
+
+      if (rowsToSend.length === 0) {
+        alert('ℹ️ Нет отмеченных секторов для отправки')
+        stopUploadVisibilityTracking()
+        return
+      }
+
+      progress.start('sector', rowsToSend.length)
+      for (const row of rowsToSend) {
+        progress.update(`Сектор ${row.number}`)
+        await sendSector(
+          store.domain,
+          store.gameId,
+          store.levelId,
+          [row.answer],
+          '',
+          row.sectorName
+        )
+      }
+      progress.finish()
     }
-    progress.start('sector', rowsToSend.length)
-    for (const row of rowsToSend) {
-      progress.update(`Сектор ${row.number}`)
-      await sendSector(
-        store.domain,
-        store.gameId,
-        store.levelId,
-        [row.answer],
-        '',
-        row.sectorName
-      )
-    }
-    progress.finish()
+
+    // Останавливаем отслеживание и показываем уведомление о завершении
+    stopUploadVisibilityTracking()
+    const sectorsCount = combineSectors.value ? 
+      tabs.value[0]?.rows?.filter(r => r.inSector).length || 0 :
+      tabs.value.reduce((sum, t) => sum + t.rows.filter(r => r.inSector).length, 0)
+    showCompletionNotification('сектора', sectorsCount)
+    alert('✅ Все сектора отправлены')
+  } catch (e: any) {
+    // Останавливаем отслеживание в случае ошибки
+    stopUploadVisibilityTracking()
+    alert('❌ Ошибка отправки секторов: ' + e.message)
   }
-  alert('✅ Все сектора отправлены')
 }
 
 async function onSendBonuses() {
-  // Перелогинимся перед массовой загрузкой, чтобы продлить сессию
-  await authStore.authenticate(store.domain)
-  const bonusRows: Answer[] = []
-  for (const t of tabs.value) {
-    for (const row of t.rows) {
-      if (!row.inBonus) continue
-      bonusRows.push({
-        number: row.number,
-        variants: [row.answer],
-        inSector: true,
-        inBonus: true,
-        bonusTime: { ...row.bonusTime },
-        closedText: '',
-        displayText: '',
-        bonusName: row.bonusName,
-        noHint: true,
-      })
+  try {
+    const bonusRows: Answer[] = []
+    for (const t of tabs.value) {
+      for (const row of t.rows) {
+        if (!row.inBonus) continue
+        bonusRows.push({
+          number: row.number,
+          variants: [row.answer],
+          inSector: true,
+          inBonus: true,
+          bonusTime: { ...row.bonusTime },
+          closedText: '',
+          displayText: '',
+          bonusName: row.bonusName,
+          noHint: true,
+        })
+      }
     }
-  }
-  progress.start('bonus', bonusRows.length)
-  for (let idx = 0; idx < bonusRows.length; idx++) {
-    const b = bonusRows[idx]
-    progress.update(`Бонус ${b.number}`)
-    await sendBonuses(store.domain, store.gameId, store.levelId, [b])
 
-    // Каждые 25 бонусов обновляем авторизацию, чтобы избежать истечения сессии
-    if ((idx + 1) % 25 === 0) {
-      await authStore.authenticate(store.domain)
+    if (bonusRows.length === 0) {
+      alert('ℹ️ Нет отмеченных бонусов для отправки')
+      return
     }
+
+    // Показываем предупреждение пользователю
+    if (!showUploadWarning('бонусы')) {
+      return
+    }
+
+    // Начинаем отслеживание видимости
+    startUploadVisibilityTracking('бонусы')
+
+    // Перелогинимся перед массовой загрузкой, чтобы продлить сессию
+    await authStore.authenticate(store.domain)
+
+    progress.start('bonus', bonusRows.length)
+    for (let idx = 0; idx < bonusRows.length; idx++) {
+      const b = bonusRows[idx]
+      progress.update(`Бонус ${b.number}`)
+      await sendBonuses(store.domain, store.gameId, store.levelId, [b])
+
+      // Каждые 25 бонусов обновляем авторизацию, чтобы избежать истечения сессии
+      if ((idx + 1) % 25 === 0) {
+        await authStore.authenticate(store.domain)
+      }
+    }
+    progress.finish()
+
+    // Останавливаем отслеживание и показываем уведомление о завершении
+    stopUploadVisibilityTracking()
+    showCompletionNotification('бонусы', bonusRows.length)
+    alert('✅ Все бонусы отправлены')
+  } catch (e: any) {
+    // Останавливаем отслеживание в случае ошибки
+    stopUploadVisibilityTracking()
+    alert('❌ Ошибка отправки бонусов: ' + e.message)
   }
-  progress.finish()
-  alert('✅ Все бонусы отправлены')
 }
 </script>
 
