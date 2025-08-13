@@ -34,54 +34,76 @@
 
       <!-- Tab content -->
       <div v-if="currentTab" class="space-y-8">
-        <!-- Controls -->
-        <div class="flex flex-wrap items-end gap-4">
-          <div class="flex-1 min-w-[200px]">
-            <label class="form-label">Название секторов</label>
-            <input
-              v-model="currentTab.sectorPattern"
-              placeholder="Текст или &"
-              class="form-input h-10 w-full"
-            />
-          </div>
-          <div class="flex-1 min-w-[200px]">
-            <label class="form-label">Название бонусов</label>
-            <input
-              v-model="currentTab.bonusPattern"
-              placeholder="Текст или &"
-              class="form-input h-10 w-full"
-            />
-          </div>
-          <div>
-            <label class="form-label">Бонусное время (ч, м, с)</label>
-            <div class="flex items-center gap-2">
-              <input type="number" min="0" v-model.number="currentTab.quickTime.hours" placeholder="ч" class="form-input h-10 w-16 text-center" />
-              <input type="number" min="0" v-model.number="currentTab.quickTime.minutes" placeholder="м" class="form-input h-10 w-16 text-center" />
-              <input type="number" min="0" v-model.number="currentTab.quickTime.seconds" placeholder="с" class="form-input h-10 w-16 text-center" />
-              <label class="flex items-center gap-1 ml-2">
-                <input type="checkbox" v-model="currentTab.quickTime.negative" class="cursor-pointer" />
-                <span class="text-gray-500">–</span>
-              </label>
+        <!-- Controls (2 rows) -->
+        <div class="flex flex-col gap-4">
+          <!-- Row 1 -->
+          <div class="flex flex-wrap items-end gap-4">
+            <div class="flex-1 min-w-[200px]">
+              <label class="form-label">Название секторов</label>
+              <input
+                v-model="currentTab.sectorPattern"
+                placeholder="Текст или &"
+                class="form-input h-10 w-full"
+              />
+            </div>
+            <div class="flex-1 min-w-[200px]">
+              <label class="form-label">Название бонусов</label>
+              <input
+                v-model="currentTab.bonusPattern"
+                placeholder="Текст или &"
+                class="form-input h-10 w-full"
+              />
+            </div>
+            <div>
+              <label class="form-label">Бонусное время (ч, м, с)</label>
+              <div class="flex items-center gap-2">
+                <input type="number" min="0" v-model.number="currentTab.quickTime.hours" placeholder="ч" class="form-input h-10 w-16 text-center" />
+                <input type="number" min="0" v-model.number="currentTab.quickTime.minutes" placeholder="м" class="form-input h-10 w-16 text-center" />
+                <input type="number" min="0" v-model.number="currentTab.quickTime.seconds" placeholder="с" class="form-input h-10 w-16 text-center" />
+                <label class="flex items-center gap-1 ml-2">
+                  <input type="checkbox" v-model="currentTab.quickTime.negative" class="cursor-pointer" />
+                  <span class="text-gray-500">–</span>
+                </label>
+              </div>
+            </div>
+            <div>
+              <label class="form-label">Задержка (ч, м, с)</label>
+              <div class="flex items-center gap-2">
+                <input type="number" min="0" v-model.number="quickDelayHours" placeholder="ч" class="form-input h-10 w-16 text-center" />
+                <input type="number" min="0" v-model.number="quickDelayMinutes" placeholder="м" class="form-input h-10 w-16 text-center" />
+                <input type="number" min="0" v-model.number="quickDelaySeconds" placeholder="с" class="form-input h-10 w-16 text-center" />
+              </div>
+            </div>
+            <div>
+              <label class="form-label">Ограничение (ч, м, с)</label>
+              <div class="flex items-center gap-2">
+                <input type="number" min="0" v-model.number="quickRelativeLimitHours" placeholder="ч" class="form-input h-10 w-16 text-center" />
+                <input type="number" min="0" v-model.number="quickRelativeLimitMinutes" placeholder="м" class="form-input h-10 w-16 text-center" />
+                <input type="number" min="0" v-model.number="quickRelativeLimitSeconds" placeholder="с" class="form-input h-10 w-16 text-center" />
+              </div>
             </div>
           </div>
-          <div class="flex-1 min-w-[200px]">
-            <label class="form-label">Бонусные задания</label>
-            <textarea
-              v-model="currentTab.bonusTaskPattern"
-               placeholder="Текст или код"
-               class="form-input w-full textarea-collapsible-lg"
-            ></textarea>
+          <!-- Row 2 -->
+          <div class="flex flex-wrap items-end gap-4">
+            <div class="flex-1 min-w-[200px]">
+              <label class="form-label">Бонусные задания</label>
+              <textarea
+                v-model="currentTab.bonusTaskPattern"
+                 placeholder="Текст или код"
+                 class="form-input w-full textarea-collapsible-lg"
+              ></textarea>
+            </div>
+            <div class="flex-1 min-w-[200px]">
+              <label class="form-label">Подсказки (по факту выполнения)</label>
+              <textarea
+                v-model="currentTab.bonusHintPattern"
+                 placeholder="Текст или код"
+                 class="form-input w-full textarea-collapsible-lg"
+              ></textarea>
+            </div>
+            <button @click="openLevelsModal('bulk')" type="button" class="form-button h-10 px-4">Уровни бонусов</button>
+            <button @click="showCodes = true" type="button" class="form-button h-10 px-4">Добавить коды</button>
           </div>
-          <div class="flex-1 min-w-[200px]">
-            <label class="form-label">Подсказки (по факту выполнения)</label>
-            <textarea
-              v-model="currentTab.bonusHintPattern"
-               placeholder="Текст или код"
-               class="form-input w-full textarea-collapsible-lg"
-            ></textarea>
-          </div>
-          <button @click="openLevelsModal('bulk')" type="button" class="form-button h-10 px-4">Уровни бонусов</button>
-          <button @click="showCodes = true" type="button" class="form-button h-10 px-4">Добавить коды</button>
         </div>
 
         <!-- Table -->
@@ -94,7 +116,9 @@
                 <th class="p-2 text-center">Сектор</th>
                 <th class="p-2 text-center">Бонус</th>
                 <th class="p-2 text-left w-40">Уровни бонуса</th>
-                <th class="p-2 text-left w-32">Бонусное время</th>
+                <th class="p-2 text-left w-20">Бонусное время</th>
+                <th class="p-2 text-left w-20">Задержка</th>
+                <th class="p-2 text-left w-20">Ограничение</th>
                 <th class="p-2 text-left">Название сектора</th>
                 <th class="p-2 text-left">Название бонуса</th>
                 <th class="p-2 text-left w-72">Бонусное задание</th>
@@ -160,13 +184,27 @@
                 </td>
                 <td class="p-2">
                   <div class="flex items-center gap-1">
-                    <input type="number" min="0" v-model.number="row.bonusTime.hours" placeholder="ч" class="form-input h-8 w-16 text-center" />
-                    <input type="number" min="0" v-model.number="row.bonusTime.minutes" placeholder="м" class="form-input h-8 w-16 text-center" />
-                    <input type="number" min="0" v-model.number="row.bonusTime.seconds" placeholder="с" class="form-input h-8 w-16 text-center" />
+                    <input type="number" min="0" v-model.number="row.bonusTime.hours" placeholder="ч" class="no-spin form-input h-8 w-10 px-1 text-center" />
+                    <input type="number" min="0" v-model.number="row.bonusTime.minutes" placeholder="м" class="no-spin form-input h-8 w-10 px-1 text-center" />
+                    <input type="number" min="0" v-model.number="row.bonusTime.seconds" placeholder="с" class="no-spin form-input h-8 w-10 px-1 text-center" />
                     <label class="flex items-center gap-1 ml-2">
                       <input type="checkbox" v-model="row.bonusTime.negative" class="cursor-pointer" />
                       <span class="text-gray-500">–</span>
                     </label>
+                  </div>
+                </td>
+                <td class="p-2">
+                  <div class="flex items-center gap-1">
+                    <input type="number" min="0" v-model.number="row.delay.hours" placeholder="ч" class="no-spin form-input h-8 w-10 px-1 text-center" />
+                    <input type="number" min="0" v-model.number="row.delay.minutes" placeholder="м" class="no-spin form-input h-8 w-10 px-1 text-center" />
+                    <input type="number" min="0" v-model.number="row.delay.seconds" placeholder="с" class="no-spin form-input h-8 w-10 px-1 text-center" />
+                  </div>
+                </td>
+                <td class="p-2">
+                  <div class="flex items-center gap-1">
+                    <input type="number" min="0" v-model.number="row.relativeLimit.hours" placeholder="ч" class="no-spin form-input h-8 w-10 px-1 text-center" />
+                    <input type="number" min="0" v-model.number="row.relativeLimit.minutes" placeholder="м" class="no-spin form-input h-8 w-10 px-1 text-center" />
+                    <input type="number" min="0" v-model.number="row.relativeLimit.seconds" placeholder="с" class="no-spin form-input h-8 w-10 px-1 text-center" />
                   </div>
                 </td>
                 <td class="p-2">
@@ -176,10 +214,10 @@
                   <input v-model="row.bonusName" class="form-input h-8 w-full min-w-[150px]" placeholder="Название бонуса" />
                 </td>
                 <td class="p-2">
-                  <textarea v-model="row.bonusTask" class="form-input py-1 w-full min-w-[240px] textarea-collapsible" placeholder="HTML/текст бонусного задания"></textarea>
+                  <textarea v-model="row.bonusTask" class="form-input py-1 w-full min-w-[190px] textarea-collapsible" placeholder="HTML/текст бонусного задания"></textarea>
                 </td>
                 <td class="p-2">
-                  <textarea v-model="row.bonusHint" class="form-input py-1 w-full min-w-[240px] textarea-collapsible" placeholder="HTML/текст подсказки"></textarea>
+                  <textarea v-model="row.bonusHint" class="form-input py-1 w-full min-w-[190px] textarea-collapsible" placeholder="HTML/текст подсказки"></textarea>
                 </td>
                 <td class="p-2 text-right align-top">
                   <button
@@ -349,6 +387,8 @@ const progress = useProgressStore()
   number: number
     variants: string[]
   bonusTime: { hours: number; minutes: number; seconds: number; negative: boolean }
+  delay: { hours: number; minutes: number; seconds: number }
+  relativeLimit: { hours: number; minutes: number; seconds: number }
   sectorName: string
   bonusName: string
   bonusTask?: string
@@ -366,6 +406,10 @@ interface TabData {
   bonusTaskPattern?: string
   bonusHintPattern?: string
   quickTime: { hours: number; minutes: number; seconds: number; negative: boolean }
+  /** Массовая задержка для текущего блока (не сохраняется между перезагрузками) */
+  quickDelay?: { hours: number; minutes: number; seconds: number }
+  /** Массовое ограничение для текущего блока (не сохраняется между перезагрузками) */
+  quickRelativeLimit?: { hours: number; minutes: number; seconds: number }
   rows: Row[]
 }
 
@@ -384,6 +428,14 @@ const genCount = ref(1)
 const genDigits = ref(4)
 const combineSectors = ref(false)
 const showExport = ref(false)
+
+// Локальные контролы для массового заполнения задержки/ограничения (не сохраняются)
+const quickDelayHours = ref<number>(0)
+const quickDelayMinutes = ref<number>(0)
+const quickDelaySeconds = ref<number>(0)
+const quickRelativeLimitHours = ref<number>(0)
+const quickRelativeLimitMinutes = ref<number>(0)
+const quickRelativeLimitSeconds = ref<number>(0)
 
 // Levels selection state
 const showLevels = ref(false)
@@ -483,6 +535,8 @@ function createTab(): TabData {
     bonusTaskPattern: '',
     bonusHintPattern: '',
     quickTime: { hours: 0, minutes: 0, seconds: 0, negative: false },
+    quickDelay: { hours: 0, minutes: 0, seconds: 0 },
+    quickRelativeLimit: { hours: 0, minutes: 0, seconds: 0 },
     rows: [],
   }
 }
@@ -515,6 +569,8 @@ onMounted(() => {
               ? r.variants
               : [typeof r.answer === 'string' ? r.answer : ''],
             bonusTime: r.bonusTime || { hours: 0, minutes: 0, seconds: 0, negative: false },
+            delay: r.delay || { hours: 0, minutes: 0, seconds: 0 },
+            relativeLimit: r.relativeLimit || { hours: 0, minutes: 0, seconds: 0 },
             sectorName: r.sectorName || '',
             bonusName: r.bonusName || '',
             bonusTask: typeof r.bonusTask === 'string' ? r.bonusTask : '',
@@ -608,6 +664,19 @@ onMounted(() => {
     },
     { deep: true }
   )
+  // Массовая подстановка «Задержка» и «Ограничение» по контролам блока
+  watch([quickDelayHours, quickDelayMinutes, quickDelaySeconds, () => activeTab.value], () => {
+    const t = currentTab.value
+    if (!t) return
+    const it = { hours: Number(quickDelayHours.value) || 0, minutes: Number(quickDelayMinutes.value) || 0, seconds: Number(quickDelaySeconds.value) || 0 }
+    t.rows.forEach((r) => (r.delay = { ...it }))
+  })
+  watch([quickRelativeLimitHours, quickRelativeLimitMinutes, quickRelativeLimitSeconds, () => activeTab.value], () => {
+    const t = currentTab.value
+    if (!t) return
+    const it = { hours: Number(quickRelativeLimitHours.value) || 0, minutes: Number(quickRelativeLimitMinutes.value) || 0, seconds: Number(quickRelativeLimitSeconds.value) || 0 }
+    t.rows.forEach((r) => (r.relativeLimit = { ...it }))
+  })
   // Загрузим список уровней один раз при открытии страницы
   ensureLevelsLoaded()
 })
@@ -671,6 +740,8 @@ function applyCodes() {
       number: num,
         variants: [code],
       bonusTime: { ...t.quickTime },
+      delay: { hours: 0, minutes: 0, seconds: 0 },
+      relativeLimit: { hours: 0, minutes: 0, seconds: 0 },
       sectorName: t.sectorPattern.replace(/&/g, String(num)),
       bonusName: t.bonusPattern.replace(/&/g, String(num)),
         bonusTask: '',
@@ -713,6 +784,12 @@ function exportDataAs(format: 'json' | 'csv') {
           bonusMinutes: String(r.bonusTime?.minutes ?? ''),
           bonusSeconds: String(r.bonusTime?.seconds ?? ''),
           bonusNegative: r.bonusTime?.negative ? '1' : '0',
+          delayHours: String(r.delay?.hours ?? ''),
+          delayMinutes: String(r.delay?.minutes ?? ''),
+          delaySeconds: String(r.delay?.seconds ?? ''),
+          validHours: String(r.relativeLimit?.hours ?? ''),
+          validMinutes: String(r.relativeLimit?.minutes ?? ''),
+          validSeconds: String(r.relativeLimit?.seconds ?? ''),
           sectorName: r.sectorName || '',
           bonusName: r.bonusName || '',
           bonusTask: r.bonusTask || '',
@@ -785,6 +862,8 @@ function importData(e: Event) {
                 ? r.variants
                 : [typeof r.answer === 'string' ? r.answer : ''],
               bonusTime: r.bonusTime || { hours: 0, minutes: 0, seconds: 0, negative: false },
+              delay: r.delay || { hours: 0, minutes: 0, seconds: 0 },
+              relativeLimit: r.relativeLimit || { hours: 0, minutes: 0, seconds: 0 },
               sectorName: r.sectorName || '',
               bonusName: r.bonusName || '',
               bonusTask: typeof r.bonusTask === 'string' ? r.bonusTask : '',
@@ -818,7 +897,7 @@ function importData(e: Event) {
         for (let t = 1; t <= maxTab; t++) {
           const tab = createTab()
           const list = (byTab.get(t) || [])
-          const mapped = list.map((r: Record<string, string>) => ({
+            const mapped = list.map((r: Record<string, string>) => ({
             number: Number(r.number) || 0,
             variants: (r.variants || '').split('|').map((s: string) => s.trim()).filter(Boolean),
             bonusTime: {
@@ -827,6 +906,16 @@ function importData(e: Event) {
               seconds: Number(r.bonusSeconds) || 0,
               negative: r.bonusNegative === '1' || /true|-/i.test(r.bonusNegative || ''),
             },
+              delay: {
+                hours: Number(r.delayHours) || 0,
+                minutes: Number(r.delayMinutes) || 0,
+                seconds: Number(r.delaySeconds) || 0,
+              },
+              relativeLimit: {
+                hours: Number(r.validHours) || 0,
+                minutes: Number(r.validMinutes) || 0,
+                seconds: Number(r.validSeconds) || 0,
+              },
             sectorName: r.sectorName || '',
             bonusName: r.bonusName || '',
             bonusTask: r.bonusTask || '',
@@ -959,6 +1048,8 @@ async function onSendBonuses() {
           inBonus: true,
           allLevels: !!row.allLevels,
           bonusTime: { ...row.bonusTime },
+          delay: row.delay ? { ...row.delay } : { hours: 0, minutes: 0, seconds: 0 },
+          relativeLimit: row.relativeLimit ? { ...row.relativeLimit } : { hours: 0, minutes: 0, seconds: 0 },
           closedText: '',
           displayText: '',
           bonusName: row.bonusName,
@@ -1027,5 +1118,15 @@ export default defineComponent({})
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+/* Убираем спиннеры у числовых инпутов внутри таблицы */
+input.no-spin[type=number]::-webkit-outer-spin-button,
+input.no-spin[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input.no-spin[type=number] {
+  appearance: textfield;
+  -moz-appearance: textfield;
 }
 </style>

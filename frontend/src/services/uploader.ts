@@ -42,6 +42,18 @@ export interface Answer {
     seconds: number
     negative: boolean
   }
+  /** Задержка появления бонуса (chkDelay + txtDelay*) */
+  delay?: {
+    hours: number
+    minutes: number
+    seconds: number
+  }
+  /** Ограничение (относительное время) работы бонуса (chkRelativeLimit + txtValid*) */
+  relativeLimit?: {
+    hours: number
+    minutes: number
+    seconds: number
+  }
   closedText: string
   displayText: string
   sectorName?: string
@@ -289,6 +301,25 @@ export async function sendBonuses(
     params.append('txtSeconds', String(bonus.bonusTime.seconds))
     if (bonus.bonusTime.negative) {
       params.append('negative', 'on')
+    }
+
+    // Задержка (Delay)
+    if (bonus.delay && (bonus.delay.hours || bonus.delay.minutes || bonus.delay.seconds)) {
+      params.append('chkDelay', 'on')
+      params.append('txtDelayHours', String(bonus.delay.hours || 0))
+      params.append('txtDelayMinutes', String(bonus.delay.minutes || 0))
+      params.append('txtDelaySeconds', String(bonus.delay.seconds || 0))
+    }
+
+    // Ограничение (Relative limit)
+    if (
+      bonus.relativeLimit &&
+      (bonus.relativeLimit.hours || bonus.relativeLimit.minutes || bonus.relativeLimit.seconds)
+    ) {
+      params.append('chkRelativeLimit', 'on')
+      params.append('txtValidHours', String(bonus.relativeLimit.hours || 0))
+      params.append('txtValidMinutes', String(bonus.relativeLimit.minutes || 0))
+      params.append('txtValidSeconds', String(bonus.relativeLimit.seconds || 0))
     }
 
     // Радио: rbAllLevels — 0 (все уровни) или 1 (указанные)
