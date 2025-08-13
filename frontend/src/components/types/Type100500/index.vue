@@ -81,13 +81,42 @@
                 <th class="p-2 text-left w-32">Бонусное время</th>
                 <th class="p-2 text-left">Название сектора</th>
                 <th class="p-2 text-left">Название бонуса</th>
+                <th class="p-2 w-6"></th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="row in currentTab.rows" :key="row.number" class="border-t border-gray-200">
                 <td class="p-2">{{ row.number }}</td>
                 <td class="p-2">
-                  <input v-model="row.answer" class="form-input h-8 w-full min-w-[150px]" placeholder="код" />
+                  <div class="flex flex-col gap-1">
+                    <div
+                      v-for="(_, idx) in row.variants"
+                      :key="idx"
+                      class="flex items-center gap-1"
+                    >
+                      <input
+                        v-model="row.variants[idx]"
+                        placeholder="код"
+                        class="form-input h-8 min-w-[150px] flex-1"
+                      />
+                      <button
+                        v-if="idx === row.variants.length - 1 && idx < 9"
+                        @click="addVariant(row)"
+                        type="button"
+                        class="h-8 w-8 rounded-md bg-green-500 text-white cursor-pointer"
+                      >
+                        ＋
+                      </button>
+                      <button
+                        v-if="idx > 0"
+                        @click="removeVariant(row, idx)"
+                        type="button"
+                        class="h-8 w-8 rounded-md bg-red-500 text-white cursor-pointer"
+                      >
+                        −
+                      </button>
+                    </div>
+                  </div>
                 </td>
                 <td class="p-2 text-center">
                   <input type="checkbox" v-model="row.inSector" class="cursor-pointer" />
@@ -127,6 +156,14 @@
                 </td>
                 <td class="p-2">
                   <input v-model="row.bonusName" class="form-input h-8 w-full min-w-[150px]" placeholder="Название бонуса" />
+                </td>
+                <td class="p-2 text-right align-top">
+                  <button
+                    type="button"
+                    @click="removeRow(row)"
+                    class="h-6 w-6 leading-none text-gray-400 hover:text-red-600"
+                    title="Удалить ответ"
+                  >✕</button>
                 </td>
               </tr>
             </tbody>
@@ -269,9 +306,9 @@ const store = useUploadStore()
 const authStore = useAuthStore()
 const progress = useProgressStore()
 
-interface Row {
+  interface Row {
   number: number
-  answer: string
+    variants: string[]
   bonusTime: { hours: number; minutes: number; seconds: number; negative: boolean }
   sectorName: string
   bonusName: string
@@ -425,7 +462,20 @@ onMounted(() => {
     try {
       const arr = JSON.parse(raw)
       if (Array.isArray(arr)) {
-        tabs.value = arr.map((t: any) => ({ ...createTab(), rows: t.rows || [] }))
+        tabs.value = arr.map((t: any) => ({ ...createTab(), rows: (t.rows || []).map((r: any) => ({
+            number: r.number,
+            // миграция: старое поле answer → variants
+            variants: Array.isArray(r.variants)
+              ? r.variants
+              : [typeof r.answer === 'string' ? r.answer : ''],
+            bonusTime: r.bonusTime || { hours: 0, minutes: 0, seconds: 0, negative: false },
+            sectorName: r.sectorName || '',
+            bonusName: r.bonusName || '',
+            inSector: r.inSector !== false,
+            inBonus: r.inBonus !== false,
+            targetLevels: Array.isArray(r.targetLevels) ? r.targetLevels : [],
+            allLevels: !!r.allLevels,
+          })) }))
       } else {
         tabs.value = [createTab()]
       }
@@ -510,7 +560,9 @@ function generateCodes(len: number) {
   }
 
   const existing = new Set<string>()
-  tabs.value.forEach((t) => t.rows.forEach((r) => existing.add(r.answer.trim())))
+  tabs.value.forEach((t) => t.rows.forEach((r) => {
+    (Array.isArray(r.variants) ? r.variants : []).forEach((v) => existing.add((v || '').trim()))
+  }))
   codesText.value
     .split(/\r?\n/)
     .map((l) => l.trim())
@@ -541,7 +593,7 @@ function applyCodes() {
     const num = t.rows.length + 1
     t.rows.push({
       number: num,
-      answer: code,
+        variants: [code],
       bonusTime: { ...t.quickTime },
       sectorName: t.sectorPattern.replace(/&/g, String(num)),
       bonusName: t.bonusPattern.replace(/&/g, String(num)),
@@ -552,6 +604,16 @@ function applyCodes() {
   })
   codesText.value = ''
   showCodes.value = false
+}
+
+// Управление вариантами ответов (используется в шаблоне)
+function addVariant(row: { variants: string[] }) {
+  if (!Array.isArray(row.variants)) row.variants = ['']
+  if (row.variants.length < 10) row.variants.push('')
+}
+function removeVariant(row: { variants: string[] }, idx: number) {
+  if (!Array.isArray(row.variants)) row.variants = ['']
+  if (row.variants.length > 1) row.variants.splice(idx, 1)
 }
 
 function onClear() {
@@ -569,6 +631,16 @@ function exportData() {
   URL.revokeObjectURL(url)
 }
 
+function removeRow(row: Row) {
+  const t = currentTab.value
+  if (!t) return
+  const idx = t.rows.findIndex((r) => r === row)
+  if (idx === -1) return
+  t.rows.splice(idx, 1)
+  // перенумеруем
+  t.rows.forEach((r, i) => (r.number = i + 1))
+}
+
 function importData(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0]
   if (!file) return
@@ -577,7 +649,22 @@ function importData(e: Event) {
     try {
       const arr = JSON.parse(reader.result as string)
       if (Array.isArray(arr)) {
-        tabs.value = arr.map((t: any) => ({ ...createTab(), rows: t.rows || [] }))
+        tabs.value = arr.map((t: any) => ({
+          ...createTab(),
+          rows: (t.rows || []).map((r: any) => ({
+            number: r.number,
+            variants: Array.isArray(r.variants)
+              ? r.variants
+              : [typeof r.answer === 'string' ? r.answer : ''],
+            bonusTime: r.bonusTime || { hours: 0, minutes: 0, seconds: 0, negative: false },
+            sectorName: r.sectorName || '',
+            bonusName: r.bonusName || '',
+            inSector: r.inSector !== false,
+            inBonus: r.inBonus !== false,
+            targetLevels: Array.isArray(r.targetLevels) ? r.targetLevels : [],
+            allLevels: !!r.allLevels,
+          }))
+        }))
         activeTab.value = 0
       } else {
         alert('Неверный формат JSON')
@@ -622,7 +709,11 @@ async function onSendSectors() {
           progress.update('Пропуск')
           continue
         }
-        const variants = rows.map((r) => r.answer)
+        const variants: string[] = []
+        for (const r of rows) {
+          const arr = Array.isArray(r.variants) ? r.variants : []
+          for (const v of arr) variants.push(v)
+        }
         progress.update(`Сектор ${rows[0].number}`)
         await sendSector(
           store.domain,
@@ -656,7 +747,7 @@ async function onSendSectors() {
           store.domain,
           store.gameId,
           store.levelId,
-          [row.answer],
+          (Array.isArray(row.variants) && row.variants.length ? row.variants : ['']),
           '',
           row.sectorName
         )
@@ -686,7 +777,7 @@ async function onSendBonuses() {
         if (!row.inBonus) continue
         bonusRows.push({
           number: row.number,
-          variants: [row.answer],
+          variants: (Array.isArray(row.variants) && row.variants.length ? row.variants : ['']),
           inSector: true,
           inBonus: true,
           allLevels: !!row.allLevels,
@@ -738,11 +829,13 @@ async function onSendBonuses() {
     stopUploadVisibilityTracking()
     alert('❌ Ошибка отправки бонусов: ' + e.message)
   }
+
 }
 </script>
 
 <script lang="ts">
-export default {}
+import { defineComponent } from 'vue'
+export default defineComponent({})
 </script>
 
 <style>
