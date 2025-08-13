@@ -47,6 +47,10 @@ export interface Answer {
   sectorName?: string
   bonusName?: string
   noHint?: boolean
+  /** Текст/HTML бонусного задания → textarea name=txtTask */
+  bonusTask?: string
+  /** Текст/HTML подсказки → textarea name=txtHelp */
+  bonusHint?: string
   /**
    * Дополнительные уровни (метки), для которых нужно отметить чекбоксы при создании бонуса.
    * Это значения-ярлыки, отображаемые на форме EN (например, "12", "13").
@@ -254,17 +258,25 @@ export async function sendBonuses(
     // Название бонуса (если не указано — пустая строка)
     params.append('txtBonusName', bonus.bonusName || '')
 
-    // txtHelp — вставка «открытого сектора» в таблицу
-    const hint = bonus.noHint
-      ? ''
-      : `<script type="text/javascript">document.getElementById("${level}_${String(
-          bonus.number
-        ).padStart(2, '0')}").innerHTML="${
-          bonus.displayText
-            ? `<p class='up'>${bonus.displayText.replace(/"/g, '\\"')}</p>`
-            : bonus.closedText.replace(/"/g, '\\"')
-        }";</script>`
-    params.append('txtHelp', hint)
+    // txtTask — бонусное задание (произвольный HTML/текст)
+    params.append('txtTask', typeof bonus.bonusTask === 'string' ? bonus.bonusTask : '')
+
+    // txtHelp — подсказка: если явно задана bonus.bonusHint — используем её; иначе
+    // сохраняем прежнее поведение (скрипт для замены содержимого ячейки), когда noHint !== true
+    if (typeof bonus.bonusHint === 'string') {
+      params.append('txtHelp', bonus.bonusHint)
+    } else {
+      const hint = bonus.noHint
+        ? ''
+        : `<script type="text/javascript">document.getElementById("${level}_${String(
+            bonus.number
+          ).padStart(2, '0')}").innerHTML="${
+            bonus.displayText
+              ? `<p class='up'>${bonus.displayText.replace(/"/g, '\\"')}</p>`
+              : bonus.closedText.replace(/"/g, '\\"')
+          }";</script>`
+      params.append('txtHelp', hint)
+    }
 
     // Варианты бонуса: answer_-1, answer_-2, …
     bonus.variants.forEach((v, idx) => {

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="container min-h-screen py-6">
+    <div class="container max-w-[120rem] min-h-screen py-6">
       <router-view />
       <VersionLabel />
     </div>

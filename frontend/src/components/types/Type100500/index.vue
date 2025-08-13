@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-blue-50 py-8">
-    <div class="container mx-auto bg-white p-12 rounded-md shadow-sm">
+    <div class="container max-w-[120rem] mx-auto bg-white p-12 rounded-md shadow-sm">
       <h1 class="text-2xl font-semibold text-center">
         100500 секторов и бонусов
       </h1>
@@ -64,6 +64,22 @@
               </label>
             </div>
           </div>
+          <div class="flex-1 min-w-[200px]">
+            <label class="form-label">Бонусные задания</label>
+            <textarea
+              v-model="currentTab.bonusTaskPattern"
+               placeholder="Текст или код"
+               class="form-input w-full textarea-collapsible-lg"
+            ></textarea>
+          </div>
+          <div class="flex-1 min-w-[200px]">
+            <label class="form-label">Подсказки (по факту выполнения)</label>
+            <textarea
+              v-model="currentTab.bonusHintPattern"
+               placeholder="Текст или код"
+               class="form-input w-full textarea-collapsible-lg"
+            ></textarea>
+          </div>
           <button @click="openLevelsModal('bulk')" type="button" class="form-button h-10 px-4">Уровни бонусов</button>
           <button @click="showCodes = true" type="button" class="form-button h-10 px-4">Добавить коды</button>
         </div>
@@ -81,6 +97,8 @@
                 <th class="p-2 text-left w-32">Бонусное время</th>
                 <th class="p-2 text-left">Название сектора</th>
                 <th class="p-2 text-left">Название бонуса</th>
+                <th class="p-2 text-left w-72">Бонусное задание</th>
+                <th class="p-2 text-left w-72">Подсказка</th>
                 <th class="p-2 w-6"></th>
               </tr>
             </thead>
@@ -131,8 +149,8 @@
                     >уровни</button>
                   </div>
                 </td>
-                <td class="p-2">
-                  <div class="text-xs text-gray-700">
+                <td class="p-2 min-w-[120px]">
+                  <div class="text-gray-700">
                     <template v-if="row.allLevels">все уровни</template>
                     <template v-else-if="rowSelectedLevelsDisplay(row).length">
                       {{ rowSelectedLevelsShortStr(row) }}
@@ -156,6 +174,12 @@
                 </td>
                 <td class="p-2">
                   <input v-model="row.bonusName" class="form-input h-8 w-full min-w-[150px]" placeholder="Название бонуса" />
+                </td>
+                <td class="p-2">
+                  <textarea v-model="row.bonusTask" class="form-input py-1 w-full min-w-[240px] textarea-collapsible" placeholder="HTML/текст бонусного задания"></textarea>
+                </td>
+                <td class="p-2">
+                  <textarea v-model="row.bonusHint" class="form-input py-1 w-full min-w-[240px] textarea-collapsible" placeholder="HTML/текст подсказки"></textarea>
                 </td>
                 <td class="p-2 text-right align-top">
                   <button
@@ -312,6 +336,8 @@ const progress = useProgressStore()
   bonusTime: { hours: number; minutes: number; seconds: number; negative: boolean }
   sectorName: string
   bonusName: string
+  bonusTask?: string
+  bonusHint?: string
   inSector: boolean
   inBonus: boolean
   /** Дополнительные уровни для бонуса (к базовому уровню из настроек). */
@@ -322,6 +348,8 @@ const progress = useProgressStore()
 interface TabData {
   sectorPattern: string
   bonusPattern: string
+  bonusTaskPattern?: string
+  bonusHintPattern?: string
   quickTime: { hours: number; minutes: number; seconds: number; negative: boolean }
   rows: Row[]
 }
@@ -436,6 +464,8 @@ function createTab(): TabData {
   return {
     sectorPattern: '',
     bonusPattern: '',
+    bonusTaskPattern: '',
+    bonusHintPattern: '',
     quickTime: { hours: 0, minutes: 0, seconds: 0, negative: false },
     rows: [],
   }
@@ -471,6 +501,8 @@ onMounted(() => {
             bonusTime: r.bonusTime || { hours: 0, minutes: 0, seconds: 0, negative: false },
             sectorName: r.sectorName || '',
             bonusName: r.bonusName || '',
+            bonusTask: typeof r.bonusTask === 'string' ? r.bonusTask : '',
+            bonusHint: typeof r.bonusHint === 'string' ? r.bonusHint : '',
             inSector: r.inSector !== false,
             inBonus: r.inBonus !== false,
             targetLevels: Array.isArray(r.targetLevels) ? r.targetLevels : [],
@@ -517,6 +549,34 @@ onMounted(() => {
       if (!t || val === undefined) return
       t.rows.forEach((r, idx) => {
         r.bonusName = val.replace(/&/g, String(idx + 1))
+      })
+    }
+  )
+
+  // Массовая подстановка «Бонусных заданий» по шаблону
+  watch(
+    [() => currentTab.value?.bonusTaskPattern, () => activeTab.value],
+    ([val, tabIdx], [old, oldTabIdx]) => {
+      if (tabIdx !== oldTabIdx) return
+      if (val === old) return
+      const t = tabs.value[tabIdx]
+      if (!t || val === undefined) return
+      t.rows.forEach((r, idx) => {
+        r.bonusTask = (val || '').replace(/&/g, String(idx + 1))
+      })
+    }
+  )
+
+  // Массовая подстановка «Подсказок» по шаблону
+  watch(
+    [() => currentTab.value?.bonusHintPattern, () => activeTab.value],
+    ([val, tabIdx], [old, oldTabIdx]) => {
+      if (tabIdx !== oldTabIdx) return
+      if (val === old) return
+      const t = tabs.value[tabIdx]
+      if (!t || val === undefined) return
+      t.rows.forEach((r, idx) => {
+        r.bonusHint = (val || '').replace(/&/g, String(idx + 1))
       })
     }
   )
@@ -597,6 +657,8 @@ function applyCodes() {
       bonusTime: { ...t.quickTime },
       sectorName: t.sectorPattern.replace(/&/g, String(num)),
       bonusName: t.bonusPattern.replace(/&/g, String(num)),
+        bonusTask: '',
+        bonusHint: '',
       inSector: true,
       inBonus: true,
       targetLevels: [],
@@ -659,6 +721,8 @@ function importData(e: Event) {
             bonusTime: r.bonusTime || { hours: 0, minutes: 0, seconds: 0, negative: false },
             sectorName: r.sectorName || '',
             bonusName: r.bonusName || '',
+            bonusTask: typeof r.bonusTask === 'string' ? r.bonusTask : '',
+            bonusHint: typeof r.bonusHint === 'string' ? r.bonusHint : '',
             inSector: r.inSector !== false,
             inBonus: r.inBonus !== false,
             targetLevels: Array.isArray(r.targetLevels) ? r.targetLevels : [],
@@ -786,6 +850,8 @@ async function onSendBonuses() {
           displayText: '',
           bonusName: row.bonusName,
           noHint: true,
+          bonusTask: typeof row.bonusTask === 'string' ? row.bonusTask : '',
+          bonusHint: typeof row.bonusHint === 'string' ? row.bonusHint : '',
           targetLevels: Array.isArray(row.targetLevels) ? row.targetLevels : [],
         })
       }

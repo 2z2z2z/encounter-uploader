@@ -8,7 +8,7 @@ module.exports = {
     container: {
       center: true,
       padding: '1rem',
-      screens: { DEFAULT: '800px' },
+      screens: { DEFAULT: '800px' , '2xl': '120rem' },
     },
     extend: {
       borderRadius: {
