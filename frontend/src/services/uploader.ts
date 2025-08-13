@@ -34,6 +34,8 @@ export interface Answer {
   variants: string[]
   inSector: boolean
   inBonus: boolean
+  /** Если true — бонус доступен на всех уровнях (rbAllLevels=0), иначе — на указанных (rbAllLevels=1). */
+  allLevels?: boolean
   bonusTime: {
     hours: number
     minutes: number
@@ -45,6 +47,12 @@ export interface Answer {
   sectorName?: string
   bonusName?: string
   noHint?: boolean
+  /**
+   * Дополнительные уровни (метки), для которых нужно отметить чекбоксы при создании бонуса.
+   * Это значения-ярлыки, отображаемые на форме EN (например, "12", "13").
+   * Уровень из настроек (параметр level) будет добавлен автоматически и может не указываться здесь.
+   */
+  targetLevels?: string[]
 }
 
 /**
@@ -155,7 +163,11 @@ export async function sendBonuses(
     return
   }
 
+  // Постараемся один раз получить форму бонусов и извлечь:
+  // 1) Имя чекбокса для текущего уровня
+  // 2) Полную карту всех уровней: label (отображаемое значение) → name (атрибут чекбокса)
   let checkboxName: string | null = null
+  let levelLabelToName: Record<string, string> = {}
   const MAX_RETRIES = 3
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
@@ -177,15 +189,28 @@ export async function sendBonuses(
         doc.querySelectorAll('input[name^="level_"]')
       ) as HTMLInputElement[]
       for (const inp of inputs) {
+        const nameAttr = inp.getAttribute('name') || ''
+        let labelText = ''
         const wrapper = inp.closest('.levelWrapper')
-        if (!wrapper) continue
-        const span = wrapper.querySelector('span')
-        if (!span) continue
-        if (span.textContent?.trim() === String(level)) {
-          checkboxName = inp.getAttribute('name')
-          console.log(`[sendBonuses] найден чекбокс "${checkboxName}" для уровня ${level}`)
-          break
+        if (wrapper) {
+          const span = wrapper.querySelector('span')
+          if (span) labelText = span.textContent?.trim() || ''
         }
+        if (!labelText) {
+          // Fallback: попытаемся извлечь число из соседних текстов или самого nameAttr
+          const siblingText = inp.nextSibling && (inp.nextSibling as any).textContent
+          const candidate = (siblingText || nameAttr).toString().match(/\d+/)?.[0] || ''
+          labelText = candidate
+        }
+        if (labelText) {
+          levelLabelToName[labelText] = nameAttr
+        }
+      }
+
+      const nameForCurrentLevel = levelLabelToName[String(level)]
+      if (nameForCurrentLevel) {
+        checkboxName = nameForCurrentLevel
+        console.log(`[sendBonuses] найден чекбокс "${checkboxName}" для уровня ${level}`)
       }
 
       if (!checkboxName) {
@@ -254,8 +279,25 @@ export async function sendBonuses(
       params.append('negative', 'on')
     }
 
-    // Отмечаем чекбокс нужного уровня
-    params.append(checkboxName, 'on')
+    // Радио: rbAllLevels — 0 (все уровни) или 1 (указанные)
+    const isAllLevels = !!bonus.allLevels
+    params.append('rbAllLevels', isAllLevels ? '0' : '1')
+    if (!isAllLevels) {
+      // Отмечаем чекбоксы уровней: обязательный текущий + дополнительные из bonus.targetLevels
+      const selectedLabels = new Set<string>()
+      selectedLabels.add(String(level))
+      if (Array.isArray(bonus.targetLevels)) {
+        for (const lbl of bonus.targetLevels) {
+          if (lbl) selectedLabels.add(String(lbl))
+        }
+      }
+      for (const lbl of selectedLabels) {
+        const chk = levelLabelToName[lbl]
+        if (chk) {
+          params.append(chk, 'on')
+        }
+      }
+    }
 
     console.log(`[sendBonuses] ▶ POST ${url}`)
     console.log(`[sendBonuses] ▶ payload →`, params.toString())
@@ -280,4 +322,43 @@ export async function sendBonuses(
     const t1 = Date.now()
     console.log(`[sendBonuses] actual sleep: ${t1 - t0}ms`)
   }
+}
+
+/**
+ * Возвращает список доступных уровней из формы BonusEdit: label (отображаемое число) и name (атрибут чекбокса).
+ */
+export async function fetchBonusLevels(
+  domain: string,
+  gameid: string | number,
+  level: string | number
+): Promise<Array<{ label: string; name: string }>> {
+  const urlForm = `/api/admin/bonus-form?domain=${encodeURIComponent(
+    domain
+  )}&gid=${encodeURIComponent(String(gameid))}&level=${encodeURIComponent(
+    String(level)
+  )}`
+  const res = await axios.get(urlForm, { withCredentials: true })
+  const htmlText = res.data as string
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(htmlText, 'text/html')
+  const inputs = Array.from(doc.querySelectorAll('input[name^="level_"]')) as HTMLInputElement[]
+  const result: Array<{ label: string; name: string }> = []
+  for (const inp of inputs) {
+    const nameAttr = inp.getAttribute('name') || ''
+    let labelText = ''
+    const wrapper = inp.closest('.levelWrapper')
+    if (wrapper) {
+      const span = wrapper.querySelector('span')
+      if (span) labelText = span.textContent?.trim() || ''
+    }
+    if (!labelText) {
+      const siblingText = inp.nextSibling && (inp.nextSibling as any).textContent
+      const candidate = (siblingText || nameAttr).toString().match(/\d+/)?.[0] || ''
+      labelText = candidate
+    }
+    if (labelText) {
+      result.push({ label: labelText, name: nameAttr })
+    }
+  }
+  return result
 }

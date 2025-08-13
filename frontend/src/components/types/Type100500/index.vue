@@ -64,7 +64,8 @@
               </label>
             </div>
           </div>
-          <button @click="showCodes = true" type="button" class="form-button h-10 px-4 flex-1">Добавить коды</button>
+          <button @click="openLevelsModal('bulk')" type="button" class="form-button h-10 px-4">Уровни бонусов</button>
+          <button @click="showCodes = true" type="button" class="form-button h-10 px-4">Добавить коды</button>
         </div>
 
         <!-- Table -->
@@ -76,6 +77,7 @@
                 <th class="p-2 text-left w-1/3">Ответ</th>
                 <th class="p-2 text-center">Сектор</th>
                 <th class="p-2 text-center">Бонус</th>
+                <th class="p-2 text-left w-40">Уровни бонуса</th>
                 <th class="p-2 text-left w-32">Бонусное время</th>
                 <th class="p-2 text-left">Название сектора</th>
                 <th class="p-2 text-left">Название бонуса</th>
@@ -91,7 +93,23 @@
                   <input type="checkbox" v-model="row.inSector" class="cursor-pointer" />
                 </td>
                 <td class="p-2 text-center">
-                  <input type="checkbox" v-model="row.inBonus" class="cursor-pointer" />
+                  <div class="inline-flex items-center gap-2">
+                    <input type="checkbox" v-model="row.inBonus" class="cursor-pointer" />
+                    <button
+                      type="button"
+                      class="text-blue-600 hover:underline"
+                      @click="openLevelsModal('row', row)"
+                    >уровни</button>
+                  </div>
+                </td>
+                <td class="p-2">
+                  <div class="text-xs text-gray-700">
+                    <template v-if="row.allLevels">все уровни</template>
+                    <template v-else-if="rowSelectedLevelsDisplay(row).length">
+                      {{ rowSelectedLevelsShortStr(row) }}
+                    </template>
+                    <template v-else>—</template>
+                  </div>
                 </td>
                 <td class="p-2">
                   <div class="flex items-center gap-1">
@@ -139,6 +157,55 @@
         </div>
       </div>
     </div>
+
+    <!-- Levels select modal -->
+    <transition name="fade">
+      <div v-if="showLevels" class="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-md w-[90%] max-w-2xl space-y-4 relative">
+          <button
+            @click="closeLevelsModal()"
+            type="button"
+            class="absolute top-2 right-2 text-gray-400 hover:text-black cursor-pointer"
+          >✕</button>
+          <h3 class="text-lg font-medium">Доступность бонуса</h3>
+          <div class="flex items-center gap-6 text-sm">
+            <label class="inline-flex items-center gap-2">
+              <input type="radio" value="all" v-model="levelsModeRadio" class="cursor-pointer" />
+              <span>На всех уровнях</span>
+            </label>
+            <label class="inline-flex items-center gap-2">
+              <input type="radio" value="custom" v-model="levelsModeRadio" class="cursor-pointer" />
+              <span>На указанных уровнях:</span>
+            </label>
+          </div>
+          <div class="max-h-80 overflow-auto">
+            <div v-if="loadingLevels" class="text-sm text-gray-500">Загрузка…</div>
+            <div v-else class="border border-gray-200/50 rounded p-2" v-show="levelsModeRadio === 'custom'">
+              <div class="grid gap-1" style="grid-template-columns: repeat(20, minmax(0, 1fr));">
+                <label v-for="lvl in availableLevels" :key="lvl.label" class="flex flex-col items-center gap-0 text-xs">
+                  <input
+                    type="checkbox"
+                    class="cursor-pointer"
+                    :value="lvl.label"
+                    v-model="selectedLevelLabels"
+                  />
+                  <span class="leading-tight mt-0.5">{{ lvl.label }}</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <button @click="toggleSelectAll" type="button" class="form-button h-10 px-4" :disabled="levelsModeRadio !== 'custom'">Отметить все</button>
+              <button @click="refreshLevels" type="button" class="form-button h-10 px-4">Обновить</button>
+            </div>
+            <div class="flex items-center gap-2">
+              <button @click="applyLevels" class="form-button h-10 px-4">Применить</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
 
     <!-- Add codes modal -->
     <transition name="fade">
@@ -195,7 +262,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useUploadStore } from '../../../store'
 import { useAuthStore } from '../../../store/auth'
 import { useProgressStore } from '../../../store/progress'
-import { sendSector, sendBonuses, type Answer } from '../../../services/uploader'
+import { sendSector, sendBonuses, fetchBonusLevels, type Answer } from '../../../services/uploader'
 import { showUploadWarning, startUploadVisibilityTracking, stopUploadVisibilityTracking, showCompletionNotification } from '../../../utils/visibility'
 
 const store = useUploadStore()
@@ -210,6 +277,10 @@ interface Row {
   bonusName: string
   inSector: boolean
   inBonus: boolean
+  /** Дополнительные уровни для бонуса (к базовому уровню из настроек). */
+  targetLevels?: string[]
+  /** Если true — бонус на всех уровнях. */
+  allLevels?: boolean
 }
 interface TabData {
   sectorPattern: string
@@ -232,6 +303,97 @@ const codesCount = computed(() =>
 const genCount = ref(1)
 const genDigits = ref(4)
 const combineSectors = ref(false)
+
+// Levels selection state
+const showLevels = ref(false)
+const levelsMode = ref<'row' | 'bulk'>('row')
+const levelsRow = ref<Row | null>(null)
+const availableLevels = ref<Array<{ label: string; name: string }>>([])
+const loadingLevels = ref(false)
+const selectedLevelLabels = ref<string[]>([])
+const levelsModeRadio = ref<'all' | 'custom'>('custom')
+
+function rowSelectedLevelsDisplay(row: Row): string[] {
+  // Для отображения в таблице: текущий базовый уровень + дополнительные
+  const base = String(store.levelId || '').trim()
+  const extra = Array.isArray(row.targetLevels) ? row.targetLevels : []
+  const set = new Set<string>()
+  if (base) set.add(base)
+  for (const l of extra) if (l) set.add(String(l))
+  return Array.from(set)
+}
+
+function rowSelectedLevelsShortStr(row: Row): string {
+  const arr = rowSelectedLevelsDisplay(row)
+  if (arr.length <= 5) return arr.join(', ')
+  return arr.slice(0, 5).join(', ') + ', …'
+}
+
+async function ensureLevelsLoaded() {
+  if (availableLevels.value.length) return
+  await refreshLevels()
+}
+
+async function refreshLevels() {
+  try {
+    loadingLevels.value = true
+    const list = await fetchBonusLevels(store.domain, store.gameId, store.levelId)
+    availableLevels.value = list
+  } catch (e: any) {
+    alert('Не удалось загрузить список уровней: ' + (e.message || e))
+  } finally {
+    loadingLevels.value = false
+  }
+}
+
+function openLevelsModal(mode: 'row' | 'bulk', row?: Row) {
+  levelsMode.value = mode
+  levelsRow.value = mode === 'row' ? (row || null) : null
+  // Начальное состояние — выбран только текущий уровень из настроек
+  const base = String(store.levelId || '').trim()
+  let preselected: string[] = base ? [base] : []
+  levelsModeRadio.value = 'custom'
+  if (mode === 'row' && row) {
+    const extras = Array.isArray(row.targetLevels) ? row.targetLevels : []
+    preselected = Array.from(new Set([...
+      preselected,
+      ...extras.map((x) => String(x))
+    ]))
+    levelsModeRadio.value = row.allLevels ? 'all' : 'custom'
+  }
+  selectedLevelLabels.value = preselected
+  showLevels.value = true
+  ensureLevelsLoaded()
+}
+
+function closeLevelsModal() {
+  showLevels.value = false
+}
+
+function applyLevels() {
+  // Сохраняем только дополнительные уровни (без базового)
+  const base = String(store.levelId || '').trim()
+  const extras = selectedLevelLabels.value.filter((l) => l && l !== base)
+  if (levelsMode.value === 'row' && levelsRow.value) {
+    levelsRow.value.targetLevels = extras
+    levelsRow.value.allLevels = levelsModeRadio.value === 'all'
+  } else if (levelsMode.value === 'bulk' && currentTab.value) {
+    for (const r of currentTab.value.rows) {
+      r.targetLevels = extras.slice()
+      r.allLevels = levelsModeRadio.value === 'all'
+    }
+  }
+  closeLevelsModal()
+}
+
+function toggleSelectAll() {
+  if (!availableLevels.value.length) return
+  if (selectedLevelLabels.value.length === availableLevels.value.length) {
+    selectedLevelLabels.value = []
+  } else {
+    selectedLevelLabels.value = availableLevels.value.map((l) => l.label)
+  }
+}
 
 function createTab(): TabData {
   return {
@@ -320,6 +482,8 @@ onMounted(() => {
     },
     { deep: true }
   )
+  // Загрузим список уровней один раз при открытии страницы
+  ensureLevelsLoaded()
 })
 
 function generateRandomCode(len: number, used: Set<string>): string {
@@ -383,6 +547,7 @@ function applyCodes() {
       bonusName: t.bonusPattern.replace(/&/g, String(num)),
       inSector: true,
       inBonus: true,
+      targetLevels: [],
     })
   })
   codesText.value = ''
@@ -524,11 +689,13 @@ async function onSendBonuses() {
           variants: [row.answer],
           inSector: true,
           inBonus: true,
+          allLevels: !!row.allLevels,
           bonusTime: { ...row.bonusTime },
           closedText: '',
           displayText: '',
           bonusName: row.bonusName,
           noHint: true,
+          targetLevels: Array.isArray(row.targetLevels) ? row.targetLevels : [],
         })
       }
     }
