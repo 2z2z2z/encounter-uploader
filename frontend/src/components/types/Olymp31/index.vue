@@ -112,7 +112,7 @@
             Очистить
           </button>
           <button
-            @click="exportData"
+            @click="showExport = true"
             type="button"
             class="form-button h-10 px-4"
           >
@@ -123,7 +123,7 @@
             <input
               type="file"
               @change="importData"
-              accept=".json"
+              accept=".json,.csv"
               class="hidden"
             />
           </label>
@@ -195,6 +195,20 @@
         </div>
       </div>
     </transition>
+    
+    <!-- Модальное окно выбора формата Экспорта -->
+    <transition name="fade">
+      <div v-if="showExport" class="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-md w-[90%] max-w-sm space-y-4 relative">
+          <button @click="showExport = false" type="button" class="absolute top-2 right-2 text-gray-400 hover:text-black cursor-pointer">✕</button>
+          <h3 class="text-lg font-medium">Экспортировать как…</h3>
+          <div class="flex gap-2 justify-end">
+            <button @click="exportDataAs('json')" class="form-button h-10 px-4">JSON</button>
+            <button @click="exportDataAs('csv')" class="form-button h-10 px-4">CSV</button>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -206,6 +220,7 @@ import { useProgressStore } from '../../../store/progress'
 import Answers from '../Olymp15/Answers.vue'
 import { generateOlympLayout, type Cell } from '../../../utils/olymp'
 import { showUploadWarning, startUploadVisibilityTracking, stopUploadVisibilityTracking, showCompletionNotification } from '../../../utils/visibility'
+import { serializeCsv, downloadBlob, parseCsv } from '../../../utils/csv'
 
 // Функции отправки из единого uploader.ts
 import {
@@ -235,6 +250,7 @@ const progress = useProgressStore()
 const error = ref('')
 const showPreview = ref(false)
 const previewMode = ref<'closed' | 'open'>('closed')
+const showExport = ref(false)
 
 // Заголовок
 const levelTypeLabel = computed(() =>
@@ -307,36 +323,79 @@ function onClear() {
   store.clearTypeData()
 }
 
-// Экспорт состояния в JSON
-function exportData() {
+// Экспорт состояния (JSON/CSV)
+function exportDataAs(format: 'json' | 'csv') {
   const { levelId, ...state } = store.$state as any
-  const blob = new Blob([JSON.stringify(state, null, 2)], {
-    type: 'application/json',
-  })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = 'encounter-olymp.json'
-  a.click()
-  URL.revokeObjectURL(url)
+  if (format === 'csv') {
+    const rows = store.answers.map((r) => ({
+      number: String(r.number || ''),
+      variants: (Array.isArray(r.variants) ? r.variants : []).join(' | '),
+      inSector: r.inSector ? '1' : '0',
+      inBonus: r.inBonus ? '1' : '0',
+      bonusHours: String(r.bonusTime?.hours ?? ''),
+      bonusMinutes: String(r.bonusTime?.minutes ?? ''),
+      bonusSeconds: String(r.bonusTime?.seconds ?? ''),
+      bonusNegative: r.bonusTime?.negative ? '1' : '0',
+      closedText: r.closedText || '',
+      displayText: r.displayText || '',
+    }))
+    const csv = serializeCsv(rows)
+    downloadBlob(csv, 'encounter-olymp.csv', 'text/csv')
+  } else {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'encounter-olymp.json'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+  showExport.value = false
 }
 
-// Импорт состояния из JSON
+// Импорт состояния из JSON/CSV (авто-распознавание)
 function importData(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0]
   if (!file) return
   const reader = new FileReader()
   reader.onload = () => {
     try {
-      const obj = JSON.parse(reader.result as string)
-      if (Array.isArray(obj.answers) && obj.config) {
-        const { levelId, ...rest } = obj
-        store.$patch(rest)
+      const text = String(reader.result || '')
+      const trimmed = text.trim()
+      if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+        const obj = JSON.parse(text)
+        if (Array.isArray(obj.answers) && obj.config) {
+          const { levelId, ...rest } = obj
+          store.$patch(rest)
+        } else {
+          alert('Неверный формат JSON')
+        }
       } else {
-        alert('Неверный формат JSON')
+        const rows = parseCsv(text)
+        if (!rows.length) {
+          alert('CSV пустой')
+          return
+        }
+        const answers = rows.map((r) => ({
+          number: Number(r.number) || 0,
+          variants: (r.variants || '').split('|').map((s: string) => s.trim()).filter(Boolean),
+          inSector: r.inSector === '1' || /true/i.test(r.inSector || ''),
+          inBonus: r.inBonus === '1' || /true/i.test(r.inBonus || ''),
+          bonusTime: {
+            hours: Number(r.bonusHours) || 0,
+            minutes: Number(r.bonusMinutes) || 0,
+            seconds: Number(r.bonusSeconds) || 0,
+            negative: r.bonusNegative === '1' || /true|-/i.test(r.bonusNegative || ''),
+          },
+          closedText: r.closedText || '',
+          displayText: r.displayText || '',
+        }))
+        answers.sort((a, b) => a.number - b.number)
+        const normalized = answers.map((a, idx) => ({ ...a, number: idx + 1 }))
+        store.$patch({ answers: normalized })
       }
-    } catch {
-      alert('Ошибка при разборе JSON')
+    } catch (err) {
+      alert('Ошибка при импорте: ' + (err as any)?.message)
     }
   }
   reader.readAsText(file)

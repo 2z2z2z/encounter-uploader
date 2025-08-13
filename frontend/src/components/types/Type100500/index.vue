@@ -202,10 +202,10 @@
         </div>
         <div class="flex flex-wrap gap-2 px-4">
           <button @click="onClear" type="button" class="form-button h-10 px-4">Очистить</button>
-          <button @click="exportData" type="button" class="form-button h-10 px-4">Экспорт</button>
+          <button @click="showExport = true" type="button" class="form-button h-10 px-4">Экспорт</button>
           <label class="form-button h-10 px-4 cursor-pointer">
             Импорт
-            <input type="file" @change="importData" accept=".json" class="hidden" />
+            <input type="file" @change="importData" accept=".json,.csv" class="hidden" />
           </label>
         </div>
         <div class="flex flex-wrap gap-2 items-center">
@@ -315,6 +315,20 @@
         </div>
       </div>
     </transition>
+
+    <!-- Export format modal -->
+    <transition name="fade">
+      <div v-if="showExport" class="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-md w-[90%] max-w-sm space-y-4 relative">
+          <button @click="showExport = false" type="button" class="absolute top-2 right-2 text-gray-400 hover:text-black cursor-pointer">✕</button>
+          <h3 class="text-lg font-medium">Экспортировать как…</h3>
+          <div class="flex gap-2 justify-end">
+            <button @click="exportDataAs('json')" class="form-button h-10 px-4">JSON</button>
+            <button @click="exportDataAs('csv')" class="form-button h-10 px-4">CSV</button>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -325,6 +339,7 @@ import { useAuthStore } from '../../../store/auth'
 import { useProgressStore } from '../../../store/progress'
 import { sendSector, sendBonuses, fetchBonusLevels, type Answer } from '../../../services/uploader'
 import { showUploadWarning, startUploadVisibilityTracking, stopUploadVisibilityTracking, showCompletionNotification } from '../../../utils/visibility'
+import { serializeCsv, parseCsv, downloadBlob } from '../../../utils/csv'
 
 const store = useUploadStore()
 const authStore = useAuthStore()
@@ -368,6 +383,7 @@ const codesCount = computed(() =>
 const genCount = ref(1)
 const genDigits = ref(4)
 const combineSectors = ref(false)
+const showExport = ref(false)
 
 // Levels selection state
 const showLevels = ref(false)
@@ -682,15 +698,50 @@ function onClear() {
   tabs.value[activeTab.value] = createTab()
 }
 
-function exportData() {
-  const plain = tabs.value.map((t) => ({ rows: t.rows }))
-  const blob = new Blob([JSON.stringify(plain, null, 2)], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = '100500.json'
-  a.click()
-  URL.revokeObjectURL(url)
+function exportDataAs(format: 'json' | 'csv') {
+  if (format === 'csv') {
+    const rows: Array<Record<string, string>> = []
+    tabs.value.forEach((t, tabIdx) => {
+      t.rows.forEach((r) => {
+        rows.push({
+          tab: String(tabIdx + 1),
+          number: String(r.number || ''),
+          variants: (Array.isArray(r.variants) ? r.variants : []).join(' | '),
+          inSector: r.inSector ? '1' : '0',
+          inBonus: r.inBonus ? '1' : '0',
+          bonusHours: String(r.bonusTime?.hours ?? ''),
+          bonusMinutes: String(r.bonusTime?.minutes ?? ''),
+          bonusSeconds: String(r.bonusTime?.seconds ?? ''),
+          bonusNegative: r.bonusTime?.negative ? '1' : '0',
+          sectorName: r.sectorName || '',
+          bonusName: r.bonusName || '',
+          bonusTask: r.bonusTask || '',
+          bonusHint: r.bonusHint || '',
+          allLevels: r.allLevels ? '1' : '0',
+          targetLevels: Array.isArray(r.targetLevels) ? r.targetLevels.join(';') : '',
+        })
+      })
+    })
+    const csv = serializeCsv(rows)
+    downloadBlob(csv, '100500.csv', 'text/csv')
+  } else {
+    const plain = tabs.value.map((t) => ({
+      sectorPattern: t.sectorPattern,
+      bonusPattern: t.bonusPattern,
+      bonusTaskPattern: t.bonusTaskPattern || '',
+      bonusHintPattern: t.bonusHintPattern || '',
+      quickTime: { ...t.quickTime },
+      rows: t.rows,
+    }))
+    const blob = new Blob([JSON.stringify(plain, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = '100500.json'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+  showExport.value = false
 }
 
 function removeRow(row: Row) {
@@ -709,32 +760,94 @@ function importData(e: Event) {
   const reader = new FileReader()
   reader.onload = () => {
     try {
-      const arr = JSON.parse(reader.result as string)
-      if (Array.isArray(arr)) {
-        tabs.value = arr.map((t: any) => ({
-          ...createTab(),
-          rows: (t.rows || []).map((r: any) => ({
-            number: r.number,
-            variants: Array.isArray(r.variants)
-              ? r.variants
-              : [typeof r.answer === 'string' ? r.answer : ''],
-            bonusTime: r.bonusTime || { hours: 0, minutes: 0, seconds: 0, negative: false },
+      const text = String(reader.result || '')
+      const trimmed = text.trim()
+      if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+        const arr = JSON.parse(text)
+        if (Array.isArray(arr)) {
+          tabs.value = arr.map((t: any) => {
+            const tab = createTab()
+            tab.sectorPattern = typeof t.sectorPattern === 'string' ? t.sectorPattern : ''
+            tab.bonusPattern = typeof t.bonusPattern === 'string' ? t.bonusPattern : ''
+            tab.bonusTaskPattern = typeof t.bonusTaskPattern === 'string' ? t.bonusTaskPattern : ''
+            tab.bonusHintPattern = typeof t.bonusHintPattern === 'string' ? t.bonusHintPattern : ''
+            if (t.quickTime && typeof t.quickTime === 'object') {
+              tab.quickTime = {
+                hours: Number(t.quickTime.hours) || 0,
+                minutes: Number(t.quickTime.minutes) || 0,
+                seconds: Number(t.quickTime.seconds) || 0,
+                negative: !!t.quickTime.negative,
+              }
+            }
+            tab.rows = (t.rows || []).map((r: any) => ({
+              number: r.number,
+              variants: Array.isArray(r.variants)
+                ? r.variants
+                : [typeof r.answer === 'string' ? r.answer : ''],
+              bonusTime: r.bonusTime || { hours: 0, minutes: 0, seconds: 0, negative: false },
+              sectorName: r.sectorName || '',
+              bonusName: r.bonusName || '',
+              bonusTask: typeof r.bonusTask === 'string' ? r.bonusTask : '',
+              bonusHint: typeof r.bonusHint === 'string' ? r.bonusHint : '',
+              inSector: r.inSector !== false,
+              inBonus: r.inBonus !== false,
+              targetLevels: Array.isArray(r.targetLevels) ? r.targetLevels : [],
+              allLevels: !!r.allLevels,
+            }))
+            return tab
+          })
+          activeTab.value = 0
+        } else {
+          alert('Неверный формат JSON')
+        }
+      } else {
+        const rows = parseCsv(text)
+        if (!rows.length) {
+          alert('CSV пустой')
+          return
+        }
+        // Группируем по полю tab (1..N). Если нет, отправляем в таб 1
+        const byTab = new Map<number, Array<Record<string, string>>>()
+        for (const r of rows) {
+          const t = Math.max(1, Number(r.tab) || 1)
+          if (!byTab.has(t)) byTab.set(t, [])
+          byTab.get(t)!.push(r)
+        }
+        const maxTab = Math.max(...Array.from(byTab.keys()))
+        const newTabs: any[] = []
+        for (let t = 1; t <= maxTab; t++) {
+          const tab = createTab()
+          const list = (byTab.get(t) || [])
+          const mapped = list.map((r: Record<string, string>) => ({
+            number: Number(r.number) || 0,
+            variants: (r.variants || '').split('|').map((s: string) => s.trim()).filter(Boolean),
+            bonusTime: {
+              hours: Number(r.bonusHours) || 0,
+              minutes: Number(r.bonusMinutes) || 0,
+              seconds: Number(r.bonusSeconds) || 0,
+              negative: r.bonusNegative === '1' || /true|-/i.test(r.bonusNegative || ''),
+            },
             sectorName: r.sectorName || '',
             bonusName: r.bonusName || '',
-            bonusTask: typeof r.bonusTask === 'string' ? r.bonusTask : '',
-            bonusHint: typeof r.bonusHint === 'string' ? r.bonusHint : '',
-            inSector: r.inSector !== false,
-            inBonus: r.inBonus !== false,
-            targetLevels: Array.isArray(r.targetLevels) ? r.targetLevels : [],
-            allLevels: !!r.allLevels,
+            bonusTask: r.bonusTask || '',
+            bonusHint: r.bonusHint || '',
+            inSector: r.inSector === '1' || /true/i.test(r.inSector || ''),
+            inBonus: r.inBonus === '1' || /true/i.test(r.inBonus || ''),
+            targetLevels: (r.targetLevels || '')
+              .split(';')
+              .map((s: string) => s.trim())
+              .filter(Boolean),
+            allLevels: r.allLevels === '1' || /true/i.test(r.allLevels || ''),
           }))
-        }))
+          mapped.sort((a, b) => a.number - b.number)
+          tab.rows = mapped.map((a: any, idx: number) => ({ ...a, number: idx + 1 }))
+          newTabs.push(tab)
+        }
+        tabs.value = newTabs.length ? newTabs : [createTab()]
         activeTab.value = 0
-      } else {
-        alert('Неверный формат JSON')
       }
-    } catch {
-      alert('Ошибка при разборе JSON')
+    } catch (err) {
+      alert('Ошибка при импорте: ' + (err as any)?.message)
     }
   }
   reader.readAsText(file)
@@ -897,7 +1010,9 @@ async function onSendBonuses() {
   }
 
 }
-</script>
+  
+  
+ </script>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
