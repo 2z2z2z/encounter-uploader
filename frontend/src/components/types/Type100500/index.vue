@@ -284,10 +284,11 @@ onMounted(() => {
   )
 
   watch(
-    () => currentTab.value?.sectorPattern,
-    (val, old) => {
+    [() => currentTab.value?.sectorPattern, () => activeTab.value],
+    ([val, tabIdx], [old, oldTabIdx]) => {
+      if (tabIdx !== oldTabIdx) return
       if (val === old) return
-      const t = currentTab.value
+      const t = tabs.value[tabIdx]
       if (!t || val === undefined) return
       t.rows.forEach((r, idx) => {
         r.sectorName = val.replace(/&/g, String(idx + 1))
@@ -296,10 +297,11 @@ onMounted(() => {
   )
 
   watch(
-    () => currentTab.value?.bonusPattern,
-    (val, old) => {
+    [() => currentTab.value?.bonusPattern, () => activeTab.value],
+    ([val, tabIdx], [old, oldTabIdx]) => {
+      if (tabIdx !== oldTabIdx) return
       if (val === old) return
-      const t = currentTab.value
+      const t = tabs.value[tabIdx]
       if (!t || val === undefined) return
       t.rows.forEach((r, idx) => {
         r.bonusName = val.replace(/&/g, String(idx + 1))
@@ -308,11 +310,13 @@ onMounted(() => {
   )
 
   watch(
-    () => ({ ...currentTab.value?.quickTime }),
-    (qt, old) => {
-      if (!currentTab.value) return
-      if (JSON.stringify(qt) === JSON.stringify(old)) return
-      currentTab.value.rows.forEach((r) => (r.bonusTime = { ...qt }))
+    [() => (currentTab.value?.quickTime ? { ...currentTab.value.quickTime } : undefined), () => activeTab.value],
+    ([qt, tabIdx], [old, oldTabIdx]) => {
+      if (tabIdx !== oldTabIdx) return
+      if (!qt || JSON.stringify(qt) === JSON.stringify(old)) return
+      const t = tabs.value[tabIdx]
+      if (!t) return
+      t.rows.forEach((r) => (r.bonusTime = { ...qt }))
     },
     { deep: true }
   )
