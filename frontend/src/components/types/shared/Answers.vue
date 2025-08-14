@@ -39,7 +39,6 @@
                   v-model="row.variants[idx]"
                   placeholder="ответ"
                   class="form-input h-8 min-w-[150px] flex-1"
-                  
                 />
                 <button
                   v-if="idx === row.variants.length - 1 && idx < 9"
@@ -122,6 +121,7 @@
       </tbody>
     </table>
   </div>
+  
 </template>
 
 <script setup lang="ts">
@@ -144,3 +144,5 @@ function markCustom() {
 import { defineComponent } from 'vue'
 export default defineComponent({})
 </script>
+
+

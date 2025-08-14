@@ -1,15 +1,6 @@
 <template>
-  <div class="min-h-screen bg-blue-50 py-8">
-    <div class="container max-w-[120rem] mx-auto bg-white p-12 rounded-md shadow-sm">
-      <h1 class="text-2xl font-semibold text-center">
-        100500 секторов и бонусов
-      </h1>
-      <p class="text-sm text-gray-500 text-center mb-0">
-        автор: <strong>{{ authStore.username }}</strong>,
-        домен: <strong>{{ store.domain }}</strong>,
-        игра: <strong>{{ store.gameId }}</strong>,
-        уровень: <strong>{{ store.levelId }}</strong>
-      </p>
+  <PageLayout title="100500 секторов и бонусов" maxWidthClass="max-w-[120rem]">
+    <LevelInfo />
 
       <!-- Tabs -->
       <div class="flex flex-wrap items-center gap-2 mt-6 mb-6">
@@ -234,29 +225,23 @@
       </div>
 
       <!-- Buttons bottom -->
-      <div class="flex flex-wrap justify-between gap-2 mt-8">
-        <div>
-          <button @click="$router.push('/settings')" class="form-button bg-gray-400 hover:bg-gray-500 h-10 px-4">Назад</button>
-        </div>
-        <div class="flex flex-wrap gap-2 px-4">
-          <button @click="onClear" type="button" class="form-button h-10 px-4">Очистить</button>
-          <button @click="showExport = true" type="button" class="form-button h-10 px-4">Экспорт</button>
-          <label class="form-button h-10 px-4 cursor-pointer">
-            Импорт
-            <input type="file" @change="importData" accept=".json,.csv" class="hidden" />
-          </label>
-        </div>
-        <div class="flex flex-wrap gap-2 items-center">
-          <label class="flex items-center gap-1">
-            <input type="checkbox" v-model="combineSectors" class="cursor-pointer" />
-            <span>Объединить секторы (БМП)</span>
-          </label>
-          <button @click="onSendSectors" type="button" class="form-button h-10 px-4">Залить секторы</button>
-          <button @click="onSendBonuses" type="button" class="form-button h-10 px-4">Залить бонусы</button>
-        </div>
-      </div>
-    </div>
-
+      <BottomBar
+        :showBack="true"
+        :showClear="true"
+        :showExport="true"
+        :showImport="true"
+        :showSendSectors="true"
+        :showSendBonuses="true"
+        :supportCombineSectors="true"
+        :combineSectors="combineSectors"
+        @update:combineSectors="(v) => (combineSectors = !!v)"
+        @back="$router.push('/settings')"
+        @clear="onClear"
+        @export="() => (showExport = true)"
+        @import="importData"
+        @sendSectors="onSendSectors"
+        @sendBonuses="onSendBonuses"
+      />
     <!-- Levels select modal -->
     <transition name="fade">
       <div v-if="showLevels" class="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
@@ -355,33 +340,27 @@
     </transition>
 
     <!-- Export format modal -->
-    <transition name="fade">
-      <div v-if="showExport" class="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
-        <div class="bg-white p-6 rounded-md w-[90%] max-w-sm space-y-4 relative">
-          <button @click="showExport = false" type="button" class="absolute top-2 right-2 text-gray-400 hover:text-black cursor-pointer">✕</button>
-          <h3 class="text-lg font-medium">Экспортировать как…</h3>
-          <div class="flex gap-2 justify-end">
-            <button @click="exportDataAs('json')" class="form-button h-10 px-4">JSON</button>
-            <button @click="exportDataAs('csv')" class="form-button h-10 px-4">CSV</button>
-          </div>
-        </div>
-      </div>
-    </transition>
-  </div>
+    <ExportModal
+      :show="showExport"
+      @update:show="showExport = $event"
+      @export-json="() => exportDataAs('json')"
+      @export-csv="() => exportDataAs('csv')"
+    />
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useUploadStore } from '../../../store'
-import { useAuthStore } from '../../../store/auth'
-import { useProgressStore } from '../../../store/progress'
-import { sendSector, sendBonuses, fetchBonusLevels, type Answer } from '../../../services/uploader'
-import { showUploadWarning, startUploadVisibilityTracking, stopUploadVisibilityTracking, showCompletionNotification } from '../../../utils/visibility'
-import { serializeCsv, parseCsv, downloadBlob } from '../../../utils/csv'
+import { fetchBonusLevels, type Answer } from '../../../services/uploader'
+import BottomBar from '../shared/BottomBar.vue'
+import LevelInfo from '../shared/LevelInfo.vue'
+import ExportModal from '../shared/ExportModal.vue'
+import PageLayout from '../shared/PageLayout.vue'
+import { export100500, import100500 } from './useExportImport100500'
+import { useUploader } from '../../../composables/uploader'
 
 const store = useUploadStore()
-const authStore = useAuthStore()
-const progress = useProgressStore()
 
   interface Row {
   number: number
@@ -428,6 +407,7 @@ const genCount = ref(1)
 const genDigits = ref(4)
 const combineSectors = ref(false)
 const showExport = ref(false)
+const uploader = useUploader({ domain: store.domain, gameId: store.gameId, levelId: store.levelId })
 
 // Локальные контролы для массового заполнения задержки/ограничения (не сохраняются)
 const quickDelayHours = ref<number>(0)
@@ -770,54 +750,7 @@ function onClear() {
 }
 
 function exportDataAs(format: 'json' | 'csv') {
-  if (format === 'csv') {
-    const rows: Array<Record<string, string>> = []
-    tabs.value.forEach((t, tabIdx) => {
-      t.rows.forEach((r) => {
-        rows.push({
-          tab: String(tabIdx + 1),
-          number: String(r.number || ''),
-          variants: (Array.isArray(r.variants) ? r.variants : []).join(' | '),
-          inSector: r.inSector ? '1' : '0',
-          inBonus: r.inBonus ? '1' : '0',
-          bonusHours: String(r.bonusTime?.hours ?? ''),
-          bonusMinutes: String(r.bonusTime?.minutes ?? ''),
-          bonusSeconds: String(r.bonusTime?.seconds ?? ''),
-          bonusNegative: r.bonusTime?.negative ? '1' : '0',
-          delayHours: String(r.delay?.hours ?? ''),
-          delayMinutes: String(r.delay?.minutes ?? ''),
-          delaySeconds: String(r.delay?.seconds ?? ''),
-          validHours: String(r.relativeLimit?.hours ?? ''),
-          validMinutes: String(r.relativeLimit?.minutes ?? ''),
-          validSeconds: String(r.relativeLimit?.seconds ?? ''),
-          sectorName: r.sectorName || '',
-          bonusName: r.bonusName || '',
-          bonusTask: r.bonusTask || '',
-          bonusHint: r.bonusHint || '',
-          allLevels: r.allLevels ? '1' : '0',
-          targetLevels: Array.isArray(r.targetLevels) ? r.targetLevels.join(';') : '',
-        })
-      })
-    })
-    const csv = serializeCsv(rows)
-    downloadBlob(csv, '100500.csv', 'text/csv')
-  } else {
-    const plain = tabs.value.map((t) => ({
-      sectorPattern: t.sectorPattern,
-      bonusPattern: t.bonusPattern,
-      bonusTaskPattern: t.bonusTaskPattern || '',
-      bonusHintPattern: t.bonusHintPattern || '',
-      quickTime: { ...t.quickTime },
-      rows: t.rows,
-    }))
-    const blob = new Blob([JSON.stringify(plain, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = '100500.json'
-    a.click()
-    URL.revokeObjectURL(url)
-  }
+  export100500(tabs.value as any, format)
   showExport.value = false
 }
 
@@ -831,275 +764,73 @@ function removeRow(row: Row) {
   t.rows.forEach((r, i) => (r.number = i + 1))
 }
 
-function importData(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = () => {
-    try {
-      const text = String(reader.result || '')
-      const trimmed = text.trim()
-      if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
-        const arr = JSON.parse(text)
-        if (Array.isArray(arr)) {
-          tabs.value = arr.map((t: any) => {
-            const tab = createTab()
-            tab.sectorPattern = typeof t.sectorPattern === 'string' ? t.sectorPattern : ''
-            tab.bonusPattern = typeof t.bonusPattern === 'string' ? t.bonusPattern : ''
-            tab.bonusTaskPattern = typeof t.bonusTaskPattern === 'string' ? t.bonusTaskPattern : ''
-            tab.bonusHintPattern = typeof t.bonusHintPattern === 'string' ? t.bonusHintPattern : ''
-            if (t.quickTime && typeof t.quickTime === 'object') {
-              tab.quickTime = {
-                hours: Number(t.quickTime.hours) || 0,
-                minutes: Number(t.quickTime.minutes) || 0,
-                seconds: Number(t.quickTime.seconds) || 0,
-                negative: !!t.quickTime.negative,
-              }
-            }
-            tab.rows = (t.rows || []).map((r: any) => ({
-              number: r.number,
-              variants: Array.isArray(r.variants)
-                ? r.variants
-                : [typeof r.answer === 'string' ? r.answer : ''],
-              bonusTime: r.bonusTime || { hours: 0, minutes: 0, seconds: 0, negative: false },
-              delay: r.delay || { hours: 0, minutes: 0, seconds: 0 },
-              relativeLimit: r.relativeLimit || { hours: 0, minutes: 0, seconds: 0 },
-              sectorName: r.sectorName || '',
-              bonusName: r.bonusName || '',
-              bonusTask: typeof r.bonusTask === 'string' ? r.bonusTask : '',
-              bonusHint: typeof r.bonusHint === 'string' ? r.bonusHint : '',
-              inSector: r.inSector !== false,
-              inBonus: r.inBonus !== false,
-              targetLevels: Array.isArray(r.targetLevels) ? r.targetLevels : [],
-              allLevels: !!r.allLevels,
-            }))
-            return tab
-          })
-          activeTab.value = 0
-        } else {
-          alert('Неверный формат JSON')
-        }
-      } else {
-        const rows = parseCsv(text)
-        if (!rows.length) {
-          alert('CSV пустой')
-          return
-        }
-        // Группируем по полю tab (1..N). Если нет, отправляем в таб 1
-        const byTab = new Map<number, Array<Record<string, string>>>()
-        for (const r of rows) {
-          const t = Math.max(1, Number(r.tab) || 1)
-          if (!byTab.has(t)) byTab.set(t, [])
-          byTab.get(t)!.push(r)
-        }
-        const maxTab = Math.max(...Array.from(byTab.keys()))
-        const newTabs: any[] = []
-        for (let t = 1; t <= maxTab; t++) {
-          const tab = createTab()
-          const list = (byTab.get(t) || [])
-            const mapped = list.map((r: Record<string, string>) => ({
-            number: Number(r.number) || 0,
-            variants: (r.variants || '').split('|').map((s: string) => s.trim()).filter(Boolean),
-            bonusTime: {
-              hours: Number(r.bonusHours) || 0,
-              minutes: Number(r.bonusMinutes) || 0,
-              seconds: Number(r.bonusSeconds) || 0,
-              negative: r.bonusNegative === '1' || /true|-/i.test(r.bonusNegative || ''),
-            },
-              delay: {
-                hours: Number(r.delayHours) || 0,
-                minutes: Number(r.delayMinutes) || 0,
-                seconds: Number(r.delaySeconds) || 0,
-              },
-              relativeLimit: {
-                hours: Number(r.validHours) || 0,
-                minutes: Number(r.validMinutes) || 0,
-                seconds: Number(r.validSeconds) || 0,
-              },
-            sectorName: r.sectorName || '',
-            bonusName: r.bonusName || '',
-            bonusTask: r.bonusTask || '',
-            bonusHint: r.bonusHint || '',
-            inSector: r.inSector === '1' || /true/i.test(r.inSector || ''),
-            inBonus: r.inBonus === '1' || /true/i.test(r.inBonus || ''),
-            targetLevels: (r.targetLevels || '')
-              .split(';')
-              .map((s: string) => s.trim())
-              .filter(Boolean),
-            allLevels: r.allLevels === '1' || /true/i.test(r.allLevels || ''),
-          }))
-          mapped.sort((a, b) => a.number - b.number)
-          tab.rows = mapped.map((a: any, idx: number) => ({ ...a, number: idx + 1 }))
-          newTabs.push(tab)
-        }
-        tabs.value = newTabs.length ? newTabs : [createTab()]
-        activeTab.value = 0
-      }
-    } catch (err) {
-      alert('Ошибка при импорте: ' + (err as any)?.message)
-    }
+async function importData(e: Event) {
+  const val = await import100500(e)
+  if (!val) return
+  if (Array.isArray(val)) {
+    tabs.value = val.map((t: any) => {
+      const tab = createTab()
+      tab.rows = t.rows || []
+      tab.sectorPattern = t.sectorPattern || ''
+      tab.bonusPattern = t.bonusPattern || ''
+      tab.bonusTaskPattern = t.bonusTaskPattern || ''
+      tab.bonusHintPattern = t.bonusHintPattern || ''
+      if (t.quickTime) tab.quickTime = { ...tab.quickTime, ...t.quickTime }
+      return tab
+    })
+    activeTab.value = 0
   }
-  reader.readAsText(file)
 }
 
 async function onSendSectors() {
-  try {
-    // Показываем предупреждение пользователю
-    if (!showUploadWarning('сектора')) {
-      return
+  if (combineSectors.value) {
+    if (tabs.value.length <= 1) { alert('❌ Для объединения необходимо больше одного блока'); return }
+    const firstLen = tabs.value[0].rows.length
+    if (!tabs.value.every((t) => t.rows.length === firstLen)) {
+      alert('❌ Количество ответов во всех блоках должно совпадать'); return
     }
-
-    // Начинаем отслеживание видимости
-    startUploadVisibilityTracking('сектора')
-
-    if (combineSectors.value) {
-      if (tabs.value.length <= 1) {
-        alert('❌ Для объединения необходимо больше одного блока')
-        stopUploadVisibilityTracking()
-        return
-      }
-      const firstLen = tabs.value[0].rows.length
-      if (!tabs.value.every((t) => t.rows.length === firstLen)) {
-        alert('❌ Количество ответов во всех блоках должно совпадать')
-        stopUploadVisibilityTracking()
-        return
-      }
-      const total = firstLen
-      const rowsList: Row[][] = []
-      for (let i = 0; i < firstLen; i++) {
-        rowsList.push(tabs.value.map((t) => t.rows[i]))
-      }
-      progress.start('sector', total)
-      for (const rows of rowsList) {
-        if (!rows.every((r) => r.inSector)) {
-          progress.update('Пропуск')
-          continue
-        }
-        const variants: string[] = []
-        for (const r of rows) {
-          const arr = Array.isArray(r.variants) ? r.variants : []
-          for (const v of arr) variants.push(v)
-        }
-        progress.update(`Сектор ${rows[0].number}`)
-        await sendSector(
-          store.domain,
-          store.gameId,
-          store.levelId,
-          variants,
-          '',
-          rows[0].sectorName
-        )
-      }
-      progress.finish()
-    } else {
-      const rowsToSend: Row[] = []
-      for (const t of tabs.value) {
-        for (const row of t.rows) {
-          if (!row.inSector) continue
-          rowsToSend.push(row)
-        }
-      }
-
-      if (rowsToSend.length === 0) {
-        alert('ℹ️ Нет отмеченных секторов для отправки')
-        stopUploadVisibilityTracking()
-        return
-      }
-
-      progress.start('sector', rowsToSend.length)
-      for (const row of rowsToSend) {
-        progress.update(`Сектор ${row.number}`)
-        await sendSector(
-          store.domain,
-          store.gameId,
-          store.levelId,
-          (Array.isArray(row.variants) && row.variants.length ? row.variants : ['']),
-          '',
-          row.sectorName
-        )
-      }
-      progress.finish()
-    }
-
-    // Останавливаем отслеживание и показываем уведомление о завершении
-    stopUploadVisibilityTracking()
-    const sectorsCount = combineSectors.value ? 
-      tabs.value[0]?.rows?.filter(r => r.inSector).length || 0 :
-      tabs.value.reduce((sum, t) => sum + t.rows.filter(r => r.inSector).length, 0)
-    showCompletionNotification('сектора', sectorsCount)
-    alert('✅ Все сектора отправлены')
-  } catch (e: any) {
-    // Останавливаем отслеживание в случае ошибки
-    stopUploadVisibilityTracking()
-    alert('❌ Ошибка отправки секторов: ' + e.message)
+    const rowsList: Row[][] = []
+    for (let i = 0; i < firstLen; i++) rowsList.push(tabs.value.map((t) => t.rows[i]))
+    const combined = rowsList.map(group => ({
+      number: group[0].number,
+      variants: group.reduce((acc: string[], g) => {
+        const arr = Array.isArray(g.variants) ? g.variants : []
+        for (const v of arr) acc.push(v)
+        return acc
+      }, [] as string[]),
+      inSector: group.every(g => g.inSector),
+      sectorName: group[0].sectorName || ''
+    }))
+    await uploader.uploadSectors(combined)
+  } else {
+    const rowsToSend: Row[] = []
+    for (const t of tabs.value) for (const row of t.rows) if (row.inSector) rowsToSend.push(row)
+    await uploader.uploadSectors(rowsToSend)
   }
 }
 
 async function onSendBonuses() {
-  try {
-    const bonusRows: Answer[] = []
-    for (const t of tabs.value) {
-      for (const row of t.rows) {
-        if (!row.inBonus) continue
-        bonusRows.push({
-          number: row.number,
-          variants: (Array.isArray(row.variants) && row.variants.length ? row.variants : ['']),
-          inSector: true,
-          inBonus: true,
-          allLevels: !!row.allLevels,
-          bonusTime: { ...row.bonusTime },
-          delay: row.delay ? { ...row.delay } : { hours: 0, minutes: 0, seconds: 0 },
-          relativeLimit: row.relativeLimit ? { ...row.relativeLimit } : { hours: 0, minutes: 0, seconds: 0 },
-          closedText: '',
-          displayText: '',
-          bonusName: row.bonusName,
-          noHint: true,
-          bonusTask: typeof row.bonusTask === 'string' ? row.bonusTask : '',
-          bonusHint: typeof row.bonusHint === 'string' ? row.bonusHint : '',
-          targetLevels: Array.isArray(row.targetLevels) ? row.targetLevels : [],
-        })
-      }
-    }
-
-    if (bonusRows.length === 0) {
-      alert('ℹ️ Нет отмеченных бонусов для отправки')
-      return
-    }
-
-    // Показываем предупреждение пользователю
-    if (!showUploadWarning('бонусы')) {
-      return
-    }
-
-    // Начинаем отслеживание видимости
-    startUploadVisibilityTracking('бонусы')
-
-    // Перелогинимся перед массовой загрузкой, чтобы продлить сессию
-    await authStore.authenticate(store.domain)
-
-    progress.start('bonus', bonusRows.length)
-    for (let idx = 0; idx < bonusRows.length; idx++) {
-      const b = bonusRows[idx]
-      progress.update(`Бонус ${b.number}`)
-      await sendBonuses(store.domain, store.gameId, store.levelId, [b])
-
-      // Каждые 25 бонусов обновляем авторизацию, чтобы избежать истечения сессии
-      if ((idx + 1) % 25 === 0) {
-        await authStore.authenticate(store.domain)
-      }
-    }
-    progress.finish()
-
-    // Останавливаем отслеживание и показываем уведомление о завершении
-    stopUploadVisibilityTracking()
-    showCompletionNotification('бонусы', bonusRows.length)
-    alert('✅ Все бонусы отправлены')
-  } catch (e: any) {
-    // Останавливаем отслеживание в случае ошибки
-    stopUploadVisibilityTracking()
-    alert('❌ Ошибка отправки бонусов: ' + e.message)
+  const bonusRows: Answer[] = []
+  for (const t of tabs.value) for (const row of t.rows) if (row.inBonus) {
+    bonusRows.push({
+      number: row.number,
+      variants: (Array.isArray(row.variants) && row.variants.length ? row.variants : ['']),
+      inSector: true,
+      inBonus: true,
+      allLevels: !!row.allLevels,
+      bonusTime: { ...row.bonusTime },
+      delay: row.delay ? { ...row.delay } : { hours: 0, minutes: 0, seconds: 0 },
+      relativeLimit: row.relativeLimit ? { ...row.relativeLimit } : { hours: 0, minutes: 0, seconds: 0 },
+      closedText: '',
+      displayText: '',
+      bonusName: row.bonusName,
+      noHint: true,
+      bonusTask: typeof row.bonusTask === 'string' ? row.bonusTask : '',
+      bonusHint: typeof row.bonusHint === 'string' ? row.bonusHint : '',
+      targetLevels: Array.isArray(row.targetLevels) ? row.targetLevels : [],
+    })
   }
-
+  await uploader.uploadBonuses(bonusRows)
 }
   
   
