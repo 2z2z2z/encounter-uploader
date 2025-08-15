@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 export const useAuthStore = defineStore(
   'auth',
@@ -9,6 +9,10 @@ export const useAuthStore = defineStore(
     const password = ref('')
     const loggedIn = ref(false)
     const error = ref('')
+    
+    const isTestMode = computed(() => {
+      return username.value === 'test' && password.value === 'test'
+    })
 
     function setCredentials(u: string, p: string) {
       username.value = u
@@ -17,6 +21,11 @@ export const useAuthStore = defineStore(
 
     async function authenticate(domain: string) {
       error.value = ''
+      // Тестовый режим: test/test — авторизацию пропускаем
+      if (isTestMode.value) {
+        loggedIn.value = true
+        return
+      }
       try {
         await axios.post(
           '/api/auth/login',
@@ -35,6 +44,7 @@ export const useAuthStore = defineStore(
       password,
       loggedIn,
       error,
+      isTestMode,
       setCredentials,
       authenticate,
     }

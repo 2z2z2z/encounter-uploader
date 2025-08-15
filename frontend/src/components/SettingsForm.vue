@@ -125,14 +125,18 @@ function onLevelIdInput(event: Event) {
 async function onContinue() {
   error.value = ''
 
-  // Проверяем домен и ID игры
-  if (!store.domain.trim()) {
-    error.value = 'Пожалуйста, укажите домен.'
-    return
-  }
-  if (!String(store.gameId).trim()) {
-    error.value = 'Пожалуйста, укажите ID игры.'
-    return
+  // В тестовом режиме (логин/пароль = test/test) пропускаем проверки домена и ID игры
+  const inTestMode = authStore.isTestMode
+  if (!inTestMode) {
+    // Проверяем домен и ID игры только вне тестового режима
+    if (!store.domain.trim()) {
+      error.value = 'Пожалуйста, укажите домен.'
+      return
+    }
+    if (!String(store.gameId).trim()) {
+      error.value = 'Пожалуйста, укажите ID игры.'
+      return
+    }
   }
   // Проверяем "№ уровня"
   if (!String(store.levelId).trim()) {
@@ -145,29 +149,33 @@ async function onContinue() {
   }
   levelValidationError.value = ''
 
-  try {
-    const res = await fetchGamesList()
-    const ct = res.headers['content-type'] || ''
-    if (!ct.includes('application/json')) {
-      error.value = 'Сервер не вернул JSON. Проверьте домен.'
+  if (!inTestMode) {
+    try {
+      const res = await fetchGamesList()
+      const ct = res.headers['content-type'] || ''
+      if (!ct.includes('application/json')) {
+        error.value = 'Сервер не вернул JSON. Проверьте домен.'
+        return
+      }
+      const { ActiveGames = [], ComingGames = [] } = res.data
+      const all = [...ActiveGames, ...ComingGames]
+      if (!all.some((g: any) => String(g.GameID) === String(store.gameId))) {
+        error.value = 'Игра с указанным ID не найдена на этом домене.'
+        return
+      }
+    } catch (e: any) {
+      error.value = `Ошибка при проверке домена/игры: ${e.message}`
       return
     }
-    const { ActiveGames = [], ComingGames = [] } = res.data
-    const all = [...ActiveGames, ...ComingGames]
-    if (!all.some((g: any) => String(g.GameID) === String(store.gameId))) {
-      error.value = 'Игра с указанным ID не найдена на этом домене.'
-      return
-    }
-  } catch (e: any) {
-    error.value = `Ошибка при проверке домена/игры: ${e.message}`
-    return
   }
 
-  // Авторизуемся через authStore
-  await authStore.authenticate(store.domain)
-  if (!authStore.loggedIn) {
-    error.value = `Ошибка авторизации: ${authStore.error}`
-    return
+  // Авторизация: в тестовом режиме пропускаем
+  if (!inTestMode) {
+    await authStore.authenticate(store.domain)
+    if (!authStore.loggedIn) {
+      error.value = `Ошибка авторизации: ${authStore.error}`
+      return
+    }
   }
 
   // Переходим к загрузке
