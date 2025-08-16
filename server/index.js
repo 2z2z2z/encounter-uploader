@@ -7,20 +7,86 @@ const bodyParser = require('body-parser')
 
 const app = express()
 
-// Порт (если 3000 занят, можно задать через ENV)
+// Переменные окружения (согласно плану рефакторинга Фаза 6.2)
 const PORT = process.env.PORT || 3001
+const NODE_ENV = process.env.NODE_ENV || 'development'
+const SESSION_SECRET = process.env.SESSION_SECRET || 'encounter-secret-change-in-production'
+const SESSION_STORE = process.env.SESSION_STORE || 'memory'
+const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379'
+const TRUST_PROXY = process.env.TRUST_PROXY === 'true'
+const LOG_LEVEL = process.env.LOG_LEVEL || 'info'
 
-// Сессии для хранения куки авторизации
-app.use(
-  session({
-    secret: 'encounter-secret',
-    resave: false,
-    saveUninitialized: true,
-  })
-)
+// Настройка trust proxy для production (согласно плану рефакторинга Фаза 6.3)
+if (TRUST_PROXY) {
+  app.set('trust proxy', 1)
+}
+
+// Настройка session store (согласно плану рефакторинга Фаза 6.3)
+let sessionConfig = {
+  secret: SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false, // Изменено согласно плану безопасности
+  cookie: {
+    secure: NODE_ENV === 'production' && TRUST_PROXY, // HTTPS только в production
+    httpOnly: true, // Защита от XSS
+    maxAge: 24 * 60 * 60 * 1000, // 24 часа
+    sameSite: 'lax' // Защита от CSRF
+  }
+}
+
+// Redis store для production (согласно плану рефакторинга Фаза 6.3)
+if (SESSION_STORE === 'redis') {
+  try {
+    const RedisStore = require('connect-redis')(session)
+    const redis = require('redis')
+    const redisClient = redis.createClient({ url: REDIS_URL })
+    
+    redisClient.on('error', (err) => {
+      console.error('Redis client error:', err)
+    })
+    
+    sessionConfig.store = new RedisStore({ client: redisClient })
+    console.log(`✅ Redis session store configured: ${REDIS_URL}`)
+  } catch (error) {
+    console.warn('⚠️ Redis not available, using memory store:', error.message)
+  }
+}
+
+// Применяем конфигурацию сессий
+app.use(session(sessionConfig))
 // Разбираем JSON и form-urlencoded
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
+
+// ============================================================================
+// HEALTHCHECK ENDPOINT (согласно плану рефакторинга Фаза 6.1)
+// ============================================================================
+
+app.get('/health', (req, res) => {
+  const healthCheck = {
+    uptime: process.uptime(),
+    message: 'OK',
+    timestamp: new Date().toISOString(),
+    service: 'encounter-uploader-server',
+    version: process.env.npm_package_version || '1.0.0',
+    environment: NODE_ENV,
+    sessionStore: SESSION_STORE,
+    memory: process.memoryUsage()
+  }
+
+  try {
+    // Проверяем базовую функциональность
+    if (req.sessionID) {
+      healthCheck.session = 'OK'
+    }
+    
+    res.status(200).json(healthCheck)
+  } catch (error) {
+    healthCheck.message = 'ERROR'
+    healthCheck.error = error.message
+    res.status(503).json(healthCheck)
+  }
+})
 
 // Добавлено: утилита для обновления authCookie при получении нового Set-Cookie
 /**

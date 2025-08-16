@@ -171,10 +171,21 @@ async function onContinue() {
 
   // Авторизация: в тестовом режиме пропускаем
   if (!inTestMode) {
-    await authStore.authenticate(store.domain)
-    if (!authStore.loggedIn) {
-      error.value = `Ошибка авторизации: ${authStore.error}`
-      return
+    // Если пользователь уже авторизован, не требуем повторную авторизацию
+    if (!authStore.isAuthenticated) {
+      // Если нет сохраненных учетных данных, отправляем на страницу входа
+      if (!authStore.username || !authStore.password) {
+        error.value = 'Необходимо повторно войти в систему'
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        router.push('/login')
+        return
+      }
+      
+      await authStore.authenticate(store.domain)
+      if (!authStore.loggedIn) {
+        error.value = `Ошибка авторизации: ${authStore.error}`
+        return
+      }
     }
   }
 

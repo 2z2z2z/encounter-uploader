@@ -1,0 +1,72 @@
+# =============================================================================
+# Docker Compose конфигурация для разработки
+# Согласно плану рефакторинга (Фаза 6.1)
+# =============================================================================
+
+version: '3.9'
+services:
+  app:
+    build:
+      context: ./frontend
+      target: development
+    ports:
+      - "127.0.0.1:5173:5173"
+    environment:
+      - NODE_ENV=development
+      - API_BASE_URL=http://localhost:3001
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    restart: unless-stopped
+    networks:
+      - encounter-dev-network
+
+  server:
+    build:
+      context: ./server
+      target: development
+    ports:
+      - "127.0.0.1:3001:3001"
+    environment:
+      - NODE_ENV=development
+      - SESSION_STORE=memory
+      - SESSION_SECRET=dev-secret-key
+      - LOG_LEVEL=debug
+      - TRUST_PROXY=false
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    restart: unless-stopped
+    networks:
+      - encounter-dev-network
+
+  # Redis опционально для тестирования в dev
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "127.0.0.1:6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-dev-data:/data
+    restart: unless-stopped
+    networks:
+      - encounter-dev-network
+
+networks:
+  encounter-dev-network:
+    driver: bridge
+    name: encounter-dev-network
+
+volumes:
+  redis-dev-data:
+    name: encounter-redis-dev-data
+
+# =============================================================================
+# Использование:
+# =============================================================================
+# Для разработки:
+# docker-compose -f docker-compose.dev.yml up
+#
+# Для production:
+# docker-compose up
+

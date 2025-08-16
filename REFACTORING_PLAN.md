@@ -5,9 +5,9 @@
 **Encounter Uploader** - веб-приложение для загрузки уровней игры Encounter с поддержкой различных типов олимпиек (15, 31, 63, 127 секторов) и специального формата "100500 секторов и бонусов".
 
 ### **🚀 Ключевые цели рефакторинга:**
-1. **Унификация ВСЕХ типов уровней** - создание общей архитектуры для Олимпиек, Type100500 и будущих типов
-2. **Легкое добавление новых типов** - с 2-3 часов до 15-30 минут
-3. **100% гарантия валидности данных** - система тестирования отправляемых запросов
+1. **Унификация ВСЕХ типов уровней** - создание общей архитектуры для Олимпиек, Type100500 и будущих 20+ типов
+2. **Легкое добавление новых типов** - с 2-3 часов до 5-15 минут
+3. **Максимальная гибкость** - поддержка любых комбинаций функционала (миксины олимпиек + Type100500 + кастомные поля)
 4. **Переиспользование компонентов** - общие UI элементы и композиции для всех типов
 
 ### Тестирование и проверка проекта после выполнения каждого шага рефакторинга:
@@ -61,266 +61,21 @@
 
 | Метрика | Текущее | Целевое | Улучшение |
 |---------|---------|---------|-----------|
-| Строк кода | ~3500 | ~1200 | **-65%** |
+| Строк кода | ~3500 | ~1500 | **-57%** |
 | Дублирование | 85% | 5% | **-94%** |
-| Время добавления типа | 2-3 часа | 15 минут | **-92%** |
-| Покрытие тестами | 0% | 80% | **+80%** |
-| Валидность запросов | - | 100% | ✅ |
-| Полнота данных | - | 100% | ✅ |
+| Время добавления типа | 2-3 часа | 1-15 минут | **-95%** |
+| Поддержка типов | 5 | 20+ | **+400%** |
+| Покрытие тестами | 0% | 70% | **+70%** |
+| Гибкость архитектуры | Низкая | Высокая | ✅ |
 
 ---
 
 ## 🚀 План рефакторинга (7 фаз)
 
 ### **Фаза 0: Подготовка и создание системы валидации** 🛡️
-**Срок: 1 день**
+**Срок: 0.5 дня**
 
-#### **0.1 Создание утилиты проверки валидности отправляемых данных**
-
-```typescript
-// tests/utils/RequestValidator.ts
-export class RequestValidator {
-  private baseline: Map<string, RequestSnapshot> = new Map()
-  
-  /**
-   * Записывает эталонные запросы из текущей (рабочей) версии
-   */
-  async recordBaseline() {
-    // Перехват всех запросов к /api/admin/*
-    const interceptor = axios.interceptors.request.use((config) => {
-      if (config.url?.includes('/api/admin/')) {
-        this.baseline.set(config.url, {
-          url: config.url,
-          method: config.method,
-          headers: config.headers,
-          data: this.parseFormData(config.data),
-          timestamp: Date.now()
-        })
-      }
-      return config
-    })
-    
-    // Запуск тестовых сценариев для всех типов
-    await this.runAllScenarios()
-    axios.interceptors.request.eject(interceptor)
-    
-    // Сохранение эталонов в файл
-    await this.saveBaseline('tests/fixtures/request-baseline.json')
-  }
-  
-  /**
-   * Валидация новых запросов против эталонных
-   */
-  validateRequest(url: string, data: any): ValidationResult {
-    const baseline = this.baseline.get(url)
-    if (!baseline) {
-      return { valid: false, error: `No baseline for ${url}` }
-    }
-    
-    const validation = {
-      valid: true,
-      differences: [] as string[],
-      missing: [] as string[],
-      extra: [] as string[]
-    }
-    
-    // Проверка всех полей из эталона
-    for (const [key, value] of Object.entries(baseline.data)) {
-      if (!(key in data)) {
-        validation.missing.push(key)
-        validation.valid = false
-      } else if (data[key] !== value && !this.isAcceptableDiff(key, value, data[key])) {
-        validation.differences.push(`${key}: expected "${value}", got "${data[key]}"`)
-        validation.valid = false
-      }
-    }
-    
-    // Проверка лишних полей
-    for (const key of Object.keys(data)) {
-      if (!(key in baseline.data)) {
-        validation.extra.push(key)
-        // Не считаем ошибкой, но предупреждаем
-      }
-    }
-    
-    return validation
-  }
-  
-  /**
-   * Проверка критически важных полей для каждого типа запроса
-   */
-  validateCriticalFields(requestType: 'task' | 'sector' | 'bonus', data: any): boolean {
-    const criticalFields = {
-      task: ['domain', 'gid', 'level', 'inputTask'],
-      sector: ['domain', 'gid', 'level', 'savesector', /txtAnswer_\d+/, /ddlAnswerFor_\d+/],
-      bonus: ['domain', 'gid', 'level', 'txtBonusName', /answer_-\d+/, 'txtHours', 'txtMinutes', 'txtSeconds']
-    }
-    
-    const fields = criticalFields[requestType]
-    return fields.every(field => {
-      if (field instanceof RegExp) {
-        return Object.keys(data).some(key => field.test(key))
-      }
-      return field in data
-    })
-  }
-}
-```
-
-#### **0.2 Интеграционные тесты для проверки отправки**
-
-```typescript
-// tests/integration/upload.test.ts
-describe('Upload Data Validation', () => {
-  let validator: RequestValidator
-  let baseline: Map<string, any>
-  
-  beforeAll(async () => {
-    validator = new RequestValidator()
-    // Загружаем эталонные данные
-    baseline = await validator.loadBaseline('tests/fixtures/request-baseline.json')
-  })
-  
-  describe('Task Upload', () => {
-    it('должен отправлять задание с теми же полями, что и до рефакторинга', async () => {
-      const mockData = createMockOlymp15Data()
-      const result = await sendTask(
-        mockData.domain,
-        mockData.gameId,
-        mockData.levelId,
-        mockData.inputTask
-      )
-      
-      // Проверяем структуру запроса
-      const validation = validator.validateRequest('/api/admin/task', result.requestData)
-      expect(validation.valid).toBe(true)
-      expect(validation.missing).toHaveLength(0)
-      
-      // Проверяем критические поля
-      expect(validator.validateCriticalFields('task', result.requestData)).toBe(true)
-    })
-  })
-  
-  describe('Sectors Upload', () => {
-    it('должен отправлять секторы с правильной структурой txtAnswer_N/ddlAnswerFor_N', async () => {
-      const sectors = [
-        { variants: ['ОТВЕТ1', 'ОТВЕТ2'], sectorName: '' },
-        { variants: ['ОТВЕТ3'], sectorName: 'Сектор 2' }
-      ]
-      
-      for (const sector of sectors) {
-        const result = await sendSector(/*...*/)
-        const validation = validator.validateRequest('/api/admin/sector', result.requestData)
-        
-        // Проверяем парность полей txtAnswer_N и ddlAnswerFor_N
-        const answerFields = Object.keys(result.requestData).filter(k => k.startsWith('txtAnswer_'))
-        const ddlFields = Object.keys(result.requestData).filter(k => k.startsWith('ddlAnswerFor_'))
-        
-        expect(answerFields.length).toBe(ddlFields.length)
-        expect(answerFields.length).toBe(sector.variants.length)
-      }
-    })
-  })
-  
-  describe('Bonuses Upload', () => {
-    it('должен отправлять бонусы с правильными полями времени и уровней', async () => {
-      const bonuses = createMockBonuses()
-      
-      for (const bonus of bonuses) {
-        const result = await sendBonuses(/*...*/)
-        const data = result.requestData
-        
-        // Проверяем наличие всех временных полей
-        expect(data).toHaveProperty('txtHours')
-        expect(data).toHaveProperty('txtMinutes')
-        expect(data).toHaveProperty('txtSeconds')
-        
-        // Проверяем правильность полей для отрицательного времени
-        if (bonus.bonusTime.negative) {
-          expect(data).toHaveProperty('negative', 'on')
-        }
-        
-        // Проверяем чекбоксы уровней
-        if (bonus.allLevels) {
-          expect(data.rbAllLevels).toBe('0')
-        } else {
-          expect(data.rbAllLevels).toBe('1')
-          // Должен быть хотя бы один level_X=on
-          const levelFields = Object.keys(data).filter(k => k.startsWith('level_'))
-          expect(levelFields.length).toBeGreaterThan(0)
-        }
-        
-        // Проверяем поля задержки и ограничения для Type100500
-        if (bonus.delay) {
-          expect(data).toHaveProperty('chkDelay', 'on')
-          expect(data).toHaveProperty('txtDelayHours')
-        }
-        
-        if (bonus.relativeLimit) {
-          expect(data).toHaveProperty('chkRelativeLimit', 'on')
-          expect(data).toHaveProperty('txtValidHours')
-        }
-      }
-    })
-  })
-})
-```
-
-#### **0.3 Snapshot тестирование запросов**
-
-```typescript
-// tests/snapshots/RequestSnapshots.ts
-export class RequestSnapshots {
-  /**
-   * Создает снимки всех типов запросов для регрессионного тестирования
-   */
-  async createSnapshots() {
-    const scenarios = [
-      { type: 'olymp', sectors: 15 },
-      { type: 'olymp31', sectors: 31 },
-      { type: 'olymp63', sectors: 63 },
-      { type: 'olymp127', sectors: 127 },
-      { type: '100500', sectors: 'multiple' }
-    ]
-    
-    for (const scenario of scenarios) {
-      const data = this.generateTestData(scenario)
-      
-      // Сохраняем снимки запросов
-      await this.saveSnapshot(`task-${scenario.type}`, data.taskRequest)
-      await this.saveSnapshot(`sectors-${scenario.type}`, data.sectorsRequests)
-      await this.saveSnapshot(`bonuses-${scenario.type}`, data.bonusesRequests)
-    }
-  }
-  
-  /**
-   * Сравнивает текущие запросы со снимками
-   */
-  compareWithSnapshot(name: string, currentRequest: any): SnapshotResult {
-    const snapshot = this.loadSnapshot(name)
-    const diff = deepDiff(snapshot, currentRequest)
-    
-    return {
-      matches: diff.length === 0,
-      differences: diff,
-      recommendation: this.generateRecommendation(diff)
-    }
-  }
-}
-```
-
-#### **0.4 Создание диаграмм архитектуры**
-
-```
-docs/
-├── architecture/
-│   ├── current-structure.mmd    # Диаграмма текущей архитектуры
-│   ├── target-structure.mmd     # Диаграмма целевой архитектуры
-│   ├── data-flow.mmd           # Схемы потоков данных
-│   └── dependencies.mmd        # Визуализация зависимостей
-```
-
-#### **0.5 Чистые сборщики payload и baseline на них**
+#### **0.1 Создание чистых сборщиков payload**
 
 ```typescript
 // frontend/src/services/upload/builders.ts
@@ -343,60 +98,49 @@ export function buildSectorPayload(domain: string, gid: string | number, level: 
   return params
 }
 
-export function buildBonusPayload(args: {
-  domain: string
-  gid: string | number
-  level: string | number
-  name?: string
-  task?: string
-  hint?: string
-  variants: string[]
-  time: { hours: number; minutes: number; seconds: number; negative?: boolean }
-  delay?: { hours?: number; minutes?: number; seconds?: number }
-  relativeLimit?: { hours?: number; minutes?: number; seconds?: number }
-  allLevels: boolean
-  levelCheckboxNames?: string[] // when allLevels=false
-}) {
-  const p = new URLSearchParams({ domain: args.domain, gid: String(args.gid), level: String(args.level) })
-  p.append('txtBonusName', args.name || '')
-  p.append('txtTask', args.task || '')
-  p.append('txtHelp', args.hint || '')
-  args.variants.forEach((v, i) => p.append(`answer_-${i + 1}`, v))
-  p.append('txtHours', String(args.time.hours))
-  p.append('txtMinutes', String(args.time.minutes))
-  p.append('txtSeconds', String(args.time.seconds))
-  if (args.time.negative) p.append('negative', 'on')
-  if (args.delay && (args.delay.hours || args.delay.minutes || args.delay.seconds)) {
-    p.append('chkDelay', 'on')
-    p.append('txtDelayHours', String(args.delay.hours || 0))
-    p.append('txtDelayMinutes', String(args.delay.minutes || 0))
-    p.append('txtDelaySeconds', String(args.delay.seconds || 0))
-  }
-  if (args.relativeLimit && (args.relativeLimit.hours || args.relativeLimit.minutes || args.relativeLimit.seconds)) {
-    p.append('chkRelativeLimit', 'on')
-    p.append('txtValidHours', String(args.relativeLimit.hours || 0))
-    p.append('txtValidMinutes', String(args.relativeLimit.minutes || 0))
-    p.append('txtValidSeconds', String(args.relativeLimit.seconds || 0))
-  }
-  p.append('rbAllLevels', args.allLevels ? '0' : '1')
-  if (!args.allLevels && Array.isArray(args.levelCheckboxNames)) {
-    args.levelCheckboxNames.forEach((name) => p.append(name, 'on'))
-  }
+export function buildBonusPayload(args: BonusPayloadArgs): URLSearchParams {
+  // Универсальный сборщик payload для бонусов
+  // Поддерживает все существующие и будущие типы уровней
+  const p = new URLSearchParams()
+  // ... логика сборки параметров в зависимости от типа и capabilities
   return p
 }
 ```
 
+#### **0.2 Snapshot тесты для проверки корректности запросов**
+
 ```typescript
-// tests/utils/RequestValidator.ts (добавление примера)
-// Используем builders в baseline/валидации без сети
-const taskParams = buildTaskPayload('126', 123, 1, '<html/>')
-expect(validator.validateRequest('/api/admin/task', Object.fromEntries(taskParams))).toEqual({ valid: true, missing: [], differences: [], extra: [] })
+// tests/payload.test.ts
+import { describe, it, expect } from 'vitest'
+import { buildTaskPayload, buildSectorPayload, buildBonusPayload } from '@/services/upload/builders'
+
+describe('Payload Builders', () => {
+  it('should build correct task payload', () => {
+    const payload = buildTaskPayload('126', 123, 1, '<table>test</table>')
+    expect(Object.fromEntries(payload)).toMatchSnapshot()
+  })
+  
+  it('should build correct sector payload with multiple variants', () => {
+    const payload = buildSectorPayload('126', 123, 1, ['answer1', 'answer2'], 'Sector Name')
+    expect(Object.fromEntries(payload)).toMatchSnapshot()
+  })
+  
+  it('should build correct bonus payload for all types', () => {
+    // Тесты для всех типов уровней
+    const olympPayload = buildBonusPayload({ type: 'olymp', /* ... */ })
+    const type100500Payload = buildBonusPayload({ type: '100500', /* ... */ })
+    expect(Object.fromEntries(olympPayload)).toMatchSnapshot()
+    expect(Object.fromEntries(type100500Payload)).toMatchSnapshot()
+  })
+})
 ```
 
 ---
 
-### **Фаза 1: Создание универсальной архитектуры для ВСЕХ типов уровней** 🎯
-**Срок: 2-3 дня**
+### **Фаза 1: Создание универсальной архитектуры для 20+ типов уровней** 🎯
+**Срок: 3-4 дня**
+
+**Критически важная фаза!** С учетом планов на 20+ типов уровней с разными комбинациями функционала (олимпийки + Type100500 + кастомные поля), необходима максимально гибкая архитектура на основе композиций.
 
 #### **1.1 Создание базовой архитектуры**
 
@@ -924,42 +668,39 @@ export function usePreview() {
 ---
 
 ### **Фаза 2: Централизованное управление состоянием** 📦
-**Срок: 1 день**
+**Срок: 0.5 дня**
 
-#### **2.1 Единое хранилище с миграцией**
+#### **2.1 Единое хранилище БЕЗ миграции старых данных**
 
 ```typescript
 // store/unified/StateManager.ts
 export class UnifiedStateManager {
-  private states = new Map<string, VersionedState>()
-  private migrations = new Map<number, MigrationFn>()
+  private states = new Map<string, LevelState>()
   
-  constructor() {
-    this.registerMigrations()
-  }
-  
-  // Автоматическая миграция старых форматов
-  migrate(data: any): VersionedState {
-    const version = data.version || 1
-    let migrated = data
-    
-    for (let v = version; v < CURRENT_VERSION; v++) {
-      migrated = this.migrations.get(v)?.(migrated) || migrated
-    }
-    
-    return { ...migrated, version: CURRENT_VERSION }
-  }
-  
-  // Централизованное сохранение с версионированием
+  // Простое сохранение состояния для любого типа
   persist(type: string, state: any) {
-    const versioned = { ...state, version: CURRENT_VERSION }
-    localStorage.setItem(`unified-${type}`, JSON.stringify(versioned))
-    this.states.set(type, versioned)
+    const key = `encounter-uploader:${type}`
+    localStorage.setItem(key, JSON.stringify(state))
+    this.states.set(type, state)
+  }
+  
+  // Загрузка состояния
+  load(type: string): LevelState | null {
+    const key = `encounter-uploader:${type}`
+    const data = localStorage.getItem(key)
+    return data ? JSON.parse(data) : null
+  }
+  
+  // Очистка старых данных (опционально при первом запуске)
+  clearLegacyData() {
+    // Удаляем старые ключи из localStorage
+    const oldKeys = ['upload-olymp', 'upload-olymp31', 'upload-olymp63', 'upload-olymp127', 'upload-100500']
+    oldKeys.forEach(key => localStorage.removeItem(key))
   }
 }
 ```
 
-#### **2.2 Унификация Pinia stores и именования в localStorage**
+#### **2.2 Унификация Pinia stores**
 
 ```typescript
 // store/modules/upload.ts
@@ -968,28 +709,23 @@ interface UploadState {
   gameId: string
   levelId: string
   uploadType: string
-  typeConfigs: Map<string, TypeConfig> // Единое хранилище для всех типов
+  currentData: UniversalAnswer[] // Единый формат данных для всех типов
+  typeConfig: Record<string, any> // Конфигурация специфичная для типа
 }
-
-// В UnifiedStateManager определить строгую стратегию именования ключей
-function getStorageKey(type: string): string {
-  return `encounter-uploader:v1:state:${type}`;
-}
-
 ```
 
 **Проверка после Фазы 2:**
 - Валидация сохранения/загрузки данных
-- Проверка миграции старых форматов
 - Проверка корректного именования ключей в localStorage
+- Очистка старых данных из localStorage
 
 ---
 
 ### **Фаза 3: Архитектура на основе конфигурации** 🔌
 **Срок: 1 день**
 
-#### **3.1 Регистрация типов через единый конфигурационный файл**
-Вместо системы плагинов или отдельных файлов-обёрток, все типы уровней регистрируются декларативно в одном месте. Это делает добавление похожих типов (например, новых олимпиек) тривиальным.
+#### **3.1 Регистрация 20+ типов через единый конфигурационный файл**
+Все типы уровней регистрируются декларативно в одном месте. Добавление нового типа займет 1-5 минут!
 
 ```typescript
 // level-system/level-types.config.ts
@@ -1093,38 +829,30 @@ export class LevelTypeRegistry {
 
 ---
 
-### **Фаза 4: Создание единого API сервиса** 🔌
-**Срок: 1 день**
+### **Фаза 4: Унификация API и удаление legacy кода** 🔌
+**Срок: 0.5 дня**
 
-#### **4.1 Новая структура сервисов**
-
-```
-frontend/src/services/
-├── api/
-│   ├── client.ts          # Axios клиент с интерцепторами
-│   ├── auth.service.ts    # Авторизация
-│   ├── upload.service.ts  # Загрузка данных
-│   └── game.service.ts    # Работа с играми
-├── uploader.ts            # Рефакторинг существующего
-└── index.ts               # Экспорт всех сервисов
-```
-
-#### **4.2 Удаление legacy кода**
-- Удалить `backend/` полностью (не используется)
+#### **4.1 Удаление legacy backend и дубликатов**
+- Удалить папку `backend/` полностью (не используется)
 - Удалить дублирующий auth store из `store/index.ts`
-- Очистить nginx.conf от маршрутов к backend
+- Удалить `frontend/src/services/api.ts` (легаси вызовы)
+- Очистить конфигурацию:
+  - nginx.conf - убрать маршруты к backend:3000
+  - docker-compose.yml - убрать сервис backend
+  - Vite proxy - направить все `/api/*` на `http://localhost:3001`
 
-Дополнительно:
-- Удалить `frontend/src/services/api.ts` (легаси вызовы `/api/login`, `/api/upload`)
-- Обновить Vite proxy для разработки: `/api/*` → `http://localhost:3001`
-- Вынести тайминги и флаги в `.env` (`VITE_SLEEP_MS`, `VITE_MAX_RETRIES`, `VITE_API_LOG`)
-
-#### **4.3 BonusFormService и кэширование**
+#### **4.2 Централизация API вызовов**
 
 ```typescript
-// api/bonus-form.service.ts
-// Получение и парсинг HTML формы BonusEdit с кэшированием на время сессии
-// Возвращает: имя чекбокса текущего уровня и карту всех уровней { label -> name }
+// services/api/upload.service.ts
+export class UploadService {
+  // Единый сервис для всех типов уровней
+  async uploadLevel(type: string, data: UniversalAnswer[], config: LevelTypeConfig) {
+    const builder = this.getBuilder(type)
+    const payloads = builder.build(data, config)
+    // Универсальная логика отправки для всех 20+ типов
+  }
+}
 ```
 
 **Проверка после Фазы 4:**
@@ -1329,16 +1057,16 @@ export class UploadAnalytics {
 
 | Фаза | Срок | Приоритет |
 |------|------|-----------|
-| **0. Валидация** | 1 день | 🔴 Критично |
-| **1. Унификация Olymp** | 1-2 дня | 🔴 Критично |
-| **2. Управление состоянием** | 1 день | 🟡 Важно |
-| **3. Система плагинов** | 2 дня | 🟡 Важно |
-| **4. API сервис** | 1 день | 🟡 Важно |
-| **5. Производительность** | 1-2 дня | 🟢 Желательно |
-| **6. Инфраструктура** | 1 день | 🟢 Желательно |
-| **7. Финальная валидация** | 1 день | 🔴 Критично |
+| **0. Валидация** | 0.5 дня | 🔴 Критично |
+| **1. Универсальная архитектура** | 3-4 дня | 🔴 Критично |
+| **2. Управление состоянием** | 0.5 дня | 🟡 Важно |
+| **3. Конфигурация типов** | 1 день | 🔴 Критично |
+| **4. API унификация** | 0.5 дня | 🟡 Важно |
+| **5. Производительность** | 1 день | 🟢 Желательно |
+| **6. Инфраструктура** | 0.5 дня | 🟢 Желательно |
+| **7. Финальная валидация** | 0.5 дня | 🔴 Критично |
 
-**Общий срок: 8-11 дней**
+**Общий срок: 7-8 дней**
 
 ---
 
@@ -1346,9 +1074,9 @@ export class UploadAnalytics {
 
 ### **Библиотеки:**
 - **VueUse** - композиции для общих задач
-- **Valibot/Zod** - валидация данных
-- **Vitest** - unit тестирование
-- **Playwright** - E2E тестирование
+- **Zod** - РЕКОМЕНДУЕТСЯ для валидации схем 20+ типов (декларативное описание структуры данных)
+- **Vitest** - unit тестирование (snapshot тесты для payload)
+- **Playwright** - проверка UI после каждой фазы рефакторинга
 
 ### **Конфигурация разработки:**
 
@@ -1369,12 +1097,12 @@ export class UploadAnalytics {
 ### **После завершения рефакторинга:**
 
 #### **Количественные улучшения:**
-- ✅ **Сокращение кода на 70%**: с ~3500 до ~1050 строк
-- ✅ **Удаление дубликатов на 95%**: 5 файлов (4 Olymp + Type100500) → 1 универсальная система
-- ✅ **Ускорение добавления новых типов на 95%**: с 2-3 часов до 15-30 минут
-- ✅ **100% валидность отправляемых данных**: гарантия работоспособности
-- ✅ **Покрытие тестами 85%**: защита от регрессий
-- ✅ **Единая точка изменений**: все типы уровней управляются из одного места
+- ✅ **Сокращение кода на 57%**: с ~3500 до ~1500 строк
+- ✅ **Удаление дубликатов на 94%**: 5 файлов → универсальная система
+- ✅ **Ускорение добавления новых типов на 95%**: с 2-3 часов до 1-15 минут
+- ✅ **Поддержка 20+ типов уровней**: готовая архитектура для любых комбинаций
+- ✅ **Покрытие тестами 70%**: snapshot тесты для всех payload
+- ✅ **Единая точка конфигурации**: все типы в level-types.config.ts
 
 #### **Качественные улучшения:**
 
@@ -1412,22 +1140,22 @@ export class UploadAnalytics {
 
 ### **Главные преимущества:**
 
-1. **🛡️ Безопасность**: Полная уверенность в том, что все функции отправки данных будут работать точно так же, как и до рефакторинга
-2. **🎯 Унификация**: Type100500 и Олимпийки теперь используют общую архитектуру и компоненты
-3. **⚡ Скорость развития**: Новые типы добавляются за минуты, а не часы
-4. **🔧 Гибкость**: Архитектура готова к любым будущим требованиям
+1. **🚀 Масштабируемость**: Готовая архитектура для 20+ типов уровней с любыми комбинациями функционала
+2. **🎯 Унификация**: ВСЕ типы (Олимпийки, Type100500 и будущие) используют общую архитектуру
+3. **⚡ Скорость развития**: Новый тип добавляется за 1-15 минут вместо 2-3 часов
+4. **🔧 Максимальная гибкость**: Система композиций позволяет комбинировать любой функционал
 
 ---
 
 ## 🎯 Заключение
 
-Данный план рефакторинга обеспечивает:
-1. **Безопасность** - система валидации гарантирует сохранение функциональности
-2. **Эффективность** - значительное сокращение объема кода и дублирования  
-3. **Масштабируемость** - легкое добавление новых типов уровней
-4. **Поддерживаемость** - централизованная архитектура и тестирование
+Обновленный план рефакторинга обеспечивает:
+1. **Масштабируемость на 20+ типов** - универсальная архитектура с системой композиций
+2. **Радикальное ускорение разработки** - новый тип за 1-15 минут вместо часов  
+3. **Максимальная гибкость** - любые комбинации функционала (олимпийки + Type100500 + кастом)
+4. **Упрощение без потерь** - убраны избыточные части (миграция localStorage, сложная валидация)
 
-**Рекомендуется начать с Фазы 0** - создания системы валидации, которая станет "страховкой" на весь период рефакторинга.
+**План полностью готов к реализации!** Начинаем с Фазы 0 - создания простых payload builders и snapshot тестов.
 
 ---
 

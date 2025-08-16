@@ -1,0 +1,97 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Payload Builders > buildBonusPayload > should build correct bonus payload for Olymp type > bonus-payload-olymp 1`] = `
+{
+  "answer_-1": "BONUSANSWER1",
+  "domain": "126",
+  "gid": "123",
+  "level": "1",
+  "level_1": "on",
+  "rbAllLevels": "1",
+  "txtBonusName": "Bonus 1",
+  "txtHours": "0",
+  "txtMinutes": "10",
+  "txtSeconds": "0",
+}
+`;
+
+exports[`Payload Builders > buildBonusPayload > should build correct bonus payload for Type100500 with all features > bonus-payload-type100500 1`] = `
+{
+  "answer_-1": "VAR1",
+  "answer_-2": "VAR2",
+  "answer_-3": "VAR3",
+  "chkDelay": "on",
+  "chkRelativeLimit": "on",
+  "domain": "126",
+  "gid": "123",
+  "level": "1",
+  "level_1": "on",
+  "level_2": "on",
+  "level_3": "on",
+  "negative": "on",
+  "rbAllLevels": "1",
+  "txtBonusName": "Complex Bonus",
+  "txtDelayHours": "0",
+  "txtDelayMinutes": "15",
+  "txtDelaySeconds": "0",
+  "txtHelp": "<p>Hint text</p>",
+  "txtHours": "0",
+  "txtMinutes": "5",
+  "txtSeconds": "30",
+  "txtTask": "<p>Bonus task description</p>",
+  "txtValidHours": "1",
+  "txtValidMinutes": "0",
+  "txtValidSeconds": "0",
+}
+`;
+
+exports[`Payload Builders > buildBonusPayload > should build correct bonus payload with allLevels=true > bonus-payload-all-levels 1`] = `
+{
+  "answer_-1": "ANSWER",
+  "domain": "126",
+  "gid": "123",
+  "level": "1",
+  "rbAllLevels": "0",
+  "txtBonusName": "All Levels Bonus",
+  "txtHours": "0",
+  "txtMinutes": "0",
+  "txtSeconds": "30",
+}
+`;
+
+exports[`Payload Builders > buildSectorPayload > should build correct sector payload with multiple variants > sector-payload-multiple 1`] = `
+{
+  "ddlAnswerFor_0": "0",
+  "ddlAnswerFor_1": "0",
+  "ddlAnswerFor_2": "0",
+  "domain": "126",
+  "gid": "123",
+  "level": "1",
+  "savesector": " ",
+  "txtAnswer_0": "ANSWER1",
+  "txtAnswer_1": "ANSWER2",
+  "txtAnswer_2": "ANSWER3",
+  "txtSectorName": "Sector Name",
+}
+`;
+
+exports[`Payload Builders > buildSectorPayload > should build correct sector payload with single variant > sector-payload-single 1`] = `
+{
+  "ddlAnswerFor_0": "0",
+  "domain": "126",
+  "gid": "123",
+  "level": "1",
+  "savesector": " ",
+  "txtAnswer_0": "ANSWER1",
+  "txtSectorName": "",
+}
+`;
+
+exports[`Payload Builders > buildTaskPayload > should build correct task payload > task-payload-basic 1`] = `
+{
+  "domain": "126",
+  "gid": "123",
+  "inputTask": "<table class="olymp">test content</table>",
+  "level": "1",
+}
+`;

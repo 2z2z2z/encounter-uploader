@@ -1,0 +1,77 @@
+# =============================================================================
+# Docker ignore file для оптимизации сборки
+# Согласно плану рефакторинга (Фаза 6.1)
+# =============================================================================
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+README*
+CHANGELOG*
+LICENSE*
+docs/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Node modules (будут установлены в контейнере)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build artifacts
+dist/
+build/
+.next/
+.nuxt/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+.parcel-cache/
+
+# Logs
+logs/
+*.log
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Development only
+docker-compose.dev.yml
+docker-compose.override.yml
+
+# Frontend specific (если собираем весь проект)
+frontend/node_modules/
+frontend/dist/
+frontend/.env*
+
+# Server specific
+server/node_modules/
+server/logs/
+

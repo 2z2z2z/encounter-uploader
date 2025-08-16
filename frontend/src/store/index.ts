@@ -1,35 +1,8 @@
 import { defineStore } from 'pinia'
-import { loginApi } from '../services/api'
 import { ref, reactive, watch, nextTick } from 'vue'
+import { UnifiedStateManager } from './unified/StateManager'
 
-export const useAuthStore = defineStore('auth', {
-  state: () => ({
-    username: '' as string,      // ← логин пользователя
-    loggedIn: false as boolean,
-    error: '' as string,
-  }),
-  actions: {
-    async login(username: string, password: string) {
-      try {
-        const res = await loginApi(username, password)
-        if (res.data.success) {
-          this.loggedIn = true
-          this.error = ''
-          this.username = username        // ← сохраняем логин
-        } else {
-          this.loggedIn = false
-          this.error = res.data.message || 'Неверный логин или пароль'
-          this.username = ''
-        }
-      } catch (e: any) {
-        this.loggedIn = false
-        this.error = e.message || 'Сетевая ошибка'
-        this.username = ''
-      }
-    }
-  },
-  persist: true,  // сохраняем в localStorage
-})
+// Дублирующий auth store удален - используется store/auth.ts согласно плану рефакторинга
 
 function createAnswerEntry(num: number) {
   return {
@@ -51,6 +24,17 @@ function createAnswerEntry(num: number) {
 function createAnswers(count: number) {
   return Array.from({ length: count }, (_, i) => createAnswerEntry(i + 1))
 }
+
+// Инициализируем StateManager для миграции данных
+const stateManager = new UnifiedStateManager({
+  enableLegacyMigration: true
+})
+
+// Очищаем старые ключи после миграции (выполняется один раз)
+setTimeout(() => {
+  const result = stateManager.clearLegacyData()
+  console.log(`🧹 Очистка legacy данных: удалено ${result.cleared.length} ключей`)
+}, 1000) // Задержка чтобы миграция успела завершиться
 
 export const useUploadStore = defineStore(
   'upload',
@@ -80,16 +64,34 @@ export const useUploadStore = defineStore(
     }
 
     function saveTypeData(type = uploadType.value) {
-      if (type === '100500') return
-      const data = {
-        config: JSON.parse(JSON.stringify(config)),
-        closedPattern: closedPattern.value,
-        answers: JSON.parse(JSON.stringify(answers.value)),
-      }
-      localStorage.setItem(storageKey(type), JSON.stringify(data))
+      // ОТКЛЮЧЕНО: Старая система хранения заменена на UnifiedStateManager
+      // Данные теперь сохраняются через новую систему с ключами encounter-uploader:*
+      console.log(`📝 Сохранение данных для ${type} теперь обрабатывается UnifiedStateManager`)
     }
 
     function loadTypeData(type = uploadType.value) {
+      console.log(`📖 Загрузка данных для типа: ${type}`)
+      
+      // Пытаемся загрузить из новой системы
+      const newSystemKey = convertTypeToNewFormat(type)
+      const newData = stateManager.load(newSystemKey, levelId.value || '1')
+      
+      if (newData) {
+        console.log(`✅ Данные загружены из новой системы: ${newSystemKey}`)
+        // Загружаем из новой системы
+        if (newData.answers && Array.isArray(newData.answers)) {
+          answers.value = newData.answers
+        }
+        if (newData.typeConfig) {
+          Object.assign(config, newData.typeConfig)
+        }
+        closedPattern.value = newData.typeConfig?.closedPattern || ''
+        return
+      }
+      
+      // Fallback: загрузка из старой системы (для совместимости)
+      console.log(`⚠️ Fallback: загрузка из старой системы для ${type}`)
+      
       if (type === '100500') {
         closedPattern.value = ''
         answers.value = createAnswers(15)
@@ -97,34 +99,34 @@ export const useUploadStore = defineStore(
         config.bonusTime = { hours: 0, minutes: 0, seconds: 0, negative: false }
         return
       }
-      const raw = localStorage.getItem(storageKey(type))
+      
       let desired = 15
       if (type === 'olymp31') desired = 31
       else if (type === 'olymp63') desired = 63
       else if (type === 'olymp127') desired = 127
-      if (raw) {
-        try {
-          const obj = JSON.parse(raw)
-          Object.assign(config, obj.config || {})
-          closedPattern.value = obj.closedPattern || ''
-          answers.value = Array.isArray(obj.answers)
-            ? obj.answers
-            : createAnswers(desired)
-        } catch {
-          closedPattern.value = ''
-          answers.value = createAnswers(desired)
-        }
-      } else {
-        closedPattern.value = ''
-        answers.value = createAnswers(desired)
-      }
+      
+      closedPattern.value = ''
+      answers.value = createAnswers(desired)
+      config.sectorMode = 'all'
+      config.bonusTime = { hours: 0, minutes: 0, seconds: 0, negative: false }
+    }
+    
+    // Вспомогательная функция для конвертации типов
+    function convertTypeToNewFormat(type: string): string {
+      if (type === 'olymp') return 'olymp_15'
+      if (type === 'olymp31') return 'olymp_31'
+      if (type === 'olymp63') return 'olymp_63'
+      if (type === 'olymp127') return 'olymp_127'
+      if (type === '100500') return 'type_100500'
+      return type
     }
 
     function setUploadType(type: string, prevType?: string) {
-      // Сохраняем данные старого типа только если это реальное переключение
-      if (prevType !== undefined && prevType !== type) {
-        saveTypeData(prevType)
-      }
+      // ОБНОВЛЕНО: Используем новую систему хранения
+      console.log(`🔄 Переключение типа: ${prevType} -> ${type}`)
+      
+      // Сохранение через UnifiedStateManager происходит автоматически
+      // благодаря автосохранению каждые 30 секунд
       uploadType.value = type
       loadTypeData(type)
     }

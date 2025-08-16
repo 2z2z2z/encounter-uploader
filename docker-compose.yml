@@ -1,20 +1,78 @@
-version: '3.8'
+version: '3.9'
 services:
-  frontend:
-    build: ./frontend
+  app:
+    build:
+      context: ./frontend
+      target: ${BUILD_TARGET:-production}
     ports:
-      - "127.0.0.1:8099:80"               # фронтенд (Nginx) слушает порт 80 на хосте
+      - "127.0.0.1:8099:80"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - API_BASE_URL=${API_BASE_URL:-http://server:3001}
     depends_on:
-      - backend
-      - server
-    restart: "no"
-
-  backend:
-    build: ./backend
-    # Внешний порт для backend не публикуем (доступен через фронтенд)
-    restart: "no"
+      server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - encounter-network
 
   server:
-    build: ./server
-    # Внешний порт для server не публикуем (доступен через фронтенд)
-    restart: "no"
+    build:
+      context: ./server
+      target: ${BUILD_TARGET:-production}
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - SESSION_STORE=${SESSION_STORE:-redis}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - SESSION_SECRET=${SESSION_SECRET:-your-secret-key}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - TRUST_PROXY=${TRUST_PROXY:-true}
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - encounter-network
+    volumes:
+      - server-logs:/app/logs
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - encounter-network
+    volumes:
+      - redis-data:/data
+    # Не публикуем порт Redis наружу для безопасности
+
+networks:
+  encounter-network:
+    driver: bridge
+    name: encounter-network
+
+volumes:
+  redis-data:
+    name: encounter-redis-data
+  server-logs:
+    name: encounter-server-logs

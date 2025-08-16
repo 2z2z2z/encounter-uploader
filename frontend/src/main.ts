@@ -5,10 +5,18 @@ import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import './index.css'
 
+// Инициализируем новую систему хранения данных
+import { useUniversalStore } from './store/universal'
+
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
 
-createApp(App)
-  .use(pinia)
-  .use(router)
-  .mount('#app')
+const app = createApp(App)
+app.use(pinia)
+app.use(router)
+
+// Инициализируем Universal Store для миграции данных
+const universalStore = useUniversalStore()
+console.log('🔄 Universal Store инициализирован для миграции данных')
+
+app.mount('#app')

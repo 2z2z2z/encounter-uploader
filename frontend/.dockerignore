@@ -1,0 +1,34 @@
+# Frontend Docker ignore file
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build output
+dist/
+build/
+
+# Environment files
+.env
+.env.*
+
+# Development files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test files
+coverage/
+.nyc_output/
+
+# Temporary files
+.cache/
+.parcel-cache/
+*.tmp
+*.temp
+
+# OS files
+.DS_Store
+Thumbs.db
+
