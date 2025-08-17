@@ -3,6 +3,7 @@
 const express = require('express')
 const session = require('express-session')
 const axios = require('axios')
+const axiosRetry = require('axios-retry')
 const bodyParser = require('body-parser')
 
 const app = express()
@@ -21,6 +22,25 @@ app.use(
 // Разбираем JSON и form-urlencoded
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
+
+// Глобальные ретраи для запросов к EN: GET → 429/5xx/сеть; POST → 429/сеть
+axiosRetry(axios, {
+  retries: 3,
+  retryDelay: axiosRetry.exponentialDelay,
+  shouldResetTimeout: true,
+  retryCondition: (error) => {
+    const method = (error.config?.method || '').toLowerCase()
+    const status = error.response?.status
+    const noResponse = !error.response
+    if (method === 'get') {
+      return noResponse || status === 429 || (status >= 500 && status < 600)
+    }
+    if (method === 'post') {
+      return noResponse || status === 429
+    }
+    return false
+  },
+})
 
 // Добавлено: утилита для обновления authCookie при получении нового Set-Cookie
 /**

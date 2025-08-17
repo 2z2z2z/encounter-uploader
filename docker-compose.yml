@@ -5,13 +5,7 @@ services:
     ports:
       - "127.0.0.1:8099:80"               # фронтенд (Nginx) слушает порт 80 на хосте
     depends_on:
-      - backend
       - server
-    restart: "no"
-
-  backend:
-    build: ./backend
-    # Внешний порт для backend не публикуем (доступен через фронтенд)
     restart: "no"
 
   server:

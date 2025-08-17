@@ -50,7 +50,7 @@
         <div>
           <label class="form-label">Тип уровня</label>
           <select v-model="store.uploadType" class="form-select h-10 w-full">
-            <option value="olymp">Олимпийка (15 секторов)</option>
+            <option value="olymp15">Олимпийка (15 секторов)</option>
             <option value="olymp31">Олимпийка (31 сектор)</option>
             <option value="olymp63">Олимпийка (63 сектора)</option>
             <option value="olymp127">Олимпийка (127 сектора)</option>

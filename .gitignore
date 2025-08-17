@@ -40,6 +40,20 @@ Thumbs.db
 # ────────────── Тестовые покрытия ──────────────
 coverage/
 
+# ────────────── Playwright / e2e артефакты ──────────────
+# Игнорируем результаты прогонов, но сохраняем baseline-скриншоты
+test-results/
+!test-results/baseline-*/
+
+# ────────────── Vite кэш ──────────────
+.vite/
+
+# ────────────── Screenshots/videos (если включены) ──────────────
+playwright-report/
+blob-report/
+*.png
+*.webm
+
 # ────────────── Mac/Linux специфичные ──────────────
 *.pid
 *.seed

@@ -1,60 +1,42 @@
 <template>
-  <div class="min-h-screen bg-blue-50 py-8">
-    <div class="container max-w-[120rem] mx-auto bg-white p-12 rounded-md shadow-sm">
-      <h1 class="text-2xl font-semibold text-center">
-        100500 секторов и бонусов
-      </h1>
-      <p class="text-sm text-gray-500 text-center mb-0">
-        автор: <strong>{{ authStore.username }}</strong>,
-        домен: <strong>{{ store.domain }}</strong>,
-        игра: <strong>{{ store.gameId }}</strong>,
-        уровень: <strong>{{ store.levelId }}</strong>
-      </p>
+  <div>
+    <LevelUploadLayout title="100500 секторов и бонусов"
+      :showTitle="true"
+      :showPreview="false"
+      :containerClass="'container max-w-[120rem] mx-auto bg-white p-12 rounded-md shadow-sm'"
+      :showMeta="true"
+      :showBack="true"
+      :showCommonActions="true"
+      @back="$router.push('/settings')"
+      @clear="onClear" @export="() => (showExport = true)" @importChange="importData">
+      <template #controls>
+        <!-- Tabs -->
+        <div class="flex flex-wrap items-center gap-2 mt-0 mb-6 w-full">
+          <button
+            v-for="(_, idx) in tabs"
+            :key="idx"
+            @click="activeTab = idx"
+            :class="activeTab === idx ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'"
+            class="px-4 py-2 rounded-md min-w-[100px]"
+          >
+            Блок {{ idx + 1 }}
+          </button>
+          <button @click="addTab" class="px-4 py-2 rounded-md bg-green-500 text-white">+</button>
+          <button v-if="tabs.length > 1" @click="removeCurrentTab" class="px-4 py-2 rounded-md bg-red-500 text-white">-</button>
+        </div>
 
-      <!-- Tabs -->
-      <div class="flex flex-wrap items-center gap-2 mt-6 mb-6">
-        <button
-          v-for="(_, idx) in tabs"
-          :key="idx"
-          @click="activeTab = idx"
-          :class="activeTab === idx ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'"
-          class="px-4 py-2 rounded-md min-w-[100px]"
-        >
-          Блок {{ idx + 1 }}
-        </button>
-        <button @click="addTab" class="px-4 py-2 rounded-md bg-green-500 text-white">+</button>
-        <button
-          v-if="tabs.length > 1"
-          @click="removeCurrentTab"
-          class="px-4 py-2 rounded-md bg-red-500 text-white"
-        >
-          -
-        </button>
-      </div>
-
-      <!-- Tab content -->
-      <div v-if="currentTab" class="space-y-8">
         <!-- Controls (2 rows) -->
-        <div class="flex flex-col gap-4">
-          <!-- Row 1 -->
+        <div v-if="currentTab" class="flex flex-col gap-4 w-full">
           <div class="flex flex-wrap items-end gap-4">
-            <div class="flex-1 min-w-[200px]">
+            <div class="flex-1 min-w-[200px]" v-if="hasControl('sectorPattern')">
               <label class="form-label">Название секторов</label>
-              <input
-                v-model="currentTab.sectorPattern"
-                placeholder="Текст или &"
-                class="form-input h-10 w-full"
-              />
+              <input v-model="currentTab.sectorPattern" placeholder="Текст или &" class="form-input h-10 w-full" />
             </div>
-            <div class="flex-1 min-w-[200px]">
+            <div class="flex-1 min-w-[200px]" v-if="hasControl('bonusPattern')">
               <label class="form-label">Название бонусов</label>
-              <input
-                v-model="currentTab.bonusPattern"
-                placeholder="Текст или &"
-                class="form-input h-10 w-full"
-              />
+              <input v-model="currentTab.bonusPattern" placeholder="Текст или &" class="form-input h-10 w-full" />
             </div>
-            <div>
+            <div v-if="hasControl('quickBonusTime')">
               <label class="form-label">Бонусное время (ч, м, с)</label>
               <div class="flex items-center gap-2">
                 <input type="number" min="0" v-model.number="currentTab.quickTime.hours" placeholder="ч" class="form-input h-10 w-16 text-center" />
@@ -66,7 +48,7 @@
                 </label>
               </div>
             </div>
-            <div>
+            <div v-if="hasControl('quickDelay')">
               <label class="form-label">Задержка (ч, м, с)</label>
               <div class="flex items-center gap-2">
                 <input type="number" min="0" v-model.number="quickDelayHours" placeholder="ч" class="form-input h-10 w-16 text-center" />
@@ -74,7 +56,7 @@
                 <input type="number" min="0" v-model.number="quickDelaySeconds" placeholder="с" class="form-input h-10 w-16 text-center" />
               </div>
             </div>
-            <div>
+            <div v-if="hasControl('quickRelativeLimit')">
               <label class="form-label">Ограничение (ч, м, с)</label>
               <div class="flex items-center gap-2">
                 <input type="number" min="0" v-model.number="quickRelativeLimitHours" placeholder="ч" class="form-input h-10 w-16 text-center" />
@@ -83,31 +65,24 @@
               </div>
             </div>
           </div>
-          <!-- Row 2 -->
           <div class="flex flex-wrap items-end gap-4">
-            <div class="flex-1 min-w-[200px]">
+            <div class="flex-1 min-w-[200px]" v-if="hasControl('bonusTaskPattern')">
               <label class="form-label">Бонусные задания</label>
-              <textarea
-                v-model="currentTab.bonusTaskPattern"
-                 placeholder="Текст или код"
-                 class="form-input w-full textarea-collapsible-lg"
-              ></textarea>
+              <textarea v-model="currentTab.bonusTaskPattern" placeholder="Текст или код" class="form-input w-full textarea-collapsible-lg"></textarea>
             </div>
-            <div class="flex-1 min-w-[200px]">
+            <div class="flex-1 min-w-[200px]" v-if="hasControl('bonusHintPattern')">
               <label class="form-label">Подсказки (по факту выполнения)</label>
-              <textarea
-                v-model="currentTab.bonusHintPattern"
-                 placeholder="Текст или код"
-                 class="form-input w-full textarea-collapsible-lg"
-              ></textarea>
+              <textarea v-model="currentTab.bonusHintPattern" placeholder="Текст или код" class="form-input w-full textarea-collapsible-lg"></textarea>
             </div>
-            <button @click="openLevelsModal('bulk')" type="button" class="form-button h-10 px-4">Уровни бонусов</button>
+            <button v-if="hasControl('levelsModal')" @click="openLevelsModal('bulk')" type="button" class="form-button h-10 px-4">Уровни бонусов</button>
             <button @click="showCodes = true" type="button" class="form-button h-10 px-4">Добавить коды</button>
           </div>
         </div>
+      </template>
 
+      <template #table>
         <!-- Table -->
-        <div class="overflow-x-auto">
+        <div v-if="currentTab" class="overflow-x-auto">
           <table class="min-w-full table-fixed border-collapse text-sm">
             <thead class="bg-gray-50">
               <tr>
@@ -231,31 +206,17 @@
             </tbody>
           </table>
         </div>
-      </div>
+      </template>
 
-      <!-- Buttons bottom -->
-      <div class="flex flex-wrap justify-between gap-2 mt-8">
-        <div>
-          <button @click="$router.push('/settings')" class="form-button bg-gray-400 hover:bg-gray-500 h-10 px-4">Назад</button>
-        </div>
-        <div class="flex flex-wrap gap-2 px-4">
-          <button @click="onClear" type="button" class="form-button h-10 px-4">Очистить</button>
-          <button @click="showExport = true" type="button" class="form-button h-10 px-4">Экспорт</button>
-          <label class="form-button h-10 px-4 cursor-pointer">
-            Импорт
-            <input type="file" @change="importData" accept=".json,.csv" class="hidden" />
-          </label>
-        </div>
-        <div class="flex flex-wrap gap-2 items-center">
-          <label class="flex items-center gap-1">
-            <input type="checkbox" v-model="combineSectors" class="cursor-pointer" />
-            <span>Объединить секторы (БМП)</span>
-          </label>
-          <button @click="onSendSectors" type="button" class="form-button h-10 px-4">Залить секторы</button>
-          <button @click="onSendBonuses" type="button" class="form-button h-10 px-4">Залить бонусы</button>
-        </div>
-      </div>
-    </div>
+      <template #rightActions>
+        <label v-if="combineSectorsAvailable" class="flex items-center gap-1">
+          <input type="checkbox" v-model="combineSectors" class="cursor-pointer" />
+          <span>Объединить сектора (БМП)</span>
+        </label>
+        <button @click="onSendSectors" type="button" class="form-button h-10 px-4">Залить секторы</button>
+        <button @click="onSendBonuses" type="button" class="form-button h-10 px-4">Залить бонусы</button>
+      </template>
+    </LevelUploadLayout>
 
     <!-- Levels select modal -->
     <transition name="fade">
@@ -378,6 +339,9 @@ import { useProgressStore } from '../../../store/progress'
 import { sendSector, sendBonuses, fetchBonusLevels, type Answer } from '../../../services/uploader'
 import { showUploadWarning, startUploadVisibilityTracking, stopUploadVisibilityTracking, showCompletionNotification } from '../../../utils/visibility'
 import { serializeCsv, parseCsv, downloadBlob } from '../../../utils/csv'
+import { getTypeConfig } from '../../level-system/registry/types'
+import type { ControlId } from '../../level-system/registry/schema'
+import LevelUploadLayout from '../../LevelUploadLayout.vue'
 
 const store = useUploadStore()
 const authStore = useAuthStore()
@@ -414,7 +378,7 @@ interface TabData {
 }
 
 const storageKey = 'type100500-tabs'
-const tabs = ref<TabData[]>([])
+const tabs = ref<TabData[]>([createTab()])
 const activeTab = ref(0)
 const showCodes = ref(false)
 const codesText = ref('')
@@ -428,6 +392,13 @@ const genCount = ref(1)
 const genDigits = ref(4)
 const combineSectors = ref(false)
 const showExport = ref(false)
+// Конфиг типа управляет наличием чекбокса БМП
+const typeCfg = computed(() => getTypeConfig(store.uploadType))
+const combineSectorsAvailable = computed(() => !!typeCfg.value?.buttons?.combineSectorsAvailable)
+function hasControl(id: ControlId) {
+  const cfg = typeCfg.value
+  return !!cfg?.controls?.includes(id)
+}
 
 // Локальные контролы для массового заполнения задержки/ограничения (не сохраняются)
 const quickDelayHours = ref<number>(0)
@@ -586,8 +557,6 @@ onMounted(() => {
     } catch {
       tabs.value = [createTab()]
     }
-  } else {
-    tabs.value = [createTab()]
   }
 
   watch(

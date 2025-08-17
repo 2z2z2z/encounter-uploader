@@ -5,7 +5,7 @@ import axios from 'axios'
 /**
  * Задержка между запросами (в миллисекундах).
  */
-const SLEEP_MS = 1200
+const SLEEP_MS = Number(import.meta.env.VITE_SLEEP_MS ?? 1200)
 
 /** 
  * Ждёт заданное количество миллисекунд. 
@@ -71,6 +71,89 @@ export interface Answer {
   targetLevels?: string[]
 }
 
+// ==== БИЛДЕРЫ PAYLOAD ====
+export function buildTaskPayload(domain: string, gid: string | number, level: string | number, html: string): URLSearchParams {
+  const params = new URLSearchParams()
+  params.append('domain', domain)
+  params.append('gid', String(gid))
+  params.append('level', String(level))
+  params.append('inputTask', html)
+  return params
+}
+
+export function buildSectorPayload(
+  domain: string,
+  gid: string | number,
+  level: string | number,
+  variants: string[],
+  sectorName = ''
+): URLSearchParams {
+  const params = new URLSearchParams()
+  params.append('domain', domain)
+  params.append('gid', String(gid))
+  params.append('level', String(level))
+  params.append('txtSectorName', sectorName)
+  params.append('savesector', ' ')
+  variants.forEach((v, idx) => {
+    params.append(`txtAnswer_${idx}`, v)
+    params.append(`ddlAnswerFor_${idx}`, '0')
+  })
+  return params
+}
+
+export function buildBonusPayload(
+  base: { domain: string; gid: string | number; level: string | number },
+  bonus: Answer,
+  levelLabelToName: Record<string, string>
+): URLSearchParams {
+  const params = new URLSearchParams()
+  params.append('domain', base.domain)
+  params.append('gid', String(base.gid))
+  params.append('level', String(base.level))
+  params.append('txtBonusName', bonus.bonusName || '')
+  params.append('txtTask', typeof bonus.bonusTask === 'string' ? bonus.bonusTask : '')
+  if (typeof bonus.bonusHint === 'string') {
+    params.append('txtHelp', bonus.bonusHint)
+  } else {
+    const hint = bonus.noHint
+      ? ''
+      : `<script type="text/javascript">document.getElementById("${base.level}_${String(
+          bonus.number
+        ).padStart(2, '0')}").innerHTML="${
+          bonus.displayText
+            ? `<p class='up'>${bonus.displayText.replace(/"/g, '\\"')}</p>`
+            : bonus.closedText.replace(/"/g, '\\"')
+        }";</script>`
+    params.append('txtHelp', hint)
+  }
+  bonus.variants.forEach((v, idx) => params.append(`answer_-${idx + 1}`, v))
+  params.append('txtHours', String(bonus.bonusTime.hours))
+  params.append('txtMinutes', String(bonus.bonusTime.minutes))
+  params.append('txtSeconds', String(bonus.bonusTime.seconds))
+  if (bonus.bonusTime.negative) params.append('negative', 'on')
+  if (bonus.delay && (bonus.delay.hours || bonus.delay.minutes || bonus.delay.seconds)) {
+    params.append('chkDelay', 'on')
+    params.append('txtDelayHours', String(bonus.delay.hours || 0))
+    params.append('txtDelayMinutes', String(bonus.delay.minutes || 0))
+    params.append('txtDelaySeconds', String(bonus.delay.seconds || 0))
+  }
+  if (bonus.relativeLimit && (bonus.relativeLimit.hours || bonus.relativeLimit.minutes || bonus.relativeLimit.seconds)) {
+    params.append('chkRelativeLimit', 'on')
+    params.append('txtValidHours', String(bonus.relativeLimit.hours || 0))
+    params.append('txtValidMinutes', String(bonus.relativeLimit.minutes || 0))
+    params.append('txtValidSeconds', String(bonus.relativeLimit.seconds || 0))
+  }
+  const isAllLevels = !!bonus.allLevels
+  params.append('rbAllLevels', isAllLevels ? '0' : '1')
+  if (!isAllLevels) {
+    const selected = new Set<string>([String(base.level), ...(Array.isArray(bonus.targetLevels) ? bonus.targetLevels.map(String) : [])])
+    for (const lbl of selected) {
+      const chk = levelLabelToName[lbl]
+      if (chk) params.append(chk, 'on')
+    }
+  }
+  return params
+}
 /**
  * 1) Отправка «Задания».
  */
@@ -81,11 +164,7 @@ export async function sendTask(
   inputTask: string
 ) {
   const url = '/api/admin/task'
-  const params = new URLSearchParams()
-  params.append('domain', domain)
-  params.append('gid', String(gameid))
-  params.append('level', String(level))
-  params.append('inputTask', inputTask)
+  const params = buildTaskPayload(domain, gameid, level, inputTask)
 
   console.log('[sendTask] ▶ POST', url)
   console.log('[sendTask] ▶ payload →', params.toString())
@@ -128,18 +207,7 @@ export async function sendSector(
   // но в самом запросе txtSectorName может быть передано отдельно.
   const formattedClosed = formatClosedText(closedRaw)
 
-  const params = new URLSearchParams()
-  params.append('domain', domain)
-  params.append('gid', String(gameid))
-  params.append('level', String(level))
-
-  // Название сектора (если не указано — пустая строка)
-  params.append('txtSectorName', sectorName)
-  params.append('savesector', ' ')
-  variants.forEach((v, idx) => {
-    params.append(`txtAnswer_${idx}`, v)
-    params.append(`ddlAnswerFor_${idx}`, '0')
-  })
+  const params = buildSectorPayload(domain, gameid, level, variants, sectorName)
 
   console.log(`[sendSector] ▶ POST ${url}`)
   console.log(`[sendSector] ▶ payload →`, params.toString())
@@ -262,85 +330,7 @@ export async function sendBonuses(
 
   for (const bonus of bonusesToSend) {
     const url = '/api/admin/bonus'
-    const params = new URLSearchParams()
-    params.append('domain', domain)
-    params.append('gid', String(gameid))
-    params.append('level', String(level))
-
-    // Название бонуса (если не указано — пустая строка)
-    params.append('txtBonusName', bonus.bonusName || '')
-
-    // txtTask — бонусное задание (произвольный HTML/текст)
-    params.append('txtTask', typeof bonus.bonusTask === 'string' ? bonus.bonusTask : '')
-
-    // txtHelp — подсказка: если явно задана bonus.bonusHint — используем её; иначе
-    // сохраняем прежнее поведение (скрипт для замены содержимого ячейки), когда noHint !== true
-    if (typeof bonus.bonusHint === 'string') {
-      params.append('txtHelp', bonus.bonusHint)
-    } else {
-      const hint = bonus.noHint
-        ? ''
-        : `<script type="text/javascript">document.getElementById("${level}_${String(
-            bonus.number
-          ).padStart(2, '0')}").innerHTML="${
-            bonus.displayText
-              ? `<p class='up'>${bonus.displayText.replace(/"/g, '\\"')}</p>`
-              : bonus.closedText.replace(/"/g, '\\"')
-          }";</script>`
-      params.append('txtHelp', hint)
-    }
-
-    // Варианты бонуса: answer_-1, answer_-2, …
-    bonus.variants.forEach((v, idx) => {
-      params.append(`answer_-${idx + 1}`, v)
-    })
-
-    // Время бонуса
-    params.append('txtHours', String(bonus.bonusTime.hours))
-    params.append('txtMinutes', String(bonus.bonusTime.minutes))
-    params.append('txtSeconds', String(bonus.bonusTime.seconds))
-    if (bonus.bonusTime.negative) {
-      params.append('negative', 'on')
-    }
-
-    // Задержка (Delay)
-    if (bonus.delay && (bonus.delay.hours || bonus.delay.minutes || bonus.delay.seconds)) {
-      params.append('chkDelay', 'on')
-      params.append('txtDelayHours', String(bonus.delay.hours || 0))
-      params.append('txtDelayMinutes', String(bonus.delay.minutes || 0))
-      params.append('txtDelaySeconds', String(bonus.delay.seconds || 0))
-    }
-
-    // Ограничение (Relative limit)
-    if (
-      bonus.relativeLimit &&
-      (bonus.relativeLimit.hours || bonus.relativeLimit.minutes || bonus.relativeLimit.seconds)
-    ) {
-      params.append('chkRelativeLimit', 'on')
-      params.append('txtValidHours', String(bonus.relativeLimit.hours || 0))
-      params.append('txtValidMinutes', String(bonus.relativeLimit.minutes || 0))
-      params.append('txtValidSeconds', String(bonus.relativeLimit.seconds || 0))
-    }
-
-    // Радио: rbAllLevels — 0 (все уровни) или 1 (указанные)
-    const isAllLevels = !!bonus.allLevels
-    params.append('rbAllLevels', isAllLevels ? '0' : '1')
-    if (!isAllLevels) {
-      // Отмечаем чекбоксы уровней: обязательный текущий + дополнительные из bonus.targetLevels
-      const selectedLabels = new Set<string>()
-      selectedLabels.add(String(level))
-      if (Array.isArray(bonus.targetLevels)) {
-        for (const lbl of bonus.targetLevels) {
-          if (lbl) selectedLabels.add(String(lbl))
-        }
-      }
-      for (const lbl of selectedLabels) {
-        const chk = levelLabelToName[lbl]
-        if (chk) {
-          params.append(chk, 'on')
-        }
-      }
-    }
+    const params = buildBonusPayload({ domain, gid: gameid, level }, bonus, levelLabelToName)
 
     console.log(`[sendBonuses] ▶ POST ${url}`)
     console.log(`[sendBonuses] ▶ payload →`, params.toString())

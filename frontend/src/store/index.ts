@@ -1,35 +1,5 @@
 import { defineStore } from 'pinia'
-import { loginApi } from '../services/api'
 import { ref, reactive, watch, nextTick } from 'vue'
-
-export const useAuthStore = defineStore('auth', {
-  state: () => ({
-    username: '' as string,      // ← логин пользователя
-    loggedIn: false as boolean,
-    error: '' as string,
-  }),
-  actions: {
-    async login(username: string, password: string) {
-      try {
-        const res = await loginApi(username, password)
-        if (res.data.success) {
-          this.loggedIn = true
-          this.error = ''
-          this.username = username        // ← сохраняем логин
-        } else {
-          this.loggedIn = false
-          this.error = res.data.message || 'Неверный логин или пароль'
-          this.username = ''
-        }
-      } catch (e: any) {
-        this.loggedIn = false
-        this.error = e.message || 'Сетевая ошибка'
-        this.username = ''
-      }
-    }
-  },
-  persist: true,  // сохраняем в localStorage
-})
 
 function createAnswerEntry(num: number) {
   return {
@@ -59,7 +29,7 @@ export const useUploadStore = defineStore(
     const domain = ref('')
     const gameId = ref('')
     const levelId = ref('')
-    const uploadType = ref('olymp')
+    const uploadType = ref('olymp15')
 
     // --- параметры конкретного уровня (храним отдельно для каждого типа) ---
     const config = reactive({
@@ -99,7 +69,8 @@ export const useUploadStore = defineStore(
       }
       const raw = localStorage.getItem(storageKey(type))
       let desired = 15
-      if (type === 'olymp31') desired = 31
+      if (type === 'olymp15') desired = 15
+      else if (type === 'olymp31') desired = 31
       else if (type === 'olymp63') desired = 63
       else if (type === 'olymp127') desired = 127
       if (raw) {
@@ -132,7 +103,8 @@ export const useUploadStore = defineStore(
     function clearTypeData() {
       if (uploadType.value === '100500') return
       let desired = 15
-      if (uploadType.value === 'olymp31') desired = 31
+      if (uploadType.value === 'olymp15') desired = 15
+      else if (uploadType.value === 'olymp31') desired = 31
       else if (uploadType.value === 'olymp63') desired = 63
       else if (uploadType.value === 'olymp127') desired = 127
       answers.value = createAnswers(desired)
@@ -153,6 +125,10 @@ export const useUploadStore = defineStore(
     // Инициализация данных для текущего типа при запуске
     // Выполняется в nextTick чтобы persist успел восстановить uploadType
     nextTick(() => {
+      // Нормализация устаревшего значения: 'olymp' → 'olymp15'
+      if (uploadType.value === 'olymp') {
+        uploadType.value = 'olymp15'
+      }
       loadTypeData(uploadType.value)
     })
 
