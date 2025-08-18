@@ -1,8 +1,10 @@
 # ────────────── Node_modules ──────────────
 # Игнорируем модули для каждой из подсистем
 frontend/node_modules/
-backend/node_modules/
 server/node_modules/
+test-results/
+node_modules/
+tests/
 
 # ────────────── Сборки / артефакты ──────────────
 # В зависимости от настроек сборщика:
