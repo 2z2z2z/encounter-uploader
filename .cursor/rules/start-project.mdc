@@ -1,0 +1,6 @@
+---
+alwaysApply: false
+---
+Проект запускается так (в двух терминалах):
+1. Сервер: cd server && npm start
+2. Фронтенд: cd frontend && npm run dev
