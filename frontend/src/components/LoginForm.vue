@@ -1,25 +1,75 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-blue-50 py-8">
-    <div class="bg-white p-8 rounded-lg shadow-md max-w-md mx-auto">
-      <h1 class="text-2xl font-semibold mb-6">Вход в Encounter</h1>
-      <form @submit.prevent="onSubmit" class="flex flex-wrap items-center gap-4">
-        <input
-          v-model="username"
-          placeholder="Логин"
-          class="form-input h-10 px-4"
-        />
-        <input
-          v-model="password"
-          type="password"
-          placeholder="Пароль"
-          class="form-input h-10 px-4"
-        />
-        <button type="submit" class="form-button h-10 px-6 flex-1">Войти</button>
-      </form>
-      <div v-if="authStore.error" class="text-red-500 text-sm mt-2">
-        {{ authStore.error }}
+  <!-- Tailwind layout utilities для responsive центрирования -->
+  <div class="min-h-screen flex flex-col items-center justify-center bg-surface-50 p-4">
+      <!-- PrimeVue Card с Tailwind shadow и rounded -->
+      <Card>
+        <template #title>Вход в Encounter</template>
+        <template #content>
+          <!-- Tailwind spacing utilities -->
+          <form @submit.prevent="onSubmit" class="space-y-6">
+            <!-- Tailwind spacing для form fields -->
+            <div class="space-y-1">
+              <FloatLabel variant="on">
+                <InputText
+                  id="username"
+                  v-model="username"
+                  :invalid="!!authStore.error"
+                  fluid
+                  class="transition-all duration-200"
+                  autocomplete="username"
+                />
+                <label for="username">Логин</label>
+              </FloatLabel>
+            </div>
+            <div class="space-y-1">
+              <FloatLabel variant="on">
+                <Password
+                  id="password"
+                  v-model="password"
+                  :feedback="false"
+                  :invalid="!!authStore.error"
+                  toggleMask
+                  fluid
+                  class="transition-all duration-200"
+                  :inputProps="{ autocomplete: 'current-password' }"
+                />
+                <label for="password">Пароль</label>
+              </FloatLabel>
+            </div>
+            
+            <!-- Tailwind hover и focus utilities -->
+            <Button 
+              type="submit" 
+              label="Войти"
+              fluid
+              class="transition-all duration-200"
+              icon="pi pi-user"
+            />
+          </form>
+          
+          <!-- Tailwind spacing и animation -->
+          <Transition
+            enter-active-class="animate-fadein"
+            leave-active-class="animate-fadeout"
+          >
+            <Message 
+              v-if="authStore.error" 
+              severity="error" 
+              :closable="false"
+              class="mt-6"
+            >
+              {{ authStore.error }}
+            </Message>
+          </Transition>
+        </template>
+      </Card>
+      
+      <!-- Дополнительная информация с Tailwind utilities -->
+      <div class="mt-8 text-center">
+        <p class="text-muted-color text-sm">
+          Введенный логин и пароль хранятся локально в браузере.
+        </p>
       </div>
-    </div>
   </div>
 </template>
 
@@ -27,6 +77,12 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../store/auth'
+import Card from 'primevue/card'
+import InputText from 'primevue/inputtext'
+import Password from 'primevue/password'
+import Button from 'primevue/button'
+import Message from 'primevue/message'
+import FloatLabel from 'primevue/floatlabel'
 
 const username = ref('')
 const password = ref('')

@@ -25,6 +25,7 @@ export function applySectorModeToAnswers(
   totalSectors: number,
   answers: Ref<AnswerRow[]>
 ): void {
+  if (!answers.value) return
   const half = Math.floor((totalSectors + 1) / 2)
   switch (mode) {
     case 'all':
@@ -48,6 +49,7 @@ export function applySectorModeToAnswers(
 
 /** Массово проставляет открытые сектора из первого варианта ответа. */
 export function fillOpenSectorsFromFirstVariant(answers: Ref<AnswerRow[]>): void {
+  if (!answers.value) return
   answers.value.forEach((r) => {
     r.displayText = r.variants[0] || ''
   })
@@ -55,6 +57,7 @@ export function fillOpenSectorsFromFirstVariant(answers: Ref<AnswerRow[]>): void
 
 /** Массово применяет шаблон закрытого сектора c заменой & на номер. */
 export function applyClosedPatternToAnswers(pattern: string, answers: Ref<AnswerRow[]>): void {
+  if (!answers.value) return
   answers.value.forEach((r) => {
     r.closedText = (pattern || '').replace(/&/g, String(r.number))
   })
@@ -65,6 +68,7 @@ export function applyQuickBonusTimeToAnswers(
   quick: BonusTime,
   answers: Ref<AnswerRow[]>
 ): void {
+  if (!answers.value) return
   answers.value.forEach((r) => (r.bonusTime = { ...quick }))
 }
 

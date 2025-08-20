@@ -2,54 +2,142 @@
 	<div>
 		<LevelUploadLayout :title="levelTypeLabel" :showPreview="true" :showTitle="true" :showMeta="true" :showBack="true" :showCommonActions="true" :containerClass="'container max-w-[120rem] mx-auto bg-white p-12 rounded-md shadow-sm'" @back="$router.push('/settings')" @clear="onClear" @export="() => (showExport = true)" @importChange="importData" @preview="() => (showPreview = true)">
 			<template #error>
-				<div v-if="error" class="text-red-500 text-sm mt-4">{{ error }}</div>
+				<Message v-if="error" severity="error" :closable="false" class="mt-4">{{ error }}</Message>
 			</template>
 			<template #controls>
 				<div class="flex-1 min-w-[160px]" v-if="hasControl('sectorMode')">
-					<label class="form-label">Закрытие уровня</label>
-					<select v-model="sectorMode" @change="applySectorMode" class="form-select h-10 w-full cursor-pointer">
-						<option value="all">Все сектора</option>
-						<option value="initialAndFinal">Начальные + финал</option>
-						<option value="finalOnly">Только финал</option>
-						<option value="custom">Кастом</option>
-					</select>
+					<FloatLabel variant="off">
+						<Select
+							id="sectorMode"
+							v-model="sectorMode"
+							:options="sectorModeOptions"
+							optionLabel="label"
+							optionValue="value"
+							placeholder="Выберите режим"
+							@change="applySectorMode"
+							fluid
+						/>
+						<label for="sectorMode">Закрытие уровня</label>
+					</FloatLabel>
 				</div>
 				<div class="flex-1 min-w-[240px]" v-if="hasControl('quickBonusTime')">
-					<label class="form-label">Бонусное время (ч, м, с)</label>
-					<div class="flex items-center gap-2">
-						<input type="number" min="0" v-model.number="quickTime.hours" placeholder="ч" class="form-input h-10 w-16 text-center" />
-						<input type="number" min="0" v-model.number="quickTime.minutes" placeholder="м" class="form-input h-10 w-16 text-center" />
-						<input type="number" min="0" v-model.number="quickTime.seconds" placeholder="с" class="form-input h-10 w-16 text-center" />
-						<label class="flex items-center gap-1 ml-2">
-							<input type="checkbox" v-model="quickTime.negative" class="cursor-pointer" />
-							<span class="text-gray-500">–</span>
-						</label>
-					</div>
+					<FloatLabel variant="off">
+						<div class="flex items-center gap-2">
+							<InputNumber
+								id="bonusHours"
+								v-model="quickTime.hours"
+								:min="0"
+								:step="1"
+								showButtons
+								suffix=" ч"
+								:minFractionDigits="0"
+								:maxFractionDigits="0"
+								class="z-w-5"
+							/>
+							<InputNumber
+								id="bonusMinutes"
+								v-model="quickTime.minutes"
+								:min="0"
+								showButtons
+								suffix=" м"
+								:step="1"
+								:minFractionDigits="0"
+								:maxFractionDigits="0"
+								class="z-w-5"
+							/>
+							<InputNumber
+								id="bonusSeconds"
+								v-model="quickTime.seconds"
+								:min="0"
+								showButtons
+								suffix=" с"
+								:step="1"
+								:minFractionDigits="0"
+								:maxFractionDigits="0"
+								class="z-w-5"
+							/>
+							<div class="flex items-center gap-1 ml-2">
+								<Checkbox
+									id="bonusNegative"
+									v-model="quickTime.negative"
+									:binary="true"
+									class="cursor-pointer"
+									inputId="ingredient1"
+								/>
+								<span class="text-gray-500">отриц.</span>
+							</div>
+						</div>
+						<label for="bonusHours">Бонусное время (ч, м, с)</label>
+					</FloatLabel>
 				</div>
 				<div class="flex-1 min-w-[240px]" v-if="hasControl('closedPattern')">
-					<label class="form-label">Название закрытого сектора</label>
-					<input v-model="localClosedPattern" placeholder="Текст, & или URL картинки" class="form-input h-10 w-full" />
+					<FloatLabel variant="off">
+						<InputText
+							id="closedPattern"
+							v-model="localClosedPattern"
+							placeholder="Текст, & или URL картинки"
+							fluid
+						/>
+						<label for="closedPattern">Название закрытого сектора</label>
+					</FloatLabel>
 				</div>
-				<button v-if="hasControl('fillOpenSectors')" @click="fillOpenSectors" type="button" class="form-button h-10 px-4 flex-1 min-w-[240px]">Заполнить открытые сектора</button>
+				<Button 
+					v-if="hasControl('fillOpenSectors')" 
+					@click="fillOpenSectors" 
+					label="Заполнить открытые сектора"
+					severity="secondary"
+					icon="pi pi-copy"
+				/>
 			</template>
+			<Divider />
 			<template #table>
 				<Answers />
 			</template>
 			<template #rightActions>
-				<button v-if="buttons.enableTask" @click="onSendTask" type="button" class="form-button h-10 px-4">Залить задание</button>
-				<button @click="onSendSector" type="button" class="form-button h-10 px-4">Залить секторы</button>
-				<button v-if="buttons.enableBonuses" @click="onSendBonus" type="button" class="form-button h-10 px-4">Залить бонусы</button>
+				<Button 
+					v-if="buttons.enableTask" 
+					@click="onSendTask" 
+					label="Залить задание"
+				/>
+				<Button 
+					@click="onSendSector" 
+					label="Залить секторы"
+				/>
+				<Button 
+					v-if="buttons.enableBonuses" 
+					@click="onSendBonus" 
+					label="Залить бонусы"
+				/>
 			</template>
 		</LevelUploadLayout>
 
 		<transition name="fade">
 			<div v-if="showPreview" class="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-blur-sm flex items-center justify-center з-50">
 				<div class="bg-[#1d1d1d] text-white rounded-md p-6 w-[90%] max-w-3xl space-y-4 relative">
-					<button @click="showPreview = false" class="absolute top-2 right-2 text-gray-400 hover:text-white cursor-pointer">✕</button>
+					<Button 
+						@click="showPreview = false" 
+						icon="pi pi-times"
+						text
+						rounded
+						severity="secondary"
+						class="absolute top-2 right-2 text-gray-400 hover:text-white"
+					/>
 					<h2 class="text-xl font-semibold">Предпросмотр</h2>
 					<div class="flex gap-2 mb-4">
-						<button :class="previewMode === 'closed' ? 'bg-blue-500 text-white' : 'bg-gray-400 text-black'" class="px-4 py-2 rounded-md cursor-pointer" @click="previewMode = 'closed'">Закрытая</button>
-						<button :class="previewMode === 'open' ? 'bg-blue-500 text-white' : 'bg-gray-400 text-black'" class="px-4 py-2 rounded-md cursor-pointer" @click="previewMode = 'open'">Открытая</button>
+						<Button 
+							:class="previewMode === 'closed' ? 'bg-blue-500 text-white' : 'bg-gray-400 text-black'" 
+							class="px-4 py-2 rounded-md" 
+							@click="previewMode = 'closed'"
+							:label="previewMode === 'closed' ? 'Закрытая' : 'Закрытая'"
+							:severity="previewMode === 'closed' ? 'primary' : 'secondary'"
+						/>
+						<Button 
+							:class="previewMode === 'open' ? 'bg-blue-500 text-white' : 'bg-gray-400 text-black'" 
+							class="px-4 py-2 rounded-md" 
+							@click="previewMode = 'open'"
+							:label="previewMode === 'open' ? 'Открытая' : 'Открытая'"
+							:severity="previewMode === 'open' ? 'primary' : 'secondary'"
+						/>
 					</div>
 					<div class="overflow-auto max-h-[60vh]"><div v-html="olympTableHtml"></div></div>
 				</div>
@@ -59,11 +147,28 @@
 		<transition name="fade">
 			<div v-if="showExport" class="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-blur-sm flex items-center justify-center з-50">
 				<div class="bg-white p-6 rounded-md w-[90%] max-w-sm space-y-4 relative">
-					<button @click="showExport = false" type="button" class="absolute top-2 right-2 text-gray-400 hover:text-black cursor-pointer">✕</button>
+					<Button 
+						@click="showExport = false" 
+						icon="pi pi-times"
+						text
+						rounded
+						severity="secondary"
+						class="absolute top-2 right-2 text-gray-400 hover:text-black"
+					/>
 					<h3 class="text-lg font-medium">Экспортировать как…</h3>
 					<div class="flex gap-2 justify-end">
-						<button @click="exportDataAs('json')" class="form-button h-10 px-4">JSON</button>
-						<button @click="exportDataAs('csv')" class="form-button h-10 px-4">CSV</button>
+						<Button 
+							@click="exportDataAs('json')" 
+							label="JSON"
+							severity="secondary"
+							class="h-10 px-4"
+						/>
+						<Button 
+							@click="exportDataAs('csv')" 
+							label="CSV"
+							severity="secondary"
+							class="h-10 px-4"
+						/>
 					</div>
 				</div>
 			</div>
@@ -85,6 +190,14 @@ import { sendTask, sendSector, sendBonuses } from '../../services/uploader'
 import { getTypeConfig } from '../level-system/registry/types'
 import type { TypeButtonsConfig } from '../level-system/registry/schema'
 import { applyClosedPatternToAnswers, applyQuickBonusTimeToAnswers, applySectorModeToAnswers, fillOpenSectorsFromFirstVariant } from '../level-system/useOlympControls'
+import Message from 'primevue/message'
+import Select from 'primevue/select'
+import InputText from 'primevue/inputtext'
+import InputNumber from 'primevue/inputnumber'
+import Checkbox from 'primevue/checkbox'
+import Button from 'primevue/button'
+import FloatLabel from 'primevue/floatlabel'
+import Divider from 'primevue/divider'
 
 const props = defineProps<{ totalSectors: number }>()
 
@@ -99,6 +212,14 @@ function olympTitle(n: number): string {
 }
 
 type SectorMode = 'all' | 'initialAndFinal' | 'finalOnly' | 'custom'
+
+const sectorModeOptions = [
+	{ label: 'Все сектора', value: 'all' },
+	{ label: 'Начальные + финал', value: 'initialAndFinal' },
+	{ label: 'Только финал', value: 'finalOnly' },
+	{ label: 'Кастом', value: 'custom' }
+]
+
 const store = useUploadStore()
 const authStore = useAuthStore()
 const progress = useProgressStore()

@@ -1,9 +1,9 @@
 <template>
   <div>
-    <div class="container max-w-[120rem] min-h-screen py-6">
+    <section class="lg:px-20">
       <router-view />
-      <VersionLabel />
-    </div>
+      <!--<VersionLabel />-->
+    </section>
     <UploadProgress />
     <ToastNotification />
     <ConfirmDialog />

@@ -1,74 +1,89 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-blue-50 py-8">
-    <div class="bg-white p-12 rounded-md shadow-sm w-full max-w-lg space-y-6">
-      <h1 class="text-2xl font-semibold text-center">Настройки</h1>
-      <!--<p class="text-sm text-gray-500 text-center mb-4">
-        автор: <strong>{{ authStore.username }}</strong>,
-        домен: <strong>{{ store.domain }}</strong>,
-        игра: <strong>{{ store.gameId }}</strong>,
-        уровень: <strong>{{ store.levelId }}</strong>
-      </p>-->
+  <div class="min-h-screen flex items-center justify-center bg-surface-50 py-8">
+    <div class="w-full max-w-lg">
+      <Card>
+        <template #title>Настройки</template>
+        <template #content>
+          <form @submit.prevent="onContinue" class="space-y-6">
+            <div class="space-y-1">
+              <FloatLabel variant="on">
+                <InputText
+                  id="domain"
+                  v-model="store.domain"
+                  fluid
+                  class="transition-all duration-200"
+                />
+                <label for="domain">Домен Encounter</label>
+              </FloatLabel>
+            </div>
 
-      <div class="space-y-4">
-        <div>
-          <label class="form-label">Домен Encounter</label>
-          <input
-            v-model="store.domain"
-            placeholder="Например, 126"
-            class="form-input h-10 w-full"
-          />
-        </div>
+            <div class="space-y-1">
+              <FloatLabel variant="on">
+                <InputText
+                  id="gameId"
+                  v-model="store.gameId"
+                  fluid
+                  class="transition-all duration-200"
+                />
+                <label for="gameId">ID игры</label>
+              </FloatLabel>
+            </div>
 
-        <div>
-          <label class="form-label">ID игры</label>
-          <input
-            v-model="store.gameId"
-            placeholder="ID вашей игры"
-            class="form-input h-10 w-full"
-          />
-        </div>
+            <div class="space-y-1">
+              <FloatLabel variant="on">
+                <InputText
+                  id="levelId"
+                  v-model="store.levelId"
+                  :invalid="!!levelValidationError"
+                  fluid
+                  class="transition-all duration-200"
+                  @input="onLevelIdInput"
+                />
+                <label for="levelId">№ уровня</label>
+              </FloatLabel>
+              <Message 
+                v-if="levelValidationError" 
+                severity="error" 
+                :closable="false"
+                class="mt-1"
+              >
+                {{ levelValidationError }}
+              </Message>
+            </div>
 
-        <div>
-          <!-- Лейбл изменён на "№ уровня" -->
-          <label class="form-label">№ уровня</label>
-          <input
-            v-model="store.levelId"
-            placeholder="№ уровня"
-            class="form-input h-10 w-full"
-            @input="onLevelIdInput"
-            :class="{ 'border-red-500': levelValidationError }"
-          />
-          <!-- Сообщение об ошибке валидации -->
-          <p
-            v-if="levelValidationError"
-            class="text-red-500 text-sm mt-1"
-          >
-            {{ levelValidationError }}
-          </p>
-        </div>
+            <div class="space-y-1">
+              <FloatLabel variant="on">
+                <Select
+                  id="uploadType"
+                  v-model="store.uploadType"
+                  :options="uploadTypeOptions"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Выберите тип уровня"
+                  fluid
+                  class="transition-all duration-200"
+                />
+                <label for="uploadType">Тип уровня</label>
+              </FloatLabel>
+            </div>
 
-        <div>
-          <label class="form-label">Тип уровня</label>
-          <select v-model="store.uploadType" class="form-select h-10 w-full">
-            <option value="olymp15">Олимпийка (15 секторов)</option>
-            <option value="olymp31">Олимпийка (31 сектор)</option>
-            <option value="olymp63">Олимпийка (63 сектора)</option>
-            <option value="olymp127">Олимпийка (127 сектора)</option>
-            <option value="100500">100500 секторов и бонусов</option>
-          </select>
-        </div>
-      </div>
+            <Message 
+              v-if="error" 
+              severity="error" 
+              :closable="false"
+            >
+              {{ error }}
+            </Message>
 
-      <!-- Ошибка общего порядка (проверка домена/игры и авторизации) -->
-      <div v-if="error" class="text-red-500 text-sm">
-        {{ error }}
-      </div>
-
-      <div class="flex justify-end">
-        <button @click="onContinue" class="form-button h-10 px-6 flex-1">
-          Продолжить
-        </button>
-      </div>
+            <Button 
+              type="submit" 
+              label="Продолжить"
+              fluid
+              class="transition-all duration-200"
+            />
+          </form>
+        </template>
+      </Card>
     </div>
   </div>
 </template>
@@ -79,10 +94,24 @@ import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { useUploadStore } from '../store'
 import { useAuthStore } from '../store/auth'
+import Card from 'primevue/card'
+import InputText from 'primevue/inputtext'
+import Select from 'primevue/select'
+import Button from 'primevue/button'
+import Message from 'primevue/message'
+import FloatLabel from 'primevue/floatlabel'
 
 const store = useUploadStore()
 const authStore = useAuthStore()
 const router = useRouter()
+
+const uploadTypeOptions = [
+  { label: 'Олимпийка (15 секторов)', value: 'olymp15' },
+  { label: 'Олимпийка (31 сектор)', value: 'olymp31' },
+  { label: 'Олимпийка (63 сектора)', value: 'olymp63' },
+  { label: 'Олимпийка (127 сектора)', value: 'olymp127' },
+  { label: '100500 секторов и бонусов', value: '100500' }
+]
 
 watch(
   () => store.uploadType,
@@ -154,7 +183,7 @@ async function onContinue() {
       const res = await fetchGamesList()
       const ct = res.headers['content-type'] || ''
       if (!ct.includes('application/json')) {
-        error.value = 'Сервер не вернул JSON. Проверьте домен.'
+        error.value = 'Указан неверный домен.'
         return
       }
       const { ActiveGames = [], ComingGames = [] } = res.data
@@ -183,10 +212,4 @@ async function onContinue() {
 }
 </script>
 
-<style scoped>
-/* Опционально обводка красным при ошибке */
-.border-red-500 {
-  border-color: #f56565;
-  border-width: 2px;
-}
-</style>
+

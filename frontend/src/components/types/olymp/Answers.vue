@@ -1,131 +1,120 @@
 <template>
-  <div class="overflow-x-auto my-8">
-    <table class="min-w-full table-fixed border-collapse text-sm">
-      <colgroup>
-        <col class="w-8" />
-        <col class="w-1/4" />
-        <col class="w-20" />
-        <col class="w-20" />
-        <col class="w-32" />
-        <col class="w-1/6" />
-        <col />
-      </colgroup>
-      <thead class="bg-gray-50">
-        <tr>
-          <th class="p-2 text-left">#</th>
-          <th class="p-2 text-left">Ответы</th>
-          <th class="p-2 text-center">Сектор</th>
-          <th class="p-2 text-center">Бонус</th>
-          <th class="p-2 text-left">Бонусное время</th>
-          <th class="p-2 text-left">Закрытый сектор</th>
-          <th class="p-2 text-left">Открытый сектор</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="row in store.answers"
-          :key="row.number"
-          class="border-t border-gray-200"
-        >
-          <td class="p-2">{{ row.number }}</td>
-          <td class="p-2">
-            <div class="flex flex-col gap-1">
-              <div
-                v-for="(_, idx) in row.variants"
-                :key="idx"
-                class="flex items-center gap-1"
-              >
-                <input
-                  v-model="row.variants[idx]"
-                  placeholder="ответ"
-                  class="form-input h-8 min-w-[150px] flex-1"
-                  
-                />
-                <button
-                  v-if="idx === row.variants.length - 1 && idx < 9"
-                  @click="addVariant(row)"
-                  type="button"
-                  class="h-8 w-8 rounded-md bg-green-500 text-white cursor-pointer"
-                >
-                  ＋
-                </button>
-                <button
-                  v-if="idx > 0"
-                  @click="removeVariant(row, idx)"
-                  type="button"
-                  class="h-8 w-8 rounded-md bg-red-500 text-white cursor-pointer"
-                >
-                  −
-                </button>
-              </div>
+  <div class="my-8">
+    <DataTable :value="store.answers">
+      <Column field="number" header="#"></Column>
+      <Column header="Ответы">
+        <template #body="{ data }">
+          <div class="flex flex-col gap-1">
+            <div
+              v-for="(_, idx) in data.variants"
+              :key="idx"
+              class="flex items-center gap-1"
+            >
+              <InputText
+                v-model="data.variants[idx]"
+                placeholder="ответ"
+                size="small"
+              />
+              <Button
+                v-if="idx === data.variants.length - 1 && idx < 9"
+                @click="addVariant(data)"
+                icon="pi pi-plus"
+                severity="success"
+                size="small"
+                variant="outlined"
+              />
+              <Button
+                v-if="idx > 0"
+                @click="removeVariant(data, idx)"
+                icon="pi pi-minus"
+                severity="danger"
+                size="small"
+                variant="outlined"
+              />
             </div>
-          </td>
-          <td class="p-2 text-center">
-            <input
-              type="checkbox"
-              v-model="row.inSector"
-              @change="markCustom"
-              class="cursor-pointer"
+          </div>
+        </template>
+      </Column>
+      <Column header="Сектор" style="width: 4rem; text-align: center">
+        <template #body="{ data }">
+          <Checkbox
+            v-model="data.inSector"
+            @change="markCustom"
+            binary
+          />
+        </template>
+      </Column>
+      <Column header="Бонус" style="width: 4rem; text-align: center">
+        <template #body="{ data }">
+          <Checkbox v-model="data.inBonus" binary />
+        </template>
+      </Column>
+      <Column header="Бонусное время">
+        <template #body="{ data }">
+          <div class="flex items-center gap-1">
+            <InputNumber
+              v-model="data.bonusTime.hours"
+              :min="0"
+              :step="1"
+              suffix=" ч"
+              size="small"
+              class="z-w-3"
             />
-          </td>
-          <td class="p-2 text-center">
-            <input type="checkbox" v-model="row.inBonus" class="cursor-pointer" />
-          </td>
-          <td class="p-2">
-            <div class="flex items-center gap-1">
-              <input
-                type="number"
-                min="0"
-                v-model.number="row.bonusTime.hours"
-                placeholder="ч"
-                class="form-input h-8 w-16 text-center"
-              />
-              <input
-                type="number"
-                min="0"
-                v-model.number="row.bonusTime.minutes"
-                placeholder="м"
-                class="form-input h-8 w-16 text-center"
-              />
-              <input
-                type="number"
-                min="0"
-                v-model.number="row.bonusTime.seconds"
-                placeholder="с"
-                class="form-input h-8 w-16 text-center"
-              />
-              <label class="flex items-center gap-1 ml-2">
-                <input
-                  type="checkbox"
-                  v-model="row.bonusTime.negative"
-                  class="cursor-pointer"
-                />
-                <span class="text-gray-500">–</span>
-              </label>
-            </div>
-          </td>
-          <td class="p-2">
-            <input
-              v-model="row.closedText"
-              placeholder="Текст или картинка"
-              class="form-input h-8 w-full min-w-[200px]"
+            <InputNumber
+              v-model="data.bonusTime.minutes"
+              :min="0"
+              suffix=" м"
+              size="small"
+              class="z-w-3"
             />
-          </td>
-          <td class="p-2">
-            <input
-              v-model="row.displayText"
-              placeholder="Отображение ответа"
-              class="form-input h-8 w-full min-w-[200px]"
+            <InputNumber
+              v-model="data.bonusTime.seconds"
+              :min="0"
+              suffix=" с"
+              size="small"
+              class="z-w-3"
             />
-          </td>
-        </tr>
-      </tbody>
-    </table>
+            <label class="flex items-center gap-1 ml-2">
+              <Checkbox
+                v-model="data.bonusTime.negative"
+                binary
+              />
+              <span class="text-gray-500">отриц.</span>
+            </label>
+          </div>
+        </template>
+      </Column>
+      <Column header="Закрытый сектор">
+        <template #body="{ data }">
+          <InputText
+            v-model="data.closedText"
+            placeholder="Текст или картинка"
+            size="small"
+          />
+        </template>
+      </Column>
+      <Column header="Открытый сектор">
+        <template #body="{ data }">
+          <InputText
+            v-model="data.displayText"
+            placeholder="Отображение ответа"
+            size="small"
+          />
+        </template>
+      </Column>
+    </DataTable>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useUploadStore } from '../../../store'
+import InputText from 'primevue/inputtext'
+import InputNumber from 'primevue/inputnumber'
+import Checkbox from 'primevue/checkbox'
+import Button from 'primevue/button'
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+
 const store = useUploadStore()
 
 function addVariant(row: { variants: string[] }) {

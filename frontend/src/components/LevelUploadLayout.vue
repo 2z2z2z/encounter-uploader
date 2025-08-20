@@ -1,50 +1,89 @@
 <template>
-  <div :class="containerClass">
-    <h1 v-if="showTitle" class="text-2xl font-semibold text-center">{{ title }}</h1>
+  <div class="min-h-screen flex items-center justify-center bg-surface-50 p-4">
+    <div class="w-full max-w-[1920px]">
+      <Card>
+        <template #title v-if="showTitle">{{ title }}</template>
+        <template #subtitle v-if="showMeta">автор: <strong>{{ authStore.username }}</strong>,
+            домен: <strong>{{ store.domain }}</strong>,
+            игра: <strong>{{ store.gameId }}</strong>,
+            уровень: <strong>{{ store.levelId }}</strong></template>
+        <template #content>
+          <slot name="error"></slot>
 
-    <p v-if="showMeta" class="text-sm text-gray-500 text-center mb-0">
-      автор: <strong>{{ authStore.username }}</strong>,
-      домен: <strong>{{ store.domain }}</strong>,
-      игра: <strong>{{ store.gameId }}</strong>,
-      уровень: <strong>{{ store.levelId }}</strong>
-    </p>
+          <div class="flex flex-wrap justify-between items-end gap-4 mt-8 mb-4">
+            <slot name="controls"></slot>
+          </div>
 
-    <slot name="error"></slot>
+          <div class="flex flex-wrap justify-end gap-2 mb-4">
+            <slot name="topActions"></slot>
+          </div>
 
-    <div class="flex flex-wrap justify-between items-end gap-4 mt-8 mb-4">
-      <slot name="controls"></slot>
-    </div>
+          <slot name="table"></slot>
 
-    <div class="flex flex-wrap justify-end gap-2 mb-4">
-      <slot name="topActions"></slot>
-    </div>
-
-    <slot name="table"></slot>
-
-    <div class="flex flex-wrap justify-between gap-2 mt-8">
-      <div class="flex flex-wrap gap-2" v-if="showBack">
-        <button @click="$emit('back')" class="form-button bg-gray-400 hover:bg-gray-500 h-10 px-4">Назад</button>
-      </div>
-      <div class="flex flex-wrap gap-2 px-4" v-if="showCommonActions">
-        <button @click="$emit('clear')" type="button" class="form-button h-10 px-4">Очистить</button>
-        <button @click="$emit('export')" type="button" class="form-button h-10 px-4">Экспорт</button>
-        <label class="form-button h-10 px-4 cursor-pointer">
-          Импорт
-          <input type="file" @change="$emit('importChange', $event)" accept=".json,.csv" class="hidden" />
-        </label>
-        <button v-if="showPreview" @click="$emit('preview')" class="form-button h-10 px-4">Предпросмотр</button>
-      </div>
-      <div class="flex flex-wrap gap-2">
-        <slot name="rightActions"></slot>
-      </div>
+          <div class="flex flex-wrap justify-between gap-2 mt-8">
+            <div class="flex flex-wrap gap-2" v-if="showBack">
+              <Button 
+                @click="$emit('back')" 
+                label="Назад"
+                severity="secondary"
+                class="h-10 px-4"
+              />
+            </div>
+            <div class="flex flex-wrap gap-2 px-4" v-if="showCommonActions">
+              <Button 
+                @click="$emit('clear')" 
+                label="Очистить"
+                severity="secondary"
+                class="h-10 px-4"
+                icon="pi pi-trash"
+              />
+              <Button 
+                @click="$emit('export')" 
+                label="Экспорт"
+                severity="secondary"
+                class="h-10 px-4"
+                icon="pi pi-file-export"
+              />
+              <Button 
+                @click="triggerFileInput" 
+                label="Импорт"
+                severity="secondary"
+                class="h-10 px-4"
+                icon="pi pi-file-import"
+              />
+              <input 
+                ref="fileInputRef" 
+                type="file" 
+                @change="$emit('importChange', $event)" 
+                accept=".json,.csv" 
+                class="hidden" 
+              />
+              <Button 
+                v-if="showPreview" 
+                @click="$emit('preview')" 
+                label="Предпросмотр"
+                severity="secondary"
+                class="h-10 px-4"
+                icon="pi pi-eye"
+              />
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <slot name="rightActions"></slot>
+            </div>
+          </div>
+        </template>
+      </Card>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { defineProps, computed } from 'vue'
+import { defineProps, computed, ref } from 'vue'
 import { useUploadStore } from '../store'
 import { useAuthStore } from '../store/auth'
+import Card from 'primevue/card'
+import Message from 'primevue/message'
+import Button from 'primevue/button'
 
 const props = defineProps<{ 
   title: string;
@@ -58,6 +97,7 @@ const props = defineProps<{
 
 const store = useUploadStore()
 const authStore = useAuthStore()
+const fileInputRef = ref<HTMLInputElement>()
 
 const containerClass = computed(() => props.containerClass || '')
 const showPreview = !!props.showPreview
@@ -65,6 +105,10 @@ const showTitle = props.showTitle !== false
 const showMeta = props.showMeta !== false
 const showBack = props.showBack !== false
 const showCommonActions = props.showCommonActions !== false
+
+function triggerFileInput() {
+  fileInputRef.value?.click()
+}
 </script>
 
 <script lang="ts">
