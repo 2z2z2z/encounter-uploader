@@ -189,7 +189,7 @@ import { serializeCsv, downloadBlob, parseCsv } from '../../utils/csv'
 import { sendTask, sendSector, sendBonuses } from '../../services/uploader'
 import { getTypeConfig } from '../level-system/registry/types'
 import type { TypeButtonsConfig } from '../level-system/registry/schema'
-import { applyClosedPatternToAnswers, applyQuickBonusTimeToAnswers, applySectorModeToAnswers, fillOpenSectorsFromFirstVariant } from '../level-system/useOlympControls'
+import { applySectorModeToAnswers } from '../level-system/useOlympControls'
 import Message from 'primevue/message'
 import Select from 'primevue/select'
 import InputText from 'primevue/inputtext'
@@ -247,17 +247,30 @@ const sectorMode = computed<SectorMode>({
 })
 
 const quickTime = reactive({ hours: 0, minutes: 0, seconds: 0, negative: false })
-watch(() => ({ ...quickTime }), (qt) => applyQuickBonusTimeToAnswers(qt as any, store.answers as any), { deep: true })
+watch(() => ({ ...quickTime }), (qt) => {
+	if (!store.answers) return
+	store.answers.forEach((r) => (r.bonusTime = { ...qt }))
+}, { deep: true })
 
 const localClosedPattern = ref('')
-watch(localClosedPattern, (val) => applyClosedPatternToAnswers(val, store.answers as any))
+watch(localClosedPattern, (val) => {
+	if (!store.answers) return
+	store.answers.forEach((r) => {
+		r.closedText = (val || '').replace(/&/g, String(r.number))
+	})
+})
 onMounted(() => { localClosedPattern.value = '' })
 
 function applySectorMode() {
 	applySectorModeToAnswers(sectorMode.value as any, props.totalSectors, store.answers as any)
 }
 
-function fillOpenSectors() { fillOpenSectorsFromFirstVariant(store.answers as any) }
+function fillOpenSectors() {
+	if (!store.answers) return
+	store.answers.forEach((r) => {
+		r.displayText = r.variants[0] || ''
+	})
+}
 function onClear() { store.clearTypeData() }
 
 function exportDataAs(format: 'json' | 'csv') {
