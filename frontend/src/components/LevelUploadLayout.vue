@@ -78,11 +78,10 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, computed, ref } from 'vue'
+import { defineProps, ref } from 'vue'
 import { useUploadStore } from '../store'
 import { useAuthStore } from '../store/auth'
 import Card from 'primevue/card'
-import Message from 'primevue/message'
 import Button from 'primevue/button'
 
 const props = defineProps<{ 
@@ -99,7 +98,6 @@ const store = useUploadStore()
 const authStore = useAuthStore()
 const fileInputRef = ref<HTMLInputElement>()
 
-const containerClass = computed(() => props.containerClass || '')
 const showPreview = !!props.showPreview
 const showTitle = props.showTitle !== false
 const showMeta = props.showMeta !== false

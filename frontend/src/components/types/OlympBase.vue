@@ -111,68 +111,55 @@
 			</template>
 		</LevelUploadLayout>
 
-		<transition name="fade">
-			<div v-if="showPreview" class="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-blur-sm flex items-center justify-center з-50">
-				<div class="bg-[#1d1d1d] text-white rounded-md p-6 w-[90%] max-w-3xl space-y-4 relative">
-					<Button 
-						@click="showPreview = false" 
-						icon="pi pi-times"
-						text
-						rounded
-						severity="secondary"
-						class="absolute top-2 right-2 text-gray-400 hover:text-white"
-					/>
-					<h2 class="text-xl font-semibold">Предпросмотр</h2>
-					<div class="flex gap-2 mb-4">
-						<Button 
-							:class="previewMode === 'closed' ? 'bg-blue-500 text-white' : 'bg-gray-400 text-black'" 
-							class="px-4 py-2 rounded-md" 
-							@click="previewMode = 'closed'"
-							:label="previewMode === 'closed' ? 'Закрытая' : 'Закрытая'"
-							:severity="previewMode === 'closed' ? 'primary' : 'secondary'"
-						/>
-						<Button 
-							:class="previewMode === 'open' ? 'bg-blue-500 text-white' : 'bg-gray-400 text-black'" 
-							class="px-4 py-2 rounded-md" 
-							@click="previewMode = 'open'"
-							:label="previewMode === 'open' ? 'Открытая' : 'Открытая'"
-							:severity="previewMode === 'open' ? 'primary' : 'secondary'"
-						/>
-					</div>
-					<div class="overflow-auto max-h-[60vh]"><div v-html="olympTableHtml"></div></div>
-				</div>
-			</div>
-		</transition>
+		<Dialog 
+			:visible="showPreview"
+			@update:visible="showPreview = $event"
+			header="Предпросмотр олимпийки" 
+			:style="{ width: '90vw', maxWidth: '800px' }"
+			:breakpoints="{ '1199px': '95vw', '575px': '98vw' }"
+			modal
+		>
+			<Tabs :value="previewMode" @update:value="handleTabChange">
+				<TabList>
+					<Tab value="closed">Закрытая</Tab>
+					<Tab value="open">Открытая</Tab>
+				</TabList>
+				<TabPanels class="mt-4 h-full">
+					<TabPanel value="closed" class="h-full overflow-auto">
+						<div class="olymp-preview" v-html="olympTableHtml"></div>
+					</TabPanel>
+					<TabPanel value="open" class="h-full overflow-auto">
+						<div class="olymp-preview" v-html="olympTableHtml"></div>
+					</TabPanel>
+				</TabPanels>
+			</Tabs>
+		</Dialog>
 
-		<transition name="fade">
-			<div v-if="showExport" class="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-blur-sm flex items-center justify-center з-50">
-				<div class="bg-white p-6 rounded-md w-[90%] max-w-sm space-y-4 relative">
-					<Button 
-						@click="showExport = false" 
-						icon="pi pi-times"
-						text
-						rounded
-						severity="secondary"
-						class="absolute top-2 right-2 text-gray-400 hover:text-black"
-					/>
-					<h3 class="text-lg font-medium">Экспортировать как…</h3>
-					<div class="flex gap-2 justify-end">
-						<Button 
-							@click="exportDataAs('json')" 
-							label="JSON"
-							severity="secondary"
-							class="h-10 px-4"
-						/>
-						<Button 
-							@click="exportDataAs('csv')" 
-							label="CSV"
-							severity="secondary"
-							class="h-10 px-4"
-						/>
-					</div>
-				</div>
+		<Dialog
+			:visible="showExport"
+			@update:visible="showExport = $event"
+			header="Экспортировать как…"
+			:style="{ width: '400px' }"
+			:breakpoints="{ '575px': '90vw' }"
+			modal
+		>
+			<div class="flex gap-2 justify-center mt-4">
+				<Button 
+					@click="exportDataAs('json')" 
+					label="JSON"
+					severity="secondary"
+					class="h-10 px-4"
+					icon="pi pi-file"
+				/>
+				<Button 
+					@click="exportDataAs('csv')" 
+					label="CSV"
+					severity="secondary"
+					class="h-10 px-4"
+					icon="pi pi-file-excel"
+				/>
 			</div>
-		</transition>
+		</Dialog>
 	</div>
 </template>
 
@@ -189,7 +176,7 @@ import { serializeCsv, downloadBlob, parseCsv } from '../../utils/csv'
 import { sendTask, sendSector, sendBonuses } from '../../services/uploader'
 import { getTypeConfig } from '../level-system/registry/types'
 import type { TypeButtonsConfig } from '../level-system/registry/schema'
-import { applySectorModeToAnswers } from '../level-system/useOlympControls'
+
 import Message from 'primevue/message'
 import Select from 'primevue/select'
 import InputText from 'primevue/inputtext'
@@ -198,6 +185,13 @@ import Checkbox from 'primevue/checkbox'
 import Button from 'primevue/button'
 import FloatLabel from 'primevue/floatlabel'
 import Divider from 'primevue/divider'
+import Dialog from 'primevue/dialog'
+import Tabs from 'primevue/tabs'
+import TabList from 'primevue/tablist'
+import Tab from 'primevue/tab'
+import TabPanels from 'primevue/tabpanels'
+import TabPanel from 'primevue/tabpanel'
+
 
 const props = defineProps<{ totalSectors: number }>()
 
@@ -262,7 +256,28 @@ watch(localClosedPattern, (val) => {
 onMounted(() => { localClosedPattern.value = '' })
 
 function applySectorMode() {
-	applySectorModeToAnswers(sectorMode.value as any, props.totalSectors, store.answers as any)
+	if (!store.answers) return
+	const half = Math.floor((props.totalSectors + 1) / 2)
+	const mode = sectorMode.value
+	
+	switch (mode) {
+		case 'all':
+			store.answers.forEach((r) => (r.inSector = true))
+			break
+		case 'initialAndFinal':
+			store.answers.forEach((r) => {
+				r.inSector = r.number <= half || r.number === props.totalSectors
+			})
+			break
+		case 'finalOnly':
+			store.answers.forEach((r) => {
+				r.inSector = r.number === props.totalSectors
+			})
+			break
+		case 'custom':
+			// оставляем как есть
+			break
+	}
 }
 
 function fillOpenSectors() {
@@ -270,6 +285,10 @@ function fillOpenSectors() {
 	store.answers.forEach((r) => {
 		r.displayText = r.variants[0] || ''
 	})
+}
+
+function handleTabChange(value: string | number) {
+	previewMode.value = value as 'closed' | 'open'
 }
 function onClear() { store.clearTypeData() }
 
@@ -345,17 +364,8 @@ function importData(e: Event) {
 }
 
 const olympTableHtml = computed(() => {
-	const style = `
-		<style>
-			.olymp {max-width:800px;width:100%;margin: 10px 0;}
-			.olymp td { border:1px solid #414141; padding:10px; width:120px!important; text-align:center; vertical-align:middle; }
-			.up {color:#0F0;font-weight:bold;}
-			.cols-wrapper {display: none;}
-			h3 {display: none !important;}
-			.timer, .bonus_count, .color_bonus, .color_correct {display: block !important;}
-		</style>`
 	const layout: Cell[][] = generateOlympLayout(props.totalSectors, store.levelId)
-	let html = style + '<table class="olymp">'
+	let html = '<table class="olymp">'
 	layout.forEach((row) => {
 		html += '<tr>'
 		row.forEach((cell) => {
@@ -379,6 +389,8 @@ const olympTableHtml = computed(() => {
 	html += '</table>'
 	return html
 })
+
+
 
 async function onSendTask() {
 	try {
@@ -436,6 +448,46 @@ export default {}
 .fade-leave-active { transition: opacity 0.2s; }
 .fade-enter-from,
 .fade-leave-to { opacity: 0; }
+
+.olymp-preview {
+	display: flex;
+	justify-content: center;
+	padding: 1rem;
+}
+
+.olymp-preview .olymp {
+	max-width: 800px;
+	width: 100%;
+	margin: 10px 0;
+}
+
+.olymp-preview .olymp td {
+	border: 1px solid #414141;
+	padding: 10px;
+	width: 120px !important;
+	text-align: center;
+	vertical-align: middle;
+}
+
+.olymp-preview .up {
+	color: var(--p-green-500);
+	font-weight: bold;
+}
+
+.olymp-preview .cols-wrapper {
+	display: none;
+}
+
+.olymp-preview h3 {
+	display: none !important;
+}
+
+.olymp-preview .timer,
+.olymp-preview .bonus_count,
+.olymp-preview .color_bonus,
+.olymp-preview .color_correct {
+	display: block !important;
+}
 </style>
 
 
