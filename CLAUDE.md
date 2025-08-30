@@ -32,7 +32,7 @@ Encounter Uploader is a web application for uploading game levels to the Encount
 **Frontend Development:**
 ```bash
 cd frontend
-npm run dev          # Start dev server on http://localhost:5173
+npm run dev          # Start dev server on http://127.0.0.1:5173
 npm run build        # Build for production (includes TypeScript compilation)
 npm run preview      # Preview production build
 ```
