@@ -1,7 +1,7 @@
 <template>
   <Toast position="bottom-right" group="upload-progress" :life="0" @close="handleClose">
     <template #container>
-      <section class="flex flex-col p-4 gap-4 w-full bg-primary/90 rounded-xl backdrop-blur-lg">
+      <section class="flex flex-col p-4 gap-4 w-full bg-primary/70 rounded-xl">
         <div class="flex items-center gap-3">
           <i 
             :class="progressIcon" 
@@ -36,9 +36,8 @@
         
         <div v-if="isCompleted" class="flex gap-2 justify-end">
           <Button 
-            label="Скрыть" 
+            label="Закрыть" 
             size="small" 
-            severity="secondary"
             @click="handleClose"
           />
         </div>
@@ -85,7 +84,8 @@ const handleClose = () => {
 watch(() => progress.visible, (visible) => {
   if (visible) {
     toast.add({
-      severity: 'info',
+      styleClass: 'backdrop-blur-lg rounded-2xl',
+      severity: 'custom',
       summary: 'Заливка началась',
       group: 'upload-progress',
       life: 0 // не исчезает автоматически
