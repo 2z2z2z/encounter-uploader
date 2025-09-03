@@ -20,9 +20,9 @@
 						<label for="sectorMode">Закрытие уровня</label>
 					</FloatLabel>
 				</div>
-				<div class="flex-1 min-w-[240px]" v-if="hasControl('quickBonusTime')">
+				<div class="flex-1 flex gap-3" v-if="hasControl('quickBonusTime')">
 					<FloatLabel variant="off">
-						<div class="flex items-center gap-2">
+						<div class="flex items-center gap-2 flex-nowrap">
 							<InputNumber
 								id="bonusHours"
 								v-model="quickTime.hours"
@@ -56,19 +56,22 @@
 								:maxFractionDigits="0"
 								class="z-w-5"
 							/>
-							<div class="flex items-center gap-1 ml-2">
-								<Checkbox
-									id="bonusNegative"
-									v-model="quickTime.negative"
-									:binary="true"
-									class="cursor-pointer"
-									inputId="ingredient1"
-								/>
-								<span class="text-gray-500">отриц.</span>
-							</div>
 						</div>
 						<label for="bonusHours">Бонусное время (ч, м, с)</label>
 					</FloatLabel>
+					<div class="flex items-center gap-2">
+						<Checkbox
+							id="bonusNegative"
+							v-model="quickTime.negative"
+							:binary="true"
+							class="cursor-pointer"
+							inputId="bonusNegativeCheckbox"
+							size="large"
+						/>
+						<label for="bonusNegative" class="text-sm text-surface-600 cursor-pointer">
+							отрицательное
+						</label>
+					</div>
 				</div>
 				<div class="flex-1 min-w-[240px]" v-if="hasControl('closedPattern')">
 					<FloatLabel variant="off">
@@ -85,7 +88,6 @@
 					v-if="hasControl('fillOpenSectors')" 
 					@click="fillOpenSectors" 
 					label="Заполнить открытые сектора"
-					severity="secondary"
 					icon="pi pi-copy"
 				/>
 			</template>

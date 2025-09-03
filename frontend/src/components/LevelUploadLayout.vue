@@ -10,7 +10,7 @@
         <template #content>
           <slot name="error"></slot>
 
-          <div class="flex flex-wrap justify-between items-end gap-4 mt-8 mb-4">
+          <div class="flex flex-wrap justify-between items-end gap-x-8 gap-y-10 mt-8 mb-6 rounded-2xl bg-violet-50 py-10 px-5">
             <slot name="controls"></slot>
           </div>
 
