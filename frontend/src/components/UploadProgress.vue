@@ -2,7 +2,7 @@
   <Toast :position="settings.progressPosition" group="upload-progress" :life="0" @close="handleClose">
     <template #container>
       <section :class="[
-        'flex flex-col p-4 gap-4 w-full bg-primary/70 rounded-xl',
+        'flex flex-col p-4 gap-4 w-full bg-primary/75 rounded-xl',
         settings.progressAnimations ? 'transition-all duration-300 ease-in-out' : ''
       ]">
         <div class="flex items-center gap-3">
@@ -34,7 +34,7 @@
         </div>
         
         <Transition name="fade" mode="out-in">
-          <div v-if="progress.title && !isCompleted" key="current" class="text-sm text-white/80 truncate" :title="progress.title">
+          <div v-if="progress.title && !isCompleted" key="current" class="text-md text-white/80 truncate" :title="progress.title">
             {{ progress.title }}
           </div>
           
@@ -194,20 +194,29 @@ const calculateEstimatedEndTime = () => {
     const delayMap = {
       'task': 1500,     // Задание - обычно одно, но сложнее
       'sector': 1200,   // Сектора - базовая задержка из uploader.ts
-      'bonus': 1400     // Бонусы - чуть дольше из-за сложности данных
+      'bonus': 1400     // Бонусы - чуть дольже из-за сложности данных
     } as const
     
     const delayMs = delayMap[progress.type as keyof typeof delayMap] || 1200
     const totalValue = Math.max(1, progress.total) // Минимум 1 для избежания деления на 0
-    const estimatedDurationMs = totalValue * delayMs
+    const currentValue = Math.max(0, progress.current)
+    const remainingItems = totalValue - currentValue
     
-    // Проверяем, что результат не слишком большой (защита от переполнения)
-    if (estimatedDurationMs > 24 * 60 * 60 * 1000) { // Больше 24 часов
+    // Если все элементы уже обработаны, не показываем прогноз
+    if (remainingItems <= 0) {
       estimatedEndTime.value = null
       return
     }
     
-    const endTime = new Date(progress.startedAt.getTime() + estimatedDurationMs)
+    const estimatedRemainingMs = remainingItems * delayMs
+    
+    // Проверяем, что результат не слишком большой (защита от переполнения)
+    if (estimatedRemainingMs > 24 * 60 * 60 * 1000) { // Больше 24 часов
+      estimatedEndTime.value = null
+      return
+    }
+    
+    const endTime = new Date(Date.now() + estimatedRemainingMs)
     
     // Проверяем корректность даты
     if (isNaN(endTime.getTime())) {
@@ -225,6 +234,8 @@ const calculateEstimatedEndTime = () => {
 const togglePause = () => {
   if (progress.isPaused) {
     progress.resume()
+    // Пересчитываем прогноз при возобновлении
+    calculateEstimatedEndTime()
   } else {
     progress.pause()
   }
@@ -274,6 +285,9 @@ watch(() => [progress.current, progress.total], ([current, total]) => {
         life: 5000
       })
     }, 1000)
+  } else if (progress.visible && !progress.isPaused && total > 0) {
+    // Пересчитываем прогноз при изменении прогресса (только если не на паузе)
+    calculateEstimatedEndTime()
   }
 }, { immediate: true })
 </script>

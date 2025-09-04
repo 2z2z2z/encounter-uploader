@@ -266,6 +266,6 @@ A user describing a bug for the third time isn't thinking "this AI is trying har
 - For testing the UI and pages in the browser, use the demo data to fill in.
 - For the authorization page: login = `test`, password = `test`.
 - For the settings page: domain = `test`, gameId = `test`, levelId = `1`, uploadType = `uploadType_0` (if testing Olymp) or `uploadType_4` (if testing Type100500)
-- Use local URL for testing: http://192.168.0.10:5173/, if local server is run. If local server not run, start with 2 commands:
+- Use local URL for testing: http://192.168.0.10:5173/, if local server is run. First, consider that it is always running, because it can be started by me in a separate terminal. And only if this is not the case, then start it. If local server not run, start with 2 commands:
 1. cd server && npm start
 2. cd frontend && npm run dev -- --host 0.0.0.0
