@@ -9,6 +9,7 @@ export const useProgressStore = defineStore('uploadProgress', () => {
   const type = ref<'sector' | 'bonus' | 'task' | ''>('')
   const completedAt = ref<Date | null>(null)
   const startedAt = ref<Date | null>(null)
+  const isPaused = ref(false)
 
   function start(t: 'sector' | 'bonus' | 'task', count: number) {
     type.value = t
@@ -18,6 +19,7 @@ export const useProgressStore = defineStore('uploadProgress', () => {
     visible.value = true
     completedAt.value = null
     startedAt.value = new Date()
+    isPaused.value = false
   }
 
   function update(name: string) {
@@ -32,11 +34,22 @@ export const useProgressStore = defineStore('uploadProgress', () => {
 
   function close() {
     visible.value = false
+    isPaused.value = false
+  }
+  
+  function pause() {
+    isPaused.value = true
+    title.value = 'На паузе'
+  }
+  
+  function resume() {
+    isPaused.value = false
+    title.value = ''
   }
 
   const percent = computed(() => {
     return total.value === 0 ? 0 : Math.min((current.value / total.value) * 100, 100)
   })
 
-  return { visible, total, current, title, type, percent, completedAt, startedAt, start, update, finish, close }
+  return { visible, total, current, title, type, percent, completedAt, startedAt, isPaused, start, update, finish, close, pause, resume }
 })
