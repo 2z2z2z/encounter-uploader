@@ -337,7 +337,9 @@ import { useUploadStore } from '../../../store'
 import { useAuthStore } from '../../../store/auth'
 import { useProgressStore } from '../../../store/progress'
 import { sendSector, sendBonuses, fetchBonusLevels, type Answer } from '../../../services/uploader'
-import { showUploadWarning, startUploadVisibilityTracking, stopUploadVisibilityTracking, showCompletionNotification } from '../../../utils/visibility'
+import { startUploadVisibilityTracking, stopUploadVisibilityTracking, showCompletionNotification } from '../../../utils/visibility'
+import { useNotification } from '../../../composables/useNotification'
+import { useConfirm } from 'primevue/useconfirm'
 import { serializeCsv, parseCsv, downloadBlob } from '../../../utils/csv'
 import { getTypeConfig } from '../../level-system/registry/types'
 import type { ControlId } from '../../level-system/registry/schema'
@@ -346,6 +348,8 @@ import LevelUploadLayout from '../../LevelUploadLayout.vue'
 const store = useUploadStore()
 const authStore = useAuthStore()
 const progress = useProgressStore()
+const notify = useNotification()
+const confirm = useConfirm()
 
   interface Row {
   number: number
@@ -444,7 +448,7 @@ async function refreshLevels() {
     const list = await fetchBonusLevels(store.domain, store.gameId, store.levelId)
     availableLevels.value = list
   } catch (e: any) {
-    alert('Не удалось загрузить список уровней: ' + (e.message || e))
+    notify.error('Не удалось загрузить список уровней', e.message || String(e))
   } finally {
     loadingLevels.value = false
   }
@@ -669,7 +673,7 @@ function generateRandomCode(len: number, used: Set<string>): string {
 
 function generateCodes(len: number) {
   if (len < 2 || len > 10) {
-    alert('Количество знаков должно быть от 2 до 10')
+    notify.warn('Некорректное количество знаков', 'Количество знаков должно быть от 2 до 10')
     return
   }
 
@@ -686,9 +690,7 @@ function generateCodes(len: number) {
   const max = Math.pow(10, len)
   const available = max - existing.size
   if (genCount.value > available) {
-    alert(
-      `Невозможно сгенерировать ${genCount.value} уникальных кодов. Доступно только ${available}.`
-    )
+    notify.warn('Невозможно сгенерировать коды', `Невозможно сгенерировать ${genCount.value} уникальных кодов. Доступно только ${available}.`)
     return
   }
 
@@ -846,12 +848,12 @@ function importData(e: Event) {
           })
           activeTab.value = 0
         } else {
-          alert('Неверный формат JSON')
+          notify.error('Неверный формат JSON', 'Ожидается массив объектов')
         }
       } else {
         const rows = parseCsv(text)
         if (!rows.length) {
-          alert('CSV пустой')
+          notify.warn('CSV пустой', 'Файл не содержит данных')
           return
         }
         // Группируем по полю tab (1..N). Если нет, отправляем в таб 1
@@ -905,7 +907,7 @@ function importData(e: Event) {
         activeTab.value = 0
       }
     } catch (err) {
-      alert('Ошибка при импорте: ' + (err as any)?.message)
+      notify.error('Ошибка при импорте', (err as any)?.message || 'Не удалось обработать файл')
     }
   }
   reader.readAsText(file)
@@ -913,23 +915,32 @@ function importData(e: Event) {
 
 async function onSendSectors() {
   try {
-    // Показываем предупреждение пользователю
-    if (!showUploadWarning('сектора')) {
-      return
-    }
+    // Подтверждение пользователя
+    const confirmed = await new Promise<boolean>((resolve) => {
+      confirm.require({
+        message: '⚠️ ВАЖНО: Во время заливки секторов НЕ переключайтесь на другие вкладки браузера и не сворачивайте его, чтобы процесс заливки не был приостановлен.\n\nПродолжить заливку?',
+        header: 'Подтверждение заливки',
+        icon: 'pi pi-exclamation-triangle',
+        acceptLabel: 'Продолжить',
+        rejectLabel: 'Отмена',
+        accept: () => resolve(true),
+        reject: () => resolve(false)
+      })
+    })
+    if (!confirmed) return
 
     // Начинаем отслеживание видимости
     startUploadVisibilityTracking('сектора')
 
     if (combineSectors.value) {
       if (tabs.value.length <= 1) {
-        alert('❌ Для объединения необходимо больше одного блока')
+        notify.warn('Для объединения необходимо больше одного блока')
         stopUploadVisibilityTracking()
         return
       }
       const firstLen = tabs.value[0].rows.length
       if (!tabs.value.every((t) => t.rows.length === firstLen)) {
-        alert('❌ Количество ответов во всех блоках должно совпадать')
+        notify.warn('Количество ответов во всех блоках должно совпадать')
         stopUploadVisibilityTracking()
         return
       }
@@ -970,7 +981,7 @@ async function onSendSectors() {
       }
 
       if (rowsToSend.length === 0) {
-        alert('ℹ️ Нет отмеченных секторов для отправки')
+        notify.info('Нет отмеченных секторов для отправки')
         stopUploadVisibilityTracking()
         return
       }
@@ -996,11 +1007,11 @@ async function onSendSectors() {
       tabs.value[0]?.rows?.filter(r => r.inSector).length || 0 :
       tabs.value.reduce((sum, t) => sum + t.rows.filter(r => r.inSector).length, 0)
     showCompletionNotification('сектора', sectorsCount)
-    alert('✅ Все сектора отправлены')
+    notify.success('Все сектора отправлены', `Успешно отправлено: ${sectorsCount} секторов`)
   } catch (e: any) {
     // Останавливаем отслеживание в случае ошибки
     stopUploadVisibilityTracking()
-    alert('❌ Ошибка отправки секторов: ' + e.message)
+    notify.error('Ошибка отправки секторов', e.message)
   }
 }
 
@@ -1031,14 +1042,23 @@ async function onSendBonuses() {
     }
 
     if (bonusRows.length === 0) {
-      alert('ℹ️ Нет отмеченных бонусов для отправки')
+      notify.info('Нет отмеченных бонусов для отправки')
       return
     }
 
-    // Показываем предупреждение пользователю
-    if (!showUploadWarning('бонусы')) {
-      return
-    }
+    // Подтверждение пользователя
+    const confirmed = await new Promise<boolean>((resolve) => {
+      confirm.require({
+        message: '⚠️ ВАЖНО: Во время заливки бонусов НЕ переключайтесь на другие вкладки браузера и не сворачивайте его, чтобы процесс заливки не был приостановлен.\n\nПродолжить заливку?',
+        header: 'Подтверждение заливки',
+        icon: 'pi pi-exclamation-triangle',
+        acceptLabel: 'Продолжить',
+        rejectLabel: 'Отмена',
+        accept: () => resolve(true),
+        reject: () => resolve(false)
+      })
+    })
+    if (!confirmed) return
 
     // Начинаем отслеживание видимости
     startUploadVisibilityTracking('бонусы')
@@ -1062,11 +1082,11 @@ async function onSendBonuses() {
     // Останавливаем отслеживание и показываем уведомление о завершении
     stopUploadVisibilityTracking()
     showCompletionNotification('бонусы', bonusRows.length)
-    alert('✅ Все бонусы отправлены')
+    notify.success('Все бонусы отправлены', `Успешно отправлено: ${bonusRows.length} бонусов`)
   } catch (e: any) {
     // Останавливаем отслеживание в случае ошибки
     stopUploadVisibilityTracking()
-    alert('❌ Ошибка отправки бонусов: ' + e.message)
+    notify.error('Ошибка отправки бонусов', e.message)
   }
 
 }

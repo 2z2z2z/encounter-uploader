@@ -8,16 +8,7 @@
 let isUploadActive = false
 let visibilityChangeHandler: (() => void) | null = null
 
-/**
- * Показывает предупреждение пользователю перед началом заливки
- */
-export function showUploadWarning(type: 'бонусы' | 'сектора'): boolean {
-  const message = `⚠️ ВАЖНО: Во время заливки "${type}" НЕ переключайтесь на другие вкладки браузера и не сворачивайте его, чтобы процесс заливки не был приостановлен.
-
-Продолжить заливку?`
-
-  return confirm(message)
-}
+// Функция showUploadWarning удалена - теперь используется PrimeVue ConfirmDialog
 
 /**
  * Начинает отслеживание видимости страницы во время заливки

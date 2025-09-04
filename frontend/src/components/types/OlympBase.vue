@@ -168,12 +168,14 @@
 <script setup lang="ts">
 import LevelUploadLayout from '../LevelUploadLayout.vue'
 import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { useNotification } from '../../composables/useNotification'
+import { useConfirm } from 'primevue/useconfirm'
 import { useProgressStore } from '../../store/progress'
 import { useUploadStore } from '../../store'
 import { useAuthStore } from '../../store/auth'
 import Answers from './olymp/Answers.vue'
 import { generateOlympLayout, type Cell } from '../../utils/olymp'
-import { showUploadWarning, startUploadVisibilityTracking, stopUploadVisibilityTracking, showCompletionNotification } from '../../utils/visibility'
+import { startUploadVisibilityTracking, stopUploadVisibilityTracking, showCompletionNotification } from '../../utils/visibility'
 import { serializeCsv, downloadBlob, parseCsv } from '../../utils/csv'
 import { sendTask, sendSector, sendBonuses } from '../../services/uploader'
 import { getTypeConfig } from '../level-system/registry/types'
@@ -219,6 +221,8 @@ const sectorModeOptions = [
 const store = useUploadStore()
 const authStore = useAuthStore()
 const progress = useProgressStore()
+const notify = useNotification()
+const confirm = useConfirm()
 
 const error = ref('')
 const showPreview = ref(false)
@@ -337,11 +341,11 @@ function importData(e: Event) {
 					const { levelId, ...rest } = obj
 					store.$patch(rest)
 				} else {
-					alert('Неверный формат JSON')
+					notify.error('Неверный формат JSON', 'Файл должен содержать answers и config')
 				}
 			} else {
 				const rows = parseCsv(text)
-				if (!rows.length) { alert('CSV пустой'); return }
+				if (!rows.length) { notify.warn('CSV пустой', 'Файл не содержит данных для импорта'); return }
 				const answers = rows.map((r) => ({
 					number: Number(r.number) || 0,
 					variants: (r.variants || '').split('|').map((s: string) => s.trim()).filter(Boolean),
@@ -360,7 +364,7 @@ function importData(e: Event) {
 				const normalized = answers.map((a, idx) => ({ ...a, number: idx + 1 }))
 				store.$patch({ answers: normalized })
 			}
-		} catch (err) { alert('Ошибка при импорте: ' + (err as any)?.message) }
+		} catch (err) { notify.error('Ошибка при импорте', (err as any)?.message || 'Не удалось обработать файл') }
 	}
 	reader.readAsText(file)
 }
@@ -425,15 +429,26 @@ async function onSendTask() {
 		const htmlClosed = olympTableHtml.value
 		previewMode.value = prevMode
 		await sendTask(store.domain, store.gameId, store.levelId, htmlClosed)
-		alert('✅ Задание отправлено')
-	} catch (e: any) { alert('❌ Ошибка отправки задания: ' + e.message) }
+		notify.success('Задание отправлено', 'Задание успешно отправлено на сервер')
+	} catch (e: any) { notify.error('Ошибка отправки задания', e.message) }
 }
 
 async function onSendSector() {
 	try {
 		const sectors = store.answers.filter((r) => r.inSector)
-		if (sectors.length === 0) { alert('ℹ️ Нет отмеченных секторов для отправки'); return }
-		if (!showUploadWarning('сектора')) { return }
+		if (sectors.length === 0) { notify.info('Нет отмеченных секторов для отправки'); return }
+		const confirmed = await new Promise<boolean>((resolve) => {
+			confirm.require({
+				message: '⚠️ ВАЖНО: Во время заливки секторов НЕ переключайтесь на другие вкладки браузера и не сворачивайте его, чтобы процесс заливки не был приостановлен.\n\nПродолжить заливку?',
+				header: 'Подтверждение заливки',
+				icon: 'pi pi-exclamation-triangle',
+				acceptLabel: 'Продолжить',
+				rejectLabel: 'Отмена',
+				accept: () => resolve(true),
+				reject: () => resolve(false)
+			})
+		})
+		if (!confirmed) return
 		startUploadVisibilityTracking('сектора')
 		progress.start('sector', sectors.length)
 		for (const row of sectors) {
@@ -441,15 +456,26 @@ async function onSendSector() {
 			await sendSector(store.domain, store.gameId, store.levelId, row.variants, row.closedText)
 		}
 		progress.finish(); stopUploadVisibilityTracking(); showCompletionNotification('сектора', sectors.length)
-		alert('✅ Все отмеченные сектора отправлены')
-	} catch (e: any) { stopUploadVisibilityTracking(); alert('❌ Ошибка отправки секторов: ' + e.message) }
+		notify.success('Все отмеченные сектора отправлены', `Успешно отправлено: ${sectors.length} секторов`)
+	} catch (e: any) { stopUploadVisibilityTracking(); notify.error('Ошибка отправки секторов', e.message) }
 }
 
 async function onSendBonus() {
 	try {
 		const bonusesToSend = store.answers.filter((r) => r.inBonus)
-		if (bonusesToSend.length === 0) { alert('ℹ️ Нет отмеченных бонусов для отправки'); return }
-		if (!showUploadWarning('бонусы')) { return }
+		if (bonusesToSend.length === 0) { notify.info('Нет отмеченных бонусов для отправки'); return }
+		const confirmed = await new Promise<boolean>((resolve) => {
+			confirm.require({
+				message: '⚠️ ВАЖНО: Во время заливки бонусов НЕ переключайтесь на другие вкладки браузера и не сворачивайте его, чтобы процесс заливки не был приостановлен.\n\nПродолжить заливку?',
+				header: 'Подтверждение заливки',
+				icon: 'pi pi-exclamation-triangle',
+				acceptLabel: 'Продолжить',
+				rejectLabel: 'Отмена',
+				accept: () => resolve(true),
+				reject: () => resolve(false)
+			})
+		})
+		if (!confirmed) return
 		startUploadVisibilityTracking('бонусы')
 		await authStore.authenticate(store.domain)
 		progress.start('bonus', bonusesToSend.length)
@@ -460,8 +486,8 @@ async function onSendBonus() {
 			if ((idx + 1) % 25 === 0) { await authStore.authenticate(store.domain) }
 		}
 		progress.finish(); stopUploadVisibilityTracking(); showCompletionNotification('бонусы', bonusesToSend.length)
-		alert('✅ Все отмеченные бонусы отправлены')
-	} catch (e: any) { stopUploadVisibilityTracking(); alert('❌ Ошибка отправки бонусов: ' + e.message) }
+		notify.success('Все отмеченные бонусы отправлены', `Успешно отправлено: ${bonusesToSend.length} бонусов`)
+	} catch (e: any) { stopUploadVisibilityTracking(); notify.error('Ошибка отправки бонусов', e.message) }
 }
 </script>
 
