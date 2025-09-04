@@ -951,6 +951,8 @@ async function onSendSectors() {
       }
       progress.start('sector', total)
       for (const rows of rowsList) {
+        // Проверяем паузу перед каждой группой секторов
+        await progress.waitForResume()
         if (!rows.every((r) => r.inSector)) {
           progress.update('Пропуск')
           continue
@@ -988,6 +990,8 @@ async function onSendSectors() {
 
       progress.start('sector', rowsToSend.length)
       for (const row of rowsToSend) {
+        // Проверяем паузу перед каждым сектором
+        await progress.waitForResume()
         progress.update(`Сектор ${row.number}`)
         await sendSector(
           store.domain,
@@ -1068,6 +1072,8 @@ async function onSendBonuses() {
 
     progress.start('bonus', bonusRows.length)
     for (let idx = 0; idx < bonusRows.length; idx++) {
+      // Проверяем паузу перед каждым бонусом
+      await progress.waitForResume()
       const b = bonusRows[idx]
       progress.update(`Бонус ${b.number}`)
       await sendBonuses(store.domain, store.gameId, store.levelId, [b])

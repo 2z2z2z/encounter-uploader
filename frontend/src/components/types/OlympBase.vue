@@ -462,6 +462,8 @@ async function onSendSector() {
 		startUploadVisibilityTracking('сектора')
 		progress.start('sector', sectors.length)
 		for (const row of sectors) {
+			// Проверяем паузу перед каждым сектором
+			await progress.waitForResume()
 			progress.update(`Сектор ${row.number}`)
 			await sendSector(store.domain, store.gameId, store.levelId, row.variants, row.closedText)
 		}
@@ -479,6 +481,8 @@ async function onSendBonus() {
 		await authStore.authenticate(store.domain)
 		progress.start('bonus', bonusesToSend.length)
 		for (let idx = 0; idx < bonusesToSend.length; idx++) {
+			// Проверяем паузу перед каждым бонусом
+			await progress.waitForResume()
 			const bonusRow = bonusesToSend[idx]
 			progress.update(`Бонус ${bonusRow.number}`)
 			await sendBonuses(store.domain, store.gameId, store.levelId, [bonusRow])

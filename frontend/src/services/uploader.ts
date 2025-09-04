@@ -1,6 +1,7 @@
 // src/services/uploader.ts
 
 import axios from 'axios'
+import { useProgressStore } from '../store/progress'
 
 /**
  * Задержка между запросами (в миллисекундах).
@@ -8,10 +9,28 @@ import axios from 'axios'
 const SLEEP_MS = Number(import.meta.env.VITE_SLEEP_MS ?? 1200)
 
 /** 
- * Ждёт заданное количество миллисекунд. 
+ * Ждёт заданное количество миллисекунд с поддержкой паузы. 
  */
 async function sleep(ms: number): Promise<void> {
+  const progress = useProgressStore()
+  
+  // Проверяем паузу перед началом сна
+  if (progress.pauseRequested) {
+    await progress.waitForResume()
+  }
+  
   return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+/**
+ * Проверяет статус паузы и ожидает возобновления если необходимо
+ */
+async function checkPauseStatus(): Promise<void> {
+  const progress = useProgressStore()
+  
+  if (progress.pauseRequested) {
+    await progress.waitForResume()
+  }
 }
 
 /**
@@ -163,6 +182,9 @@ export async function sendTask(
   level: string | number,
   inputTask: string
 ) {
+  // Проверяем паузу перед выполнением запроса
+  await checkPauseStatus()
+  
   const url = '/api/admin/task'
   const params = buildTaskPayload(domain, gameid, level, inputTask)
 
@@ -201,6 +223,9 @@ export async function sendSector(
   closedRaw: string,
   sectorName = ''
 ) {
+  // Проверяем паузу перед выполнением запроса
+  await checkPauseStatus()
+  
   const url = '/api/admin/sector'
 
   // Для предпросмотра будет использоваться formatClosedText(closedRaw),
@@ -256,6 +281,8 @@ export async function sendBonuses(
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
+      // Проверяем паузу перед каждой попыткой получения формы
+      await checkPauseStatus()
       const urlForm = `/api/admin/bonus-form?domain=${encodeURIComponent(
         domain
       )}&gid=${encodeURIComponent(String(gameid))}&level=${encodeURIComponent(
@@ -329,6 +356,9 @@ export async function sendBonuses(
   }
 
   for (const bonus of bonusesToSend) {
+    // Проверяем паузу перед отправкой каждого бонуса
+    await checkPauseStatus()
+    
     const url = '/api/admin/bonus'
     const params = buildBonusPayload({ domain, gid: gameid, level }, bonus, levelLabelToName)
 

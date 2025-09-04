@@ -10,6 +10,10 @@ export const useProgressStore = defineStore('uploadProgress', () => {
   const completedAt = ref<Date | null>(null)
   const startedAt = ref<Date | null>(null)
   const isPaused = ref(false)
+  
+  // Новые поля для контроля паузы
+  const pauseRequested = ref(false)
+  let resumeResolver: (() => void) | null = null
 
   function start(t: 'sector' | 'bonus' | 'task', count: number) {
     type.value = t
@@ -20,6 +24,8 @@ export const useProgressStore = defineStore('uploadProgress', () => {
     completedAt.value = null
     startedAt.value = new Date()
     isPaused.value = false
+    pauseRequested.value = false
+    resumeResolver = null
   }
 
   function update(name: string) {
@@ -35,21 +41,43 @@ export const useProgressStore = defineStore('uploadProgress', () => {
   function close() {
     visible.value = false
     isPaused.value = false
+    pauseRequested.value = false
+    if (resumeResolver) {
+      resumeResolver()
+      resumeResolver = null
+    }
   }
   
   function pause() {
     isPaused.value = true
+    pauseRequested.value = true
     title.value = 'На паузе'
   }
   
   function resume() {
     isPaused.value = false
+    pauseRequested.value = false
     title.value = ''
+    if (resumeResolver) {
+      resumeResolver()
+      resumeResolver = null
+    }
+  }
+  
+  // Новая функция для ожидания возобновления
+  function waitForResume(): Promise<void> {
+    if (!pauseRequested.value) {
+      return Promise.resolve()
+    }
+    
+    return new Promise<void>((resolve) => {
+      resumeResolver = resolve
+    })
   }
 
   const percent = computed(() => {
     return total.value === 0 ? 0 : Math.min((current.value / total.value) * 100, 100)
   })
 
-  return { visible, total, current, title, type, percent, completedAt, startedAt, isPaused, start, update, finish, close, pause, resume }
+  return { visible, total, current, title, type, percent, completedAt, startedAt, isPaused, pauseRequested, start, update, finish, close, pause, resume, waitForResume }
 })
