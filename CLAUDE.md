@@ -118,8 +118,8 @@ The codebase is undergoing a major refactoring to:
 - Prepare for adding 20+ new level types
 
 Key refactoring documents:
-- `REFACTORING_PLAN.md` - Detailed step-by-step refactoring plan
-- `FRONTEND_REFACTORING_FINAL.md` - UI modernization strategy with PrimeVue
+- `plan.md`
+- `FRONTEND_REFACTORING_FINAL.md`
 
 When working with this codebase, prioritize the registry-based approach and PrimeVue components over creating new custom implementations.
 
@@ -135,7 +135,6 @@ You are thoughtful, give nuanced answers, and are brilliant at reasoning. You ca
 - No Guessing: If you think there might not be a correct answer, you say so. If you do not know the answer, say so, instead of guessing.
 - Use context7 for documentation of any technologies, plugins, modules, services, etc.
 - При ответах всегда используй русский язык.
-- Минимизируй код, избегая дублей, повышая переиспользование при необходимости. Чем меньше строк кода, тем лучше. Чем структурирование и лаконичнее код, тем он более понятен и лучше.
 
 ### Code Style and Structure
 
@@ -180,7 +179,7 @@ You are thoughtful, give nuanced answers, and are brilliant at reasoning. You ca
 
 ### UI and Styling
 
-- Use Prime if possible. If you use it, use its components where possible instead of HTML elements.
+- Use PrimeVue if possible. If you use it, use its components where possible instead of HTML elements.
 - Always use Tailwind components and classes for styling HTML elements; avoid using CSS or tags.
 - Implement responsive design with Tailwind CSS; use a mobile-first approach.
 - Use LESS when possible or necessary.

@@ -365,9 +365,33 @@ function importData(e: Event) {
 	reader.readAsText(file)
 }
 
+function formatClosedText(text: string): string {
+	const trimmed = text.trim()
+	if (/^https?:\/\//i.test(trimmed)) {
+		return `<a href="${trimmed}" target="_blank"><img src="${trimmed}" style="max-width: 150px; max-height: 150px;"></a>`
+	}
+	return text
+}
+
 const olympTableHtml = computed(() => {
+	const style = `
+    <style>
+      .olymp {max-width: 800px; width: 100%;margin: 10px 0;}
+      .olymp td {
+        border:1px solid #414141;
+        padding:10px;
+        width:120px!important;
+        text-align:center;
+        vertical-align:middle;
+      }
+      .up {color:#0F0;font-weight:bold;}
+      .cols-wrapper {display: none;}
+      h3 {display: none !important;}
+      .timer, .bonus_count, .color_bonus, .color_correct {display: block !important;}
+    </style>`
+
 	const layout: Cell[][] = generateOlympLayout(props.totalSectors, store.levelId)
-	let html = '<table class="olymp">'
+	let html = style + '<table class="olymp">'
 	layout.forEach((row) => {
 		html += '<tr>'
 		row.forEach((cell) => {
@@ -376,9 +400,9 @@ const olympTableHtml = computed(() => {
 			let rawText = previewMode.value === 'closed'
 				? store.answers[num - 1].closedText
 				: store.answers[num - 1].displayText || store.answers[num - 1].closedText
-			const content = /^https?:\/\//i.test(rawText.trim())
-				? `<a href="${rawText.trim()}" target="_blank"><img src="${rawText.trim()}" style="max-width: 150px; max-height: 150px;"></a>`
-				: rawText
+			
+			const content = formatClosedText(rawText)
+			
 			let cellHtml = content
 			if (previewMode.value === 'open' && store.answers[num - 1].displayText && !/^https?:\/\//i.test(rawText.trim())) {
 				cellHtml = `<p class='up'>${content}</p>`
@@ -455,40 +479,6 @@ export default {}
 	display: flex;
 	justify-content: center;
 	padding: 1rem;
-}
-
-.olymp-preview .olymp {
-	max-width: 800px;
-	width: 100%;
-	margin: 10px 0;
-}
-
-.olymp-preview .olymp td {
-	border: 1px solid #414141;
-	padding: 10px;
-	width: 120px !important;
-	text-align: center;
-	vertical-align: middle;
-}
-
-.olymp-preview .up {
-	color: var(--p-green-500);
-	font-weight: bold;
-}
-
-.olymp-preview .cols-wrapper {
-	display: none;
-}
-
-.olymp-preview h3 {
-	display: none !important;
-}
-
-.olymp-preview .timer,
-.olymp-preview .bonus_count,
-.olymp-preview .color_bonus,
-.olymp-preview .color_correct {
-	display: block !important;
 }
 </style>
 

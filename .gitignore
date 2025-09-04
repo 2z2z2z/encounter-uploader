@@ -23,6 +23,7 @@ pnpm-debug.log*
 .env.*.local
 
 # ────────────── IDE / Editor ──────────────
+.claude/
 .vscode/
 .idea/
 *.suo
