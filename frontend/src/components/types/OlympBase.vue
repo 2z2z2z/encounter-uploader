@@ -175,7 +175,7 @@ import { useUploadStore } from '../../store'
 import { useAuthStore } from '../../store/auth'
 import Answers from './olymp/Answers.vue'
 import { generateOlympLayout, type Cell } from '../../utils/olymp'
-import { startUploadVisibilityTracking, stopUploadVisibilityTracking, showCompletionNotification } from '../../utils/visibility'
+import { startUploadVisibilityTracking, stopUploadVisibilityTracking } from '../../utils/visibility'
 import { serializeCsv, downloadBlob, parseCsv } from '../../utils/csv'
 import { sendTask, sendSector, sendBonuses } from '../../services/uploader'
 import { getTypeConfig } from '../level-system/registry/types'
@@ -424,30 +424,40 @@ const olympTableHtml = computed(() => {
 
 async function onSendTask() {
 	try {
+		const confirmed = await showUploadConfirmation()
+		if (!confirmed) return
+		startUploadVisibilityTracking('задание')
+		progress.start('task', 1)
+		progress.update('Отправка задания')
 		const prevMode = previewMode.value
 		previewMode.value = 'closed'
 		const htmlClosed = olympTableHtml.value
 		previewMode.value = prevMode
 		await sendTask(store.domain, store.gameId, store.levelId, htmlClosed)
-		notify.success('Задание отправлено', 'Задание успешно отправлено на сервер')
-	} catch (e: any) { notify.error('Ошибка отправки задания', e.message) }
+		progress.finish(); stopUploadVisibilityTracking()
+	} catch (e: any) { stopUploadVisibilityTracking(); notify.error('Ошибка отправки задания', e.message) }
+}
+
+const showUploadConfirmation = (): Promise<boolean> => {
+	return new Promise<boolean>((resolve) => {
+		confirm.require({
+			message: 'Во время заливки рекомендуется не переключаться на другие вкладки браузера и не сворачивать его.',
+			header: 'Продолжить заливку?',
+			icon: 'pi pi-exclamation-triangle',
+			acceptLabel: 'Продолжить',
+			rejectLabel: 'Отмена',
+			rejectClass: 'p-button-outlined',
+			accept: () => resolve(true),
+			reject: () => resolve(false)
+		})
+	})
 }
 
 async function onSendSector() {
 	try {
 		const sectors = store.answers.filter((r) => r.inSector)
 		if (sectors.length === 0) { notify.info('Нет отмеченных секторов для отправки'); return }
-		const confirmed = await new Promise<boolean>((resolve) => {
-			confirm.require({
-				message: '⚠️ ВАЖНО: Во время заливки секторов НЕ переключайтесь на другие вкладки браузера и не сворачивайте его, чтобы процесс заливки не был приостановлен.\n\nПродолжить заливку?',
-				header: 'Подтверждение заливки',
-				icon: 'pi pi-exclamation-triangle',
-				acceptLabel: 'Продолжить',
-				rejectLabel: 'Отмена',
-				accept: () => resolve(true),
-				reject: () => resolve(false)
-			})
-		})
+		const confirmed = await showUploadConfirmation()
 		if (!confirmed) return
 		startUploadVisibilityTracking('сектора')
 		progress.start('sector', sectors.length)
@@ -455,8 +465,7 @@ async function onSendSector() {
 			progress.update(`Сектор ${row.number}`)
 			await sendSector(store.domain, store.gameId, store.levelId, row.variants, row.closedText)
 		}
-		progress.finish(); stopUploadVisibilityTracking(); showCompletionNotification('сектора', sectors.length)
-		notify.success('Все отмеченные сектора отправлены', `Успешно отправлено: ${sectors.length} секторов`)
+		progress.finish(); stopUploadVisibilityTracking()
 	} catch (e: any) { stopUploadVisibilityTracking(); notify.error('Ошибка отправки секторов', e.message) }
 }
 
@@ -464,17 +473,7 @@ async function onSendBonus() {
 	try {
 		const bonusesToSend = store.answers.filter((r) => r.inBonus)
 		if (bonusesToSend.length === 0) { notify.info('Нет отмеченных бонусов для отправки'); return }
-		const confirmed = await new Promise<boolean>((resolve) => {
-			confirm.require({
-				message: '⚠️ ВАЖНО: Во время заливки бонусов НЕ переключайтесь на другие вкладки браузера и не сворачивайте его, чтобы процесс заливки не был приостановлен.\n\nПродолжить заливку?',
-				header: 'Подтверждение заливки',
-				icon: 'pi pi-exclamation-triangle',
-				acceptLabel: 'Продолжить',
-				rejectLabel: 'Отмена',
-				accept: () => resolve(true),
-				reject: () => resolve(false)
-			})
-		})
+		const confirmed = await showUploadConfirmation()
 		if (!confirmed) return
 		startUploadVisibilityTracking('бонусы')
 		await authStore.authenticate(store.domain)
@@ -485,8 +484,7 @@ async function onSendBonus() {
 			await sendBonuses(store.domain, store.gameId, store.levelId, [bonusRow])
 			if ((idx + 1) % 25 === 0) { await authStore.authenticate(store.domain) }
 		}
-		progress.finish(); stopUploadVisibilityTracking(); showCompletionNotification('бонусы', bonusesToSend.length)
-		notify.success('Все отмеченные бонусы отправлены', `Успешно отправлено: ${bonusesToSend.length} бонусов`)
+		progress.finish(); stopUploadVisibilityTracking()
 	} catch (e: any) { stopUploadVisibilityTracking(); notify.error('Ошибка отправки бонусов', e.message) }
 }
 </script>
@@ -505,6 +503,22 @@ export default {}
 	display: flex;
 	justify-content: center;
 	padding: 1rem;
+}
+
+/* ConfirmDialog стили для уменьшения ширины и переносов строк */
+:deep(.p-confirmdialog) {
+	width: 25rem !important;
+	max-width: 90vw !important;
+}
+
+:deep(.p-confirmdialog .p-confirmdialog-message) {
+	white-space: pre-line !important;
+}
+
+@media (max-width: 768px) {
+	:deep(.p-confirmdialog) {
+		width: 95vw !important;
+	}
 }
 </style>
 

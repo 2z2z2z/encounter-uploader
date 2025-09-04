@@ -30,8 +30,16 @@
           </div>
         </div>
         
-        <div v-if="progress.title" class="text-sm text-white/80 truncate" :title="progress.title">
+        <div v-if="progress.title && !isCompleted" class="text-sm text-white/80 truncate" :title="progress.title">
           {{ progress.title }}
+        </div>
+        
+        <div v-if="isCompleted && progress.completedAt" class="text-sm text-white/80">
+          Завершено в {{ formatTime(progress.completedAt) }}
+        </div>
+        
+        <div v-if="!isCompleted && estimatedEndTime" class="text-xs text-white/60">
+          Прогноз окончания: {{ estimatedEndTime }}
         </div>
         
         <div v-if="isCompleted" class="flex gap-2 justify-end">
@@ -47,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, watch, ref } from 'vue'
 import Toast from 'primevue/toast'
 import ProgressBar from 'primevue/progressbar'
 import Button from 'primevue/button'
@@ -65,15 +73,47 @@ const progressIcon = computed(() => {
   if (isCompleted.value) {
     return 'pi pi-check-circle'
   }
-  return progress.type === 'sector' ? 'pi pi-cloud-upload' : progress.type === 'bonus' ? 'pi pi-star' : 'pi pi-spinner pi-spin'
+  return progress.type === 'sector' ? 'pi pi-cloud-upload' : progress.type === 'bonus' ? 'pi pi-star' : progress.type === 'task' ? 'pi pi-file' : 'pi pi-spinner pi-spin'
 })
 
 const progressTitle = computed(() => {
   if (isCompleted.value) {
     return 'Заливка завершена'
   }
-  return progress.type === 'sector' ? 'Заливка секторов' : progress.type === 'bonus' ? 'Заливка бонусов' : 'Заливка'
+  return progress.type === 'sector' ? 'Заливка секторов' : progress.type === 'bonus' ? 'Заливка бонусов' : progress.type === 'task' ? 'Заливка задания' : 'Заливка'
 })
+
+const formatTime = (date: Date) => {
+  return date.toLocaleTimeString('ru-RU', { 
+    hour: '2-digit', 
+    minute: '2-digit',
+    second: '2-digit'
+  })
+}
+
+const formatDuration = (seconds: number) => {
+  const minutes = Math.floor(seconds / 60)
+  const secs = seconds % 60
+  if (minutes > 0) {
+    return `${minutes}м ${secs}с`
+  }
+  return `${secs}с`
+}
+
+const estimatedEndTime = ref<string | null>(null)
+
+const calculateEstimatedEndTime = () => {
+  if (!progress.startedAt || progress.total === 0) {
+    estimatedEndTime.value = null
+    return
+  }
+  
+  // Используем фиксированную задержку: 500мс на элемент (базовая задержка в коде)
+  const estimatedDurationMs = progress.total * 500
+  const endTime = new Date(progress.startedAt.getTime() + estimatedDurationMs)
+  
+  estimatedEndTime.value = formatTime(endTime)
+}
 
 const handleClose = () => {
   progress.close()
@@ -90,8 +130,12 @@ watch(() => progress.visible, (visible) => {
       group: 'upload-progress',
       life: 0 // не исчезает автоматически
     })
+    
+    // Рассчитываем прогноз окончания один раз при старте
+    calculateEstimatedEndTime()
   } else {
     toast.removeGroup('upload-progress')
+    estimatedEndTime.value = null
   }
 }, { immediate: true })
 
@@ -100,10 +144,18 @@ watch(() => [progress.current, progress.total], ([current, total]) => {
   if (current >= total && total > 0 && progress.visible) {
     // Через небольшую задержку показываем success уведомление
     setTimeout(() => {
+      const typeNames = {
+        'task': 'Задание',
+        'sector': 'Секторы', 
+        'bonus': 'Бонусы'
+      }
+      
+      const typeName = typeNames[progress.type as keyof typeof typeNames] || 'Элементы'
+      
       toast.add({
         severity: 'success',
-        summary: 'Заливка завершена',
-        detail: `Обработано ${total} элементов`,
+        summary: 'Заливка завершена!',
+        detail: `Залито: ${typeName}\nКоличество элементов: ${total}`,
         life: 5000
       })
     }, 1000)

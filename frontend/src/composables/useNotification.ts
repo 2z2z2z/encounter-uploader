@@ -27,7 +27,7 @@ export function useNotification() {
         severity: 'warn',
         summary: message,
         detail,
-        life: 5000
+        life: 3000
       })
     },
     
@@ -36,7 +36,7 @@ export function useNotification() {
         severity: 'error',
         summary: message,
         detail,
-        life: 5000
+        life: 3000
       })
     }
   }

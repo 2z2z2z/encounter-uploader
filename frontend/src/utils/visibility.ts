@@ -13,7 +13,7 @@ let visibilityChangeHandler: (() => void) | null = null
 /**
  * Начинает отслеживание видимости страницы во время заливки
  */
-export function startUploadVisibilityTracking(type: 'бонусы' | 'сектора') {
+export function startUploadVisibilityTracking(type: 'бонусы' | 'сектора' | 'задание') {
   isUploadActive = true
   
   // Удаляем предыдущий обработчик, если был
@@ -73,7 +73,7 @@ export function isPageVisible(): boolean {
 /**
  * Показывает финальное уведомление о завершении заливки
  */
-export function showCompletionNotification(type: 'бонусы' | 'сектора', count: number) {
+export function showCompletionNotification(type: 'бонусы' | 'сектора' | 'задание', count: number) {
   if ('Notification' in window && Notification.permission === 'granted') {
     new Notification(`✅ Заливка ${type} завершена`, {
       body: `Успешно отправлено: ${count} ${type}`,
