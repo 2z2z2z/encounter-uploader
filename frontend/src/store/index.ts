@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, reactive, watch, nextTick } from 'vue'
 import { useTestUrlMode } from '../composables/useTestUrlMode'
+import { isTestUrlMode, logTestModeState } from '../utils/testMode'
 
 function createAnswerEntry(num: number) {
   return {
@@ -169,8 +170,8 @@ export const useUploadStore = defineStore(
       pick: ['domain', 'gameId', 'levelId', 'uploadType'],
       beforeRestore: (ctx) => {
         // Проверяем тестовый URL режим перед восстановлением
-        const route = window.location.pathname
-        if (route.startsWith('/test/')) {
+        if (isTestUrlMode()) {
+          logTestModeState('UploadStore beforeRestore - блокирована загрузка из localStorage')
           // В тестовом режиме не восстанавливаем из localStorage
           return false
         }

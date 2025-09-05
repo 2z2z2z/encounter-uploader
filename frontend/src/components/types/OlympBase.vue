@@ -430,6 +430,10 @@ async function onSendTask() {
 		const confirmed = await showUploadConfirmation()
 		if (!confirmed) return
 		startUploadVisibilityTracking('задание')
+		
+		// Перелогинимся перед отправкой, чтобы продлить сессию
+		await authStore.authenticate(store.domain)
+		
 		progress.start('task', 1)
 		progress.updateTitle('Отправка задания')
 		const prevMode = previewMode.value
@@ -464,13 +468,23 @@ async function onSendSector() {
 		const confirmed = await showUploadConfirmation()
 		if (!confirmed) return
 		startUploadVisibilityTracking('сектора')
+		
+		// Перелогинимся перед массовой загрузкой, чтобы продлить сессию
+		await authStore.authenticate(store.domain)
+		
 		progress.start('sector', sectors.length)
-		for (const row of sectors) {
+		for (let idx = 0; idx < sectors.length; idx++) {
+			const row = sectors[idx]
 			// Проверяем паузу перед каждым сектором
 			await progress.waitForResume()
 			progress.updateTitle(`Сектор ${row.number}`)
 			await sendSector(store.domain, store.gameId, store.levelId, row.variants, row.closedText)
 			progress.updateSuccess(`Сектор ${row.number} отправлен`)
+			
+			// Каждые 25 секторов обновляем авторизацию, чтобы избежать истечения сессии
+			if ((idx + 1) % 25 === 0) {
+				await authStore.authenticate(store.domain)
+			}
 		}
 		progress.finish(); stopUploadVisibilityTracking()
 	} catch (e: any) { stopUploadVisibilityTracking(); notify.error('Ошибка отправки секторов', e.message) }

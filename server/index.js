@@ -14,9 +14,17 @@ const PORT = process.env.PORT || 3001
 // Сессии для хранения куки авторизации
 app.use(
   session({
-    secret: 'encounter-secret',
+    secret: process.env.SESSION_SECRET || 'encounter-secret-key-change-in-production',
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false, // Не создавать сессию для каждого запроса
+    rolling: true, // Продлевать сессию при каждом запросе
+    cookie: {
+      secure: false, // Устанавливайте true для HTTPS в продакшене
+      httpOnly: true, // Защита от XSS
+      maxAge: 24 * 60 * 60 * 1000, // 24 часа
+      sameSite: 'lax', // CSRF защита, совместимая с redirect'ами
+    },
+    name: 'encounter.sid', // Кастомное имя cookie для безопасности
   })
 )
 // Разбираем JSON и form-urlencoded

@@ -30,13 +30,68 @@
   </div>
   
   <div v-else>
+    <!-- Отладочная панель -->
+    <div class="bg-yellow-50 border border-yellow-200 p-4 mb-4 mx-4">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="text-lg font-semibold text-yellow-800">🔧 Отладочная информация</h3>
+        <Button 
+          :label="showDebugInfo ? 'Скрыть' : 'Показать'"
+          size="small"
+          severity="secondary"
+          @click="showDebugInfo = !showDebugInfo"
+        />
+      </div>
+      
+      <div v-if="showDebugInfo" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+        <!-- Test Mode Status -->
+        <div class="bg-white p-3 rounded border">
+          <h4 class="font-semibold mb-2">Test Mode</h4>
+          <div>Status: <span :class="debugInfo.testMode ? 'text-green-600' : 'text-red-600'">{{ debugInfo.testMode ? 'Активен' : 'Неактивен' }}</span></div>
+          <div>Path: {{ debugInfo.currentPath }}</div>
+          <div>User Agent: {{ debugInfo.userAgent.substring(0, 50) }}...</div>
+        </div>
+        
+        <!-- LocalStorage Info -->
+        <div class="bg-white p-3 rounded border">
+          <h4 class="font-semibold mb-2">LocalStorage</h4>
+          <div>Доступен: <span :class="debugInfo.localStorage.available ? 'text-green-600' : 'text-red-600'">{{ debugInfo.localStorage.available ? 'Да' : 'Нет' }}</span></div>
+          <div>Ключи: {{ debugInfo.localStorage.keys.length }}</div>
+          <div v-if="debugInfo.localStorage.keys.length > 0" class="mt-1">
+            <details class="cursor-pointer">
+              <summary>Список ключей ({{ debugInfo.localStorage.keys.length }})</summary>
+              <div class="mt-1 ml-2 text-xs">
+                <div v-for="key in debugInfo.localStorage.keys" :key="key">{{ key }}</div>
+              </div>
+            </details>
+          </div>
+        </div>
+        
+        <!-- Session Info -->
+        <div class="bg-white p-3 rounded border">
+          <h4 class="font-semibold mb-2">Session</h4>
+          <div>SessionStorage: <span :class="debugInfo.session.sessionStorage ? 'text-green-600' : 'text-red-600'">{{ debugInfo.session.sessionStorage ? 'Доступен' : 'Недоступен' }}</span></div>
+          <div>Cookies: <span :class="debugInfo.session.cookiesEnabled ? 'text-green-600' : 'text-red-600'">{{ debugInfo.session.cookiesEnabled ? 'Разрешены' : 'Заблокированы' }}</span></div>
+          <div>Document cookies: {{ debugInfo.session.documentCookies.length > 0 ? debugInfo.session.documentCookies.length + ' шт.' : 'Нет' }}</div>
+        </div>
+        
+        <!-- Store State -->
+        <div class="bg-white p-3 rounded border">
+          <h4 class="font-semibold mb-2">Store State</h4>
+          <div>Auth logged in: <span :class="debugInfo.stores.auth.loggedIn ? 'text-green-600' : 'text-red-600'">{{ debugInfo.stores.auth.loggedIn ? 'Да' : 'Нет' }}</span></div>
+          <div>Upload type: {{ debugInfo.stores.upload.uploadType }}</div>
+          <div>Domain: {{ debugInfo.stores.upload.domain || 'Не задан' }}</div>
+          <div>Game ID: {{ debugInfo.stores.upload.gameId || 'Не задан' }}</div>
+        </div>
+      </div>
+    </div>
+    
     <!-- Показываем обычный интерфейс загрузки -->
     <component :is="currentComponent" v-bind="currentProps" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import Card from 'primevue/card'
 import Message from 'primevue/message'
@@ -47,11 +102,76 @@ import { getTypeConfig } from './level-system/registry/types'
 import { useUploadStore } from '../store'
 import { useAuthStore } from '../store/auth'
 import { useTestConfig } from '../composables/useTestConfig'
+import { isTestUrlMode } from '../utils/testMode'
 
 const route = useRoute()
 const uploadStore = useUploadStore()
 const authStore = useAuthStore()
 const { isLoading, error, loadTestConfig, getTestCredentials } = useTestConfig()
+
+// Отладочная информация
+const showDebugInfo = ref(false)
+
+/**
+ * Собираем отладочную информацию для диагностики
+ */
+const debugInfo = computed(() => {
+  // LocalStorage info
+  const localStorageInfo = {
+    available: false,
+    keys: [] as string[]
+  }
+  
+  try {
+    if (typeof Storage !== 'undefined' && localStorage) {
+      localStorageInfo.available = true
+      localStorageInfo.keys = Object.keys(localStorage).sort()
+    }
+  } catch (e) {
+    // localStorage может быть недоступен в приватном режиме
+  }
+  
+  // Session info
+  const sessionInfo = {
+    sessionStorage: false,
+    cookiesEnabled: false,
+    documentCookies: [] as string[]
+  }
+  
+  try {
+    sessionInfo.sessionStorage = typeof Storage !== 'undefined' && !!sessionStorage
+  } catch (e) {
+    // sessionStorage может быть недоступен
+  }
+  
+  try {
+    sessionInfo.cookiesEnabled = navigator.cookieEnabled
+    sessionInfo.documentCookies = document.cookie ? document.cookie.split(';').map(c => c.trim()) : []
+  } catch (e) {
+    // cookies могут быть недоступны
+  }
+  
+  return {
+    testMode: isTestUrlMode(),
+    currentPath: window.location.pathname,
+    userAgent: navigator.userAgent,
+    localStorage: localStorageInfo,
+    session: sessionInfo,
+    stores: {
+      auth: {
+        loggedIn: authStore.loggedIn,
+        username: authStore.username,
+        isTestMode: authStore.isTestMode
+      },
+      upload: {
+        uploadType: uploadStore.uploadType,
+        domain: uploadStore.domain,
+        gameId: uploadStore.gameId,
+        levelId: uploadStore.levelId
+      }
+    }
+  }
+})
 
 /**
  * Определяем какой компонент показывать в зависимости от типа уровня

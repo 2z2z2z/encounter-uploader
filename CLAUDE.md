@@ -216,7 +216,7 @@ This is a CRITICAL step that must NEVER be skipped when working on any code-rela
 
 ## How to ensure Always Works™ implementation
 
-Please ensure your implementation Always Works™ for: $ARGUMENTS.
+Please ensure your implementation Always Works™ for this project tasks.
 
 Follow this systematic approach:
 

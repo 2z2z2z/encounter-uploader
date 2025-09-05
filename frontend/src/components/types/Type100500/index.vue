@@ -932,6 +932,9 @@ async function onSendSectors() {
     // Начинаем отслеживание видимости
     startUploadVisibilityTracking('сектора')
 
+    // Перелогинимся перед массовой загрузкой, чтобы продлить сессию
+    await authStore.authenticate(store.domain)
+
     if (combineSectors.value) {
       if (tabs.value.length <= 1) {
         notify.warn('Для объединения необходимо больше одного блока')
@@ -950,7 +953,8 @@ async function onSendSectors() {
         rowsList.push(tabs.value.map((t) => t.rows[i]))
       }
       progress.start('sector', total)
-      for (const rows of rowsList) {
+      for (let idx = 0; idx < rowsList.length; idx++) {
+        const rows = rowsList[idx]
         // Проверяем паузу перед каждой группой секторов
         await progress.waitForResume()
         if (!rows.every((r) => r.inSector)) {
@@ -973,6 +977,11 @@ async function onSendSectors() {
           rows[0].sectorName
         )
         progress.updateSuccess(`Сектор ${rows[0].number} отправлен`)
+        
+        // Каждые 25 секторов обновляем авторизацию, чтобы избежать истечения сессии
+        if ((idx + 1) % 25 === 0) {
+          await authStore.authenticate(store.domain)
+        }
       }
       progress.finish()
     } else {
@@ -991,7 +1000,8 @@ async function onSendSectors() {
       }
 
       progress.start('sector', rowsToSend.length)
-      for (const row of rowsToSend) {
+      for (let idx = 0; idx < rowsToSend.length; idx++) {
+        const row = rowsToSend[idx]
         // Проверяем паузу перед каждым сектором
         await progress.waitForResume()
         progress.updateTitle(`Сектор ${row.number}`)
@@ -1004,6 +1014,11 @@ async function onSendSectors() {
           row.sectorName
         )
         progress.updateSuccess(`Сектор ${row.number} отправлен`)
+        
+        // Каждые 25 секторов обновляем авторизацию, чтобы избежать истечения сессии
+        if ((idx + 1) % 25 === 0) {
+          await authStore.authenticate(store.domain)
+        }
       }
       progress.finish()
     }
