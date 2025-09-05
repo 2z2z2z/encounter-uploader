@@ -197,7 +197,10 @@ import TabPanels from 'primevue/tabpanels'
 import TabPanel from 'primevue/tabpanel'
 
 
-const props = defineProps<{ totalSectors: number }>()
+const props = defineProps<{ 
+  totalSectors: number
+  customTitle?: string
+}>()
 
 function olympTitle(n: number): string {
 	switch (n) {
@@ -229,7 +232,7 @@ const showPreview = ref(false)
 const previewMode = ref<'closed' | 'open'>('closed')
 const showExport = ref(false)
 
-const levelTypeLabel = computed(() => olympTitle(props.totalSectors))
+const levelTypeLabel = computed(() => props.customTitle || olympTitle(props.totalSectors))
 const buttons = computed<TypeButtonsConfig>(() => {
   const cfg = getTypeConfig(store.uploadType)
   if (cfg && cfg.category === 'olymp') return cfg.buttons
@@ -428,12 +431,13 @@ async function onSendTask() {
 		if (!confirmed) return
 		startUploadVisibilityTracking('задание')
 		progress.start('task', 1)
-		progress.update('Отправка задания')
+		progress.updateTitle('Отправка задания')
 		const prevMode = previewMode.value
 		previewMode.value = 'closed'
 		const htmlClosed = olympTableHtml.value
 		previewMode.value = prevMode
 		await sendTask(store.domain, store.gameId, store.levelId, htmlClosed)
+		progress.updateSuccess('Задание отправлено')
 		progress.finish(); stopUploadVisibilityTracking()
 	} catch (e: any) { stopUploadVisibilityTracking(); notify.error('Ошибка отправки задания', e.message) }
 }
@@ -464,8 +468,9 @@ async function onSendSector() {
 		for (const row of sectors) {
 			// Проверяем паузу перед каждым сектором
 			await progress.waitForResume()
-			progress.update(`Сектор ${row.number}`)
+			progress.updateTitle(`Сектор ${row.number}`)
 			await sendSector(store.domain, store.gameId, store.levelId, row.variants, row.closedText)
+			progress.updateSuccess(`Сектор ${row.number} отправлен`)
 		}
 		progress.finish(); stopUploadVisibilityTracking()
 	} catch (e: any) { stopUploadVisibilityTracking(); notify.error('Ошибка отправки секторов', e.message) }
@@ -484,8 +489,9 @@ async function onSendBonus() {
 			// Проверяем паузу перед каждым бонусом
 			await progress.waitForResume()
 			const bonusRow = bonusesToSend[idx]
-			progress.update(`Бонус ${bonusRow.number}`)
+			progress.updateTitle(`Бонус ${bonusRow.number}`)
 			await sendBonuses(store.domain, store.gameId, store.levelId, [bonusRow])
+			progress.updateSuccess(`Бонус ${bonusRow.number} отправлен`)
 			if ((idx + 1) % 25 === 0) { await authStore.authenticate(store.domain) }
 		}
 		progress.finish(); stopUploadVisibilityTracking()

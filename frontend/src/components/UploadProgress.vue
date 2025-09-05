@@ -26,6 +26,12 @@
           <div class="flex justify-between items-center">
             <label class="text-sm font-medium text-white">
               {{ Math.max(0, progress.current) }} / {{ Math.max(0, progress.total) }}
+              <span v-if="progress.hasErrors" class="ml-2 text-red-200">
+                (ошибок: {{ progress.errorCount }})
+              </span>
+              <span v-if="progress.successCount > 0" class="ml-2 text-green-200">
+                (успешно: {{ progress.successCount }})
+              </span>
             </label>
             <label class="text-sm font-bold text-white">
               {{ Math.round(Math.max(0, Math.min(100, progress.percent))) }}%
@@ -62,6 +68,14 @@
               size="small"
               severity="secondary"
               @click="togglePause"
+            />
+            <Button 
+              v-if="progress.hasErrors && progress.errors.length > 0"
+              label="Ошибки" 
+              icon="pi pi-exclamation-triangle"
+              size="small" 
+              severity="danger"
+              @click="showErrors"
             />
             <Button 
               v-if="isCompleted"
@@ -117,6 +131,9 @@ const progressIcon = computed(() => {
 
 const progressTitle = computed(() => {
   if (isCompleted.value) {
+    if (progress.hasErrors) {
+      return `Завершено с ошибками (${progress.errorCount})`
+    }
     return 'Заливка завершена'
   }
   
@@ -130,7 +147,14 @@ const progressTitle = computed(() => {
     'task': 'Заливка задания'
   } as const
   
-  return titleMap[progress.type as keyof typeof titleMap] || 'Заливка'
+  const baseTitle = titleMap[progress.type as keyof typeof titleMap] || 'Заливка'
+  
+  // Показываем количество ошибок во время заливки
+  if (progress.hasErrors && progress.errorCount > 0) {
+    return `${baseTitle} (ошибок: ${progress.errorCount})`
+  }
+  
+  return baseTitle
 })
 
 const formatTime = (date: Date) => {
@@ -246,6 +270,27 @@ const handleClose = () => {
   toast.removeGroup('upload-progress')
 }
 
+const showErrors = () => {
+  if (progress.errors.length === 0) {
+    return
+  }
+  
+  // Ограничиваем количество показываемых ошибок для лучшего UX
+  const maxErrors = 5
+  const errorsToShow = progress.errors.slice(0, maxErrors)
+  const hasMoreErrors = progress.errors.length > maxErrors
+  
+  const errorList = errorsToShow.join('\n')
+  const moreText = hasMoreErrors ? `\n... и ещё ${progress.errors.length - maxErrors} ошибок` : ''
+  
+  toast.add({
+    severity: 'error',
+    summary: `Найдено ошибок: ${progress.errors.length}`,
+    detail: errorList + moreText,
+    life: 12000 // Дольше показываем ошибки
+  })
+}
+
 // Отслеживаем видимость прогресса и показываем/скрываем toast
 watch(() => progress.visible, (visible) => {
   if (visible) {
@@ -266,9 +311,9 @@ watch(() => progress.visible, (visible) => {
 }, { immediate: true })
 
 // Отслеживаем завершение и показываем success toast
-watch(() => [progress.current, progress.total], ([current, total]) => {
+watch(() => [progress.current, progress.total, progress.hasErrors, progress.successCount, progress.errorCount], ([current, total, hasErrors, successCount, errorCount]) => {
   if (current >= total && total > 0 && progress.visible) {
-    // Через небольшую задержку показываем success уведомление
+    // Через небольшую задержку показываем уведомление о завершении
     setTimeout(() => {
       const typeNames = {
         'task': 'Задание',
@@ -278,12 +323,26 @@ watch(() => [progress.current, progress.total], ([current, total]) => {
       
       const typeName = typeNames[progress.type as keyof typeof typeNames] || 'Элементы'
       
-      toast.add({
-        severity: 'success',
-        summary: 'Заливка завершена!',
-        detail: `Залито: ${typeName}\nКоличество элементов: ${total}`,
-        life: 5000
-      })
+      // Показываем success только если нет ошибок И есть успешные элементы
+      if (!hasErrors && successCount > 0) {
+        toast.add({
+          severity: 'success',
+          summary: 'Заливка завершена!',
+          detail: `Залито: ${typeName}\nКоличество элементов: ${successCount}`,
+          life: 5000
+        })
+      } else if (hasErrors) {
+        // Показываем ошибку если есть проблемы
+        const successText = successCount > 0 ? `\nУспешно: ${successCount}` : ''
+        const errorText = errorCount > 0 ? `\nОшибок: ${errorCount}` : ''
+        
+        toast.add({
+          severity: 'error',
+          summary: 'Заливка завершена с ошибками',
+          detail: `${typeName}${successText}${errorText}`,
+          life: 8000
+        })
+      }
     }, 1000)
   } else if (progress.visible && !progress.isPaused && total > 0) {
     // Пересчитываем прогноз при изменении прогресса (только если не на паузе)

@@ -954,7 +954,8 @@ async function onSendSectors() {
         // Проверяем паузу перед каждой группой секторов
         await progress.waitForResume()
         if (!rows.every((r) => r.inSector)) {
-          progress.update('Пропуск')
+          progress.updateTitle('Пропуск')
+          progress.updateSuccess('Пропущен')
           continue
         }
         const variants: string[] = []
@@ -962,7 +963,7 @@ async function onSendSectors() {
           const arr = Array.isArray(r.variants) ? r.variants : []
           for (const v of arr) variants.push(v)
         }
-        progress.update(`Сектор ${rows[0].number}`)
+        progress.updateTitle(`Сектор ${rows[0].number}`)
         await sendSector(
           store.domain,
           store.gameId,
@@ -971,6 +972,7 @@ async function onSendSectors() {
           '',
           rows[0].sectorName
         )
+        progress.updateSuccess(`Сектор ${rows[0].number} отправлен`)
       }
       progress.finish()
     } else {
@@ -992,7 +994,7 @@ async function onSendSectors() {
       for (const row of rowsToSend) {
         // Проверяем паузу перед каждым сектором
         await progress.waitForResume()
-        progress.update(`Сектор ${row.number}`)
+        progress.updateTitle(`Сектор ${row.number}`)
         await sendSector(
           store.domain,
           store.gameId,
@@ -1001,6 +1003,7 @@ async function onSendSectors() {
           '',
           row.sectorName
         )
+        progress.updateSuccess(`Сектор ${row.number} отправлен`)
       }
       progress.finish()
     }
@@ -1075,8 +1078,9 @@ async function onSendBonuses() {
       // Проверяем паузу перед каждым бонусом
       await progress.waitForResume()
       const b = bonusRows[idx]
-      progress.update(`Бонус ${b.number}`)
+      progress.updateTitle(`Бонус ${b.number}`)
       await sendBonuses(store.domain, store.gameId, store.levelId, [b])
+      progress.updateSuccess(`Бонус ${b.number} отправлен`)
 
       // Каждые 25 бонусов обновляем авторизацию, чтобы избежать истечения сессии
       if ((idx + 1) % 25 === 0) {

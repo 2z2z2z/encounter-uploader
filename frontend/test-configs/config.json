@@ -1,0 +1,22 @@
+{
+  "olymp15": {
+    "uploadType": "olymp15",
+    "configFile": "olymp15.json"
+  },
+  "olymp31": {
+    "uploadType": "olymp31", 
+    "configFile": "olymp31.json"
+  },
+  "olymp63": {
+    "uploadType": "olymp63",
+    "configFile": "olymp63.json" 
+  },
+  "olymp127": {
+    "uploadType": "olymp127",
+    "configFile": "olymp127.json"
+  },
+  "type100500": {
+    "uploadType": "100500",
+    "configFile": "type100500.json"
+  }
+}

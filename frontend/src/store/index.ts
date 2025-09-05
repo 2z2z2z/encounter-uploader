@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, reactive, watch, nextTick } from 'vue'
+import { useTestUrlMode } from '../composables/useTestUrlMode'
 
 function createAnswerEntry(num: number) {
   return {
@@ -25,6 +26,7 @@ function createAnswers(count: number) {
 export const useUploadStore = defineStore(
   'upload',
   () => {
+    const { isTestUrlMode } = useTestUrlMode()
     // --- базовые настройки (храним через pinia-plugin-persistedstate) ---
     const domain = ref('')
     const gameId = ref('')
@@ -51,6 +53,7 @@ export const useUploadStore = defineStore(
 
     function saveTypeData(type = uploadType.value) {
       if (type === '100500') return
+      if (isTestUrlMode.value) return // Не сохраняем в localStorage в тестовом URL режиме
       const data = {
         config: JSON.parse(JSON.stringify(config)),
         closedPattern: closedPattern.value,
@@ -67,6 +70,21 @@ export const useUploadStore = defineStore(
         config.bonusTime = { hours: 0, minutes: 0, seconds: 0, negative: false }
         return
       }
+      
+      // В тестовом URL режиме не загружаем из localStorage
+      if (isTestUrlMode.value) {
+        let desired = 15
+        if (type === 'olymp15') desired = 15
+        else if (type === 'olymp31') desired = 31
+        else if (type === 'olymp63') desired = 63
+        else if (type === 'olymp127') desired = 127
+        closedPattern.value = ''
+        answers.value = createAnswers(desired)
+        config.sectorMode = 'all'
+        config.bonusTime = { hours: 0, minutes: 0, seconds: 0, negative: false }
+        return
+      }
+      
       const raw = localStorage.getItem(storageKey(type))
       let desired = 15
       if (type === 'olymp15') desired = 15
@@ -117,7 +135,9 @@ export const useUploadStore = defineStore(
     watch(
       [config, closedPattern, answers],
       () => {
-        if (uploadType.value !== '100500') saveTypeData(uploadType.value)
+        if (uploadType.value !== '100500' && !isTestUrlMode.value) {
+          saveTypeData(uploadType.value)
+        }
       },
       { deep: true }
     )
@@ -147,6 +167,15 @@ export const useUploadStore = defineStore(
   {
     persist: {
       pick: ['domain', 'gameId', 'levelId', 'uploadType'],
+      beforeRestore: (ctx) => {
+        // Проверяем тестовый URL режим перед восстановлением
+        const route = window.location.pathname
+        if (route.startsWith('/test/')) {
+          // В тестовом режиме не восстанавливаем из localStorage
+          return false
+        }
+        return true
+      }
     },
   }
 )

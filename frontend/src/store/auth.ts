@@ -1,10 +1,12 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 import { ref, computed } from 'vue'
+import { useTestUrlMode } from '../composables/useTestUrlMode'
 
 export const useAuthStore = defineStore(
   'auth',
   () => {
+    const { isTestUrlMode } = useTestUrlMode()
     const username = ref('')
     const password = ref('')
     const loggedIn = ref(false)
@@ -50,6 +52,16 @@ export const useAuthStore = defineStore(
     }
   },
   {
-    persist: true,
+    persist: {
+      beforeRestore: (ctx) => {
+        // Проверяем тестовый URL режим перед восстановлением
+        const route = window.location.pathname
+        if (route.startsWith('/test/')) {
+          // В тестовом режиме не восстанавливаем из localStorage
+          return false
+        }
+        return true
+      }
+    },
   }
 )

@@ -182,6 +182,8 @@ export async function sendTask(
   level: string | number,
   inputTask: string
 ) {
+  const progress = useProgressStore()
+  
   // Проверяем паузу перед выполнением запроса
   await checkPauseStatus()
   
@@ -191,23 +193,37 @@ export async function sendTask(
   console.log('[sendTask] ▶ POST', url)
   console.log('[sendTask] ▶ payload →', params.toString())
 
-  const res = await axios.post(
-    url,
-    params.toString(),
-    {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      withCredentials: true,
+  try {
+    const res = await axios.post(
+      url,
+      params.toString(),
+      {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        withCredentials: true,
+      }
+    )
+    console.log('[sendTask] ◀ status=', res.status)
+
+    if (res.status >= 400) {
+      progress.reportError(`Ошибка отправки задания: HTTP ${res.status}`)
+      progress.pause() // Ставим заливку на паузу при HTTP ошибке
     }
-  )
-  console.log('[sendTask] ◀ status=', res.status)
 
-  console.log(`[sendTask] sleeping ${SLEEP_MS}ms before next step…`)
-  const t0 = Date.now()
-  await sleep(SLEEP_MS)
-  const t1 = Date.now()
-  console.log(`[sendTask] actual sleep: ${t1 - t0}ms`)
+    console.log(`[sendTask] sleeping ${SLEEP_MS}ms before next step…`)
+    const t0 = Date.now()
+    await sleep(SLEEP_MS)
+    const t1 = Date.now()
+    console.log(`[sendTask] actual sleep: ${t1 - t0}ms`)
 
-  return res.data
+    return res.data
+  } catch (error: any) {
+    console.error('[sendTask] Ошибка отправки задания:', error)
+    const status = error.response?.status || 0
+    const message = `Ошибка отправки задания: ${status ? `HTTP ${status}` : error.message || 'Неизвестная ошибка'}`
+    progress.reportError(message)
+    progress.pause() // Ставим заливку на паузу при ошибке
+    throw error
+  }
 }
 
 /**
@@ -223,6 +239,8 @@ export async function sendSector(
   closedRaw: string,
   sectorName = ''
 ) {
+  const progress = useProgressStore()
+  
   // Проверяем паузу перед выполнением запроса
   await checkPauseStatus()
   
@@ -238,23 +256,37 @@ export async function sendSector(
   console.log(`[sendSector] ▶ payload →`, params.toString())
   console.log(`[sendSector] (закрытый сектор для предпросмотра) →`, formattedClosed)
 
-  const res = await axios.post(
-    url,
-    params.toString(),
-    {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      withCredentials: true,
+  try {
+    const res = await axios.post(
+      url,
+      params.toString(),
+      {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        withCredentials: true,
+      }
+    )
+    console.log('[sendSector] ◀ status=', res.status)
+
+    if (res.status >= 400) {
+      progress.reportError(`Ошибка отправки сектора: HTTP ${res.status}`)
+      progress.pause() // Ставим заливку на паузу при HTTP ошибке
     }
-  )
-  console.log('[sendSector] ◀ status=', res.status)
 
-  console.log(`[sendSector] sleeping ${SLEEP_MS}ms before next sector…`)
-  const t0 = Date.now()
-  await sleep(SLEEP_MS)
-  const t1 = Date.now()
-  console.log(`[sendSector] actual sleep: ${t1 - t0}ms`)
+    console.log(`[sendSector] sleeping ${SLEEP_MS}ms before next sector…`)
+    const t0 = Date.now()
+    await sleep(SLEEP_MS)
+    const t1 = Date.now()
+    console.log(`[sendSector] actual sleep: ${t1 - t0}ms`)
 
-  return res.data
+    return res.data
+  } catch (error: any) {
+    console.error('[sendSector] Ошибка отправки сектора:', error)
+    const status = error.response?.status || 0
+    const message = `Ошибка отправки сектора: ${status ? `HTTP ${status}` : error.message || 'Неизвестная ошибка'}`
+    progress.reportError(message)
+    progress.pause() // Ставим заливку на паузу при ошибке
+    throw error
+  }
 }
 
 /**
@@ -345,6 +377,11 @@ export async function sendBonuses(
         await sleep(SLEEP_MS)
       } else {
         console.error('[sendBonuses] Все попытки получить форму бонуса исчерпаны.')
+        const progress = useProgressStore()
+        const status = err.response?.status || 0
+        const message = `Ошибка получения формы бонуса: ${status ? `HTTP ${status}` : err.message || 'Неизвестная ошибка'}`
+        progress.reportError(message)
+        progress.pause() // Ставим заливку на паузу при ошибке
       }
     }
   }
@@ -375,8 +412,19 @@ export async function sendBonuses(
         }
       )
       console.log('[sendBonuses] ◀ status=', res.status)
+
+      if (res.status >= 400) {
+        const progress = useProgressStore()
+        progress.reportError(`Ошибка отправки бонуса №${bonus.number}: HTTP ${res.status}`)
+        progress.pause() // Ставим заливку на паузу при HTTP ошибке
+      }
     } catch (err: any) {
       console.error('[sendBonuses] Ошибка отправки бонуса', err.message || err)
+      const progress = useProgressStore()
+      const status = err.response?.status || 0
+      const message = `Ошибка отправки бонуса №${bonus.number}: ${status ? `HTTP ${status}` : err.message || 'Неизвестная ошибка'}`
+      progress.reportError(message)
+      progress.pause() // Ставим заливку на паузу при ошибке
     }
 
     console.log(`[sendBonuses] sleeping ${SLEEP_MS}ms before next bonus…`)
