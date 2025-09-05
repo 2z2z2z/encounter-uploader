@@ -383,7 +383,7 @@ function formatClosedText(text: string): string {
 const olympTableHtml = computed(() => {
 	const style = `
     <style>
-      .olymp {max-width: 800px; width: 100%;margin: 10px 0;}
+      .olymp {max-width: 1100px; width: 100%;margin: 10px 0;}
       .olymp td {
         border:1px solid #414141;
         padding:10px;

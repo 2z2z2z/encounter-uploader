@@ -1,0 +1,2052 @@
+{
+  "domain": "tech",
+  "gameId": "80722",
+  "uploadType": "olymp127",
+  "config": {
+    "sectorMode": "initialAndFinal",
+    "bonusTime": {
+      "hours": 0,
+      "minutes": 0,
+      "seconds": 0,
+      "negative": false
+    }
+  },
+  "closedPattern": "",
+  "answers": [
+    {
+      "number": 1,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 1,
+        "minutes": 2,
+        "seconds": 3,
+        "negative": true
+      },
+      "variants": [
+        "1",
+        "1_2",
+        "1_3"
+      ],
+      "closedText": "Закрытый сектор 1",
+      "displayText": "1"
+    },
+    {
+      "number": 2,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 1,
+        "minutes": 2,
+        "seconds": 3,
+        "negative": false
+      },
+      "variants": [
+        "2",
+        "2_2"
+      ],
+      "closedText": "Закрытый сектор 2",
+      "displayText": "2"
+    },
+    {
+      "number": 3,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "3"
+      ],
+      "closedText": "Закрытый сектор 3",
+      "displayText": "3"
+    },
+    {
+      "number": 4,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "4"
+      ],
+      "closedText": "Закрытый сектор 4",
+      "displayText": "4"
+    },
+    {
+      "number": 5,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "5"
+      ],
+      "closedText": "Закрытый сектор 5",
+      "displayText": "5"
+    },
+    {
+      "number": 6,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "6"
+      ],
+      "closedText": "Закрытый сектор 6",
+      "displayText": "6"
+    },
+    {
+      "number": 7,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "7"
+      ],
+      "closedText": "Закрытый сектор 7",
+      "displayText": "7"
+    },
+    {
+      "number": 8,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "8"
+      ],
+      "closedText": "Закрытый сектор 8",
+      "displayText": "8"
+    },
+    {
+      "number": 9,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "9"
+      ],
+      "closedText": "Закрытый сектор 9",
+      "displayText": "9"
+    },
+    {
+      "number": 10,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "10"
+      ],
+      "closedText": "Закрытый сектор 10",
+      "displayText": "10"
+    },
+    {
+      "number": 11,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "11"
+      ],
+      "closedText": "Закрытый сектор 11",
+      "displayText": "11"
+    },
+    {
+      "number": 12,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "12"
+      ],
+      "closedText": "Закрытый сектор 12",
+      "displayText": "12"
+    },
+    {
+      "number": 13,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "13"
+      ],
+      "closedText": "Закрытый сектор 13",
+      "displayText": "13"
+    },
+    {
+      "number": 14,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "14"
+      ],
+      "closedText": "Закрытый сектор 14",
+      "displayText": "14"
+    },
+    {
+      "number": 15,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "15"
+      ],
+      "closedText": "Закрытый сектор 15",
+      "displayText": "15"
+    },
+    {
+      "number": 16,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "16"
+      ],
+      "closedText": "Закрытый сектор 16",
+      "displayText": "16"
+    },
+    {
+      "number": 17,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "17"
+      ],
+      "closedText": "Закрытый сектор 17",
+      "displayText": "17"
+    },
+    {
+      "number": 18,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "18"
+      ],
+      "closedText": "Закрытый сектор 18",
+      "displayText": "18"
+    },
+    {
+      "number": 19,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "19"
+      ],
+      "closedText": "Закрытый сектор 19",
+      "displayText": "19"
+    },
+    {
+      "number": 20,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "20"
+      ],
+      "closedText": "Закрытый сектор 20",
+      "displayText": "20"
+    },
+    {
+      "number": 21,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "21"
+      ],
+      "closedText": "Закрытый сектор 21",
+      "displayText": "21"
+    },
+    {
+      "number": 22,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "22"
+      ],
+      "closedText": "Закрытый сектор 22",
+      "displayText": "22"
+    },
+    {
+      "number": 23,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "23"
+      ],
+      "closedText": "Закрытый сектор 23",
+      "displayText": "23"
+    },
+    {
+      "number": 24,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "24"
+      ],
+      "closedText": "Закрытый сектор 24",
+      "displayText": "24"
+    },
+    {
+      "number": 25,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "25"
+      ],
+      "closedText": "Закрытый сектор 25",
+      "displayText": "25"
+    },
+    {
+      "number": 26,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "26"
+      ],
+      "closedText": "Закрытый сектор 26",
+      "displayText": "26"
+    },
+    {
+      "number": 27,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "27"
+      ],
+      "closedText": "Закрытый сектор 27",
+      "displayText": "27"
+    },
+    {
+      "number": 28,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "28"
+      ],
+      "closedText": "Закрытый сектор 28",
+      "displayText": "28"
+    },
+    {
+      "number": 29,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "29"
+      ],
+      "closedText": "Закрытый сектор 29",
+      "displayText": "29"
+    },
+    {
+      "number": 30,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "30"
+      ],
+      "closedText": "Закрытый сектор 30",
+      "displayText": "30"
+    },
+    {
+      "number": 31,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "31"
+      ],
+      "closedText": "Закрытый сектор 31",
+      "displayText": "31"
+    },
+    {
+      "number": 32,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "32"
+      ],
+      "closedText": "Закрытый сектор 32",
+      "displayText": "32"
+    },
+    {
+      "number": 33,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "33"
+      ],
+      "closedText": "Закрытый сектор 33",
+      "displayText": "33"
+    },
+    {
+      "number": 34,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "34"
+      ],
+      "closedText": "Закрытый сектор 34",
+      "displayText": "34"
+    },
+    {
+      "number": 35,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "35"
+      ],
+      "closedText": "Закрытый сектор 35",
+      "displayText": "35"
+    },
+    {
+      "number": 36,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "36"
+      ],
+      "closedText": "Закрытый сектор 36",
+      "displayText": "36"
+    },
+    {
+      "number": 37,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "37"
+      ],
+      "closedText": "Закрытый сектор 37",
+      "displayText": "37"
+    },
+    {
+      "number": 38,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "38"
+      ],
+      "closedText": "Закрытый сектор 38",
+      "displayText": "38"
+    },
+    {
+      "number": 39,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "39"
+      ],
+      "closedText": "Закрытый сектор 39",
+      "displayText": "39"
+    },
+    {
+      "number": 40,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "40"
+      ],
+      "closedText": "Закрытый сектор 40",
+      "displayText": "40"
+    },
+    {
+      "number": 41,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "41"
+      ],
+      "closedText": "Закрытый сектор 41",
+      "displayText": "41"
+    },
+    {
+      "number": 42,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "42"
+      ],
+      "closedText": "Закрытый сектор 42",
+      "displayText": "42"
+    },
+    {
+      "number": 43,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "43"
+      ],
+      "closedText": "Закрытый сектор 43",
+      "displayText": "43"
+    },
+    {
+      "number": 44,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "44"
+      ],
+      "closedText": "Закрытый сектор 44",
+      "displayText": "44"
+    },
+    {
+      "number": 45,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "45"
+      ],
+      "closedText": "Закрытый сектор 45",
+      "displayText": "45"
+    },
+    {
+      "number": 46,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "46"
+      ],
+      "closedText": "Закрытый сектор 46",
+      "displayText": "46"
+    },
+    {
+      "number": 47,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "47"
+      ],
+      "closedText": "Закрытый сектор 47",
+      "displayText": "47"
+    },
+    {
+      "number": 48,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "48"
+      ],
+      "closedText": "Закрытый сектор 48",
+      "displayText": "48"
+    },
+    {
+      "number": 49,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "49"
+      ],
+      "closedText": "Закрытый сектор 49",
+      "displayText": "49"
+    },
+    {
+      "number": 50,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "50"
+      ],
+      "closedText": "Закрытый сектор 50",
+      "displayText": "50"
+    },
+    {
+      "number": 51,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "51"
+      ],
+      "closedText": "Закрытый сектор 51",
+      "displayText": "51"
+    },
+    {
+      "number": 52,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "52"
+      ],
+      "closedText": "Закрытый сектор 52",
+      "displayText": "52"
+    },
+    {
+      "number": 53,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "53"
+      ],
+      "closedText": "Закрытый сектор 53",
+      "displayText": "53"
+    },
+    {
+      "number": 54,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "54"
+      ],
+      "closedText": "Закрытый сектор 54",
+      "displayText": "54"
+    },
+    {
+      "number": 55,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "55"
+      ],
+      "closedText": "Закрытый сектор 55",
+      "displayText": "55"
+    },
+    {
+      "number": 56,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "56"
+      ],
+      "closedText": "Закрытый сектор 56",
+      "displayText": "56"
+    },
+    {
+      "number": 57,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "57"
+      ],
+      "closedText": "Закрытый сектор 57",
+      "displayText": "57"
+    },
+    {
+      "number": 58,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "58"
+      ],
+      "closedText": "Закрытый сектор 58",
+      "displayText": "58"
+    },
+    {
+      "number": 59,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "59"
+      ],
+      "closedText": "Закрытый сектор 59",
+      "displayText": "59"
+    },
+    {
+      "number": 60,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "60"
+      ],
+      "closedText": "Закрытый сектор 60",
+      "displayText": "60"
+    },
+    {
+      "number": 61,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "61"
+      ],
+      "closedText": "Закрытый сектор 61",
+      "displayText": "61"
+    },
+    {
+      "number": 62,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "62"
+      ],
+      "closedText": "Закрытый сектор 62",
+      "displayText": "62"
+    },
+    {
+      "number": 63,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "63"
+      ],
+      "closedText": "Закрытый сектор 63",
+      "displayText": "63"
+    },
+    {
+      "number": 64,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "64"
+      ],
+      "closedText": "Закрытый сектор 64",
+      "displayText": "64"
+    },
+    {
+      "number": 65,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "65"
+      ],
+      "closedText": "Закрытый сектор 65",
+      "displayText": "65"
+    },
+    {
+      "number": 66,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "66"
+      ],
+      "closedText": "Закрытый сектор 66",
+      "displayText": "66"
+    },
+    {
+      "number": 67,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "67"
+      ],
+      "closedText": "Закрытый сектор 67",
+      "displayText": "67"
+    },
+    {
+      "number": 68,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "68"
+      ],
+      "closedText": "Закрытый сектор 68",
+      "displayText": "68"
+    },
+    {
+      "number": 69,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "69"
+      ],
+      "closedText": "Закрытый сектор 69",
+      "displayText": "69"
+    },
+    {
+      "number": 70,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "70"
+      ],
+      "closedText": "Закрытый сектор 70",
+      "displayText": "70"
+    },
+    {
+      "number": 71,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "71"
+      ],
+      "closedText": "Закрытый сектор 71",
+      "displayText": "71"
+    },
+    {
+      "number": 72,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "72"
+      ],
+      "closedText": "Закрытый сектор 72",
+      "displayText": "72"
+    },
+    {
+      "number": 73,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "73"
+      ],
+      "closedText": "Закрытый сектор 73",
+      "displayText": "73"
+    },
+    {
+      "number": 74,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "74"
+      ],
+      "closedText": "Закрытый сектор 74",
+      "displayText": "74"
+    },
+    {
+      "number": 75,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "75"
+      ],
+      "closedText": "Закрытый сектор 75",
+      "displayText": "75"
+    },
+    {
+      "number": 76,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "76"
+      ],
+      "closedText": "Закрытый сектор 76",
+      "displayText": "76"
+    },
+    {
+      "number": 77,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "77"
+      ],
+      "closedText": "Закрытый сектор 77",
+      "displayText": "77"
+    },
+    {
+      "number": 78,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "78"
+      ],
+      "closedText": "Закрытый сектор 78",
+      "displayText": "78"
+    },
+    {
+      "number": 79,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "79"
+      ],
+      "closedText": "Закрытый сектор 79",
+      "displayText": "79"
+    },
+    {
+      "number": 80,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "80"
+      ],
+      "closedText": "Закрытый сектор 80",
+      "displayText": "80"
+    },
+    {
+      "number": 81,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "81"
+      ],
+      "closedText": "Закрытый сектор 81",
+      "displayText": "81"
+    },
+    {
+      "number": 82,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "82"
+      ],
+      "closedText": "Закрытый сектор 82",
+      "displayText": "82"
+    },
+    {
+      "number": 83,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "83"
+      ],
+      "closedText": "Закрытый сектор 83",
+      "displayText": "83"
+    },
+    {
+      "number": 84,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "84"
+      ],
+      "closedText": "Закрытый сектор 84",
+      "displayText": "84"
+    },
+    {
+      "number": 85,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "85"
+      ],
+      "closedText": "Закрытый сектор 85",
+      "displayText": "85"
+    },
+    {
+      "number": 86,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "86"
+      ],
+      "closedText": "Закрытый сектор 86",
+      "displayText": "86"
+    },
+    {
+      "number": 87,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "87"
+      ],
+      "closedText": "Закрытый сектор 87",
+      "displayText": "87"
+    },
+    {
+      "number": 88,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "88"
+      ],
+      "closedText": "Закрытый сектор 88",
+      "displayText": "88"
+    },
+    {
+      "number": 89,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "89"
+      ],
+      "closedText": "Закрытый сектор 89",
+      "displayText": "89"
+    },
+    {
+      "number": 90,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "90"
+      ],
+      "closedText": "Закрытый сектор 90",
+      "displayText": "90"
+    },
+    {
+      "number": 91,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "91"
+      ],
+      "closedText": "Закрытый сектор 91",
+      "displayText": "91"
+    },
+    {
+      "number": 92,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "92"
+      ],
+      "closedText": "Закрытый сектор 92",
+      "displayText": "92"
+    },
+    {
+      "number": 93,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "93"
+      ],
+      "closedText": "Закрытый сектор 93",
+      "displayText": "93"
+    },
+    {
+      "number": 94,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "94"
+      ],
+      "closedText": "Закрытый сектор 94",
+      "displayText": "94"
+    },
+    {
+      "number": 95,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "95"
+      ],
+      "closedText": "Закрытый сектор 95",
+      "displayText": "95"
+    },
+    {
+      "number": 96,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "96"
+      ],
+      "closedText": "Закрытый сектор 96",
+      "displayText": "96"
+    },
+    {
+      "number": 97,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "97"
+      ],
+      "closedText": "Закрытый сектор 97",
+      "displayText": "97"
+    },
+    {
+      "number": 98,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "98"
+      ],
+      "closedText": "Закрытый сектор 98",
+      "displayText": "98"
+    },
+    {
+      "number": 99,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "99"
+      ],
+      "closedText": "Закрытый сектор 99",
+      "displayText": "99"
+    },
+    {
+      "number": 100,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "100"
+      ],
+      "closedText": "Закрытый сектор 100",
+      "displayText": "100"
+    },
+    {
+      "number": 101,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "101"
+      ],
+      "closedText": "Закрытый сектор 101",
+      "displayText": "101"
+    },
+    {
+      "number": 102,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "102"
+      ],
+      "closedText": "Закрытый сектор 102",
+      "displayText": "102"
+    },
+    {
+      "number": 103,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "103"
+      ],
+      "closedText": "Закрытый сектор 103",
+      "displayText": "103"
+    },
+    {
+      "number": 104,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "104"
+      ],
+      "closedText": "Закрытый сектор 104",
+      "displayText": "104"
+    },
+    {
+      "number": 105,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "105"
+      ],
+      "closedText": "Закрытый сектор 105",
+      "displayText": "105"
+    },
+    {
+      "number": 106,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "106"
+      ],
+      "closedText": "Закрытый сектор 106",
+      "displayText": "106"
+    },
+    {
+      "number": 107,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "107"
+      ],
+      "closedText": "Закрытый сектор 107",
+      "displayText": "107"
+    },
+    {
+      "number": 108,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "108"
+      ],
+      "closedText": "Закрытый сектор 108",
+      "displayText": "108"
+    },
+    {
+      "number": 109,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "109"
+      ],
+      "closedText": "Закрытый сектор 109",
+      "displayText": "109"
+    },
+    {
+      "number": 110,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "110"
+      ],
+      "closedText": "Закрытый сектор 110",
+      "displayText": "110"
+    },
+    {
+      "number": 111,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "111"
+      ],
+      "closedText": "Закрытый сектор 111",
+      "displayText": "111"
+    },
+    {
+      "number": 112,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "112"
+      ],
+      "closedText": "Закрытый сектор 112",
+      "displayText": "112"
+    },
+    {
+      "number": 113,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "113"
+      ],
+      "closedText": "Закрытый сектор 113",
+      "displayText": "113"
+    },
+    {
+      "number": 114,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "114"
+      ],
+      "closedText": "Закрытый сектор 114",
+      "displayText": "114"
+    },
+    {
+      "number": 115,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "115"
+      ],
+      "closedText": "Закрытый сектор 115",
+      "displayText": "115"
+    },
+    {
+      "number": 116,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "116"
+      ],
+      "closedText": "Закрытый сектор 116",
+      "displayText": "116"
+    },
+    {
+      "number": 117,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "117"
+      ],
+      "closedText": "Закрытый сектор 117",
+      "displayText": "117"
+    },
+    {
+      "number": 118,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "118"
+      ],
+      "closedText": "Закрытый сектор 118",
+      "displayText": "118"
+    },
+    {
+      "number": 119,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "119"
+      ],
+      "closedText": "Закрытый сектор 119",
+      "displayText": "119"
+    },
+    {
+      "number": 120,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "120"
+      ],
+      "closedText": "Закрытый сектор 120",
+      "displayText": "120"
+    },
+    {
+      "number": 121,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "121"
+      ],
+      "closedText": "Закрытый сектор 121",
+      "displayText": "121"
+    },
+    {
+      "number": 122,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "122"
+      ],
+      "closedText": "Закрытый сектор 122",
+      "displayText": "122"
+    },
+    {
+      "number": 123,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "123"
+      ],
+      "closedText": "Закрытый сектор 123",
+      "displayText": "123"
+    },
+    {
+      "number": 124,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "124"
+      ],
+      "closedText": "Закрытый сектор 124",
+      "displayText": "124"
+    },
+    {
+      "number": 125,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "125"
+      ],
+      "closedText": "Закрытый сектор 125",
+      "displayText": "125"
+    },
+    {
+      "number": 126,
+      "inSector": false,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "126"
+      ],
+      "closedText": "Закрытый сектор 126",
+      "displayText": "126"
+    },
+    {
+      "number": 127,
+      "inSector": true,
+      "inBonus": true,
+      "bonusTime": {
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "negative": false
+      },
+      "variants": [
+        "127"
+      ],
+      "closedText": "Закрытый сектор 127",
+      "displayText": "127"
+    }
+  ]
+}
