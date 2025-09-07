@@ -1,0 +1,362 @@
+[
+  {
+    "sectorPattern": "Блок 1, сектор &",
+    "bonusPattern": "Блок 1, бонус &",
+    "bonusTaskPattern": "Бонусное задание",
+    "bonusHintPattern": "",
+    "quickTime": {
+      "hours": 0,
+      "minutes": 1,
+      "seconds": 0,
+      "negative": false
+    },
+    "rows": [
+      {
+        "number": 1,
+        "variants": [
+          "1",
+          "1_2",
+          "1_3"
+        ],
+        "bonusTime": {
+          "hours": 1,
+          "minutes": 2,
+          "seconds": 3,
+          "negative": true
+        },
+        "delay": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0
+        },
+        "relativeLimit": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0
+        },
+        "sectorName": "Блок 1, сектор 1",
+        "bonusName": "Блок 1, бонус 1",
+        "bonusTask": "Бонусное задание",
+        "bonusHint": "<script type=\"text/javascript\">document.getElementById(\"sl-1\").innerHTML=\"<img src='https://wms.md/wp-content/uploads/2013/03/image-alignment-150x150-1.jpg'>\";</script>",
+        "inSector": true,
+        "inBonus": true,
+        "targetLevels": [],
+        "allLevels": false
+      },
+      {
+        "number": 2,
+        "variants": [
+          "2",
+          "2_2"
+        ],
+        "bonusTime": {
+          "hours": 1,
+          "minutes": 2,
+          "seconds": 3,
+          "negative": false
+        },
+        "delay": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0
+        },
+        "relativeLimit": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0
+        },
+        "sectorName": "Блок 1, сектор 2",
+        "bonusName": "Блок 1, бонус 2",
+        "bonusTask": "Бонусное задание",
+        "bonusHint": "<script type=\"text/javascript\">document.getElementById(\"sl-2\").innerHTML=\"<img src='https://wms.md/wp-content/uploads/2013/03/image-alignment-150x150-1.jpg'>\";</script>",
+        "inSector": true,
+        "inBonus": true,
+        "targetLevels": [],
+        "allLevels": false
+      },
+      {
+        "number": 3,
+        "variants": [
+          "3"
+        ],
+        "bonusTime": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0,
+          "negative": false
+        },
+        "delay": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0
+        },
+        "relativeLimit": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0
+        },
+        "sectorName": "Блок 1, сектор 3",
+        "bonusName": "Блок 1, бонус 3",
+        "bonusTask": "Бонусное задание",
+        "bonusHint": "<script type=\"text/javascript\">document.getElementById(\"sl-3\").innerHTML=\"<img src='https://wms.md/wp-content/uploads/2013/03/image-alignment-150x150-1.jpg'>\";</script>",
+        "inSector": true,
+        "inBonus": true,
+        "targetLevels": [],
+        "allLevels": false
+      },
+      {
+        "number": 4,
+        "variants": [
+          "4"
+        ],
+        "bonusTime": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0,
+          "negative": false
+        },
+        "delay": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0
+        },
+        "relativeLimit": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0
+        },
+        "sectorName": "Блок 1, сектор 4",
+        "bonusName": "Блок 1, бонус 4",
+        "bonusTask": "Бонусное задание",
+        "bonusHint": "<script type=\"text/javascript\">document.getElementById(\"sl-4\").innerHTML=\"<img src='https://wms.md/wp-content/uploads/2013/03/image-alignment-150x150-1.jpg'>\";</script>",
+        "inSector": true,
+        "inBonus": true,
+        "targetLevels": [
+          "2"
+        ],
+        "allLevels": false
+      },
+      {
+        "number": 5,
+        "variants": [
+          "5"
+        ],
+        "bonusTime": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0,
+          "negative": false
+        },
+        "delay": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0
+        },
+        "relativeLimit": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0
+        },
+        "sectorName": "Блок 1, сектор 5",
+        "bonusName": "Блок 1, бонус 5",
+        "bonusTask": "Бонусное задание",
+        "bonusHint": "<script type=\"text/javascript\">document.getElementById(\"sl-5\").innerHTML=\"<img src='https://wms.md/wp-content/uploads/2013/03/image-alignment-150x150-1.jpg'>\";</script>",
+        "inSector": true,
+        "inBonus": true,
+        "targetLevels": [],
+        "allLevels": true
+      }
+    ]
+  },
+  {
+    "sectorPattern": "Блок 2, сектор &",
+    "bonusPattern": "Блок 2, бонус &",
+    "bonusTaskPattern": "Бонусное задание",
+    "bonusHintPattern": "",
+    "quickTime": {
+      "hours": 0,
+      "minutes": 1,
+      "seconds": 0,
+      "negative": false
+    },
+    "rows": [
+      {
+        "number": 1,
+        "variants": [
+          "6",
+          "7929-вариант-2"
+        ],
+        "bonusTime": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0,
+          "negative": false
+        },
+        "delay": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0
+        },
+        "relativeLimit": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0
+        },
+        "sectorName": "Блок 2, сектор 1",
+        "bonusName": "Блок 2, бонус 1",
+        "bonusTask": "Бонусное задание",
+        "bonusHint": "<script>bossCurrentHp -= 1; updateHpBars();</script>",
+        "inSector": true,
+        "inBonus": true,
+        "targetLevels": [
+          "2"
+        ],
+        "allLevels": false
+      },
+      {
+        "number": 2,
+        "variants": [
+          "7"
+        ],
+        "bonusTime": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0,
+          "negative": false
+        },
+        "delay": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0
+        },
+        "relativeLimit": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0
+        },
+        "sectorName": "Блок 2, сектор 2",
+        "bonusName": "Блок 2, бонус 2",
+        "bonusTask": "Бонусное задание",
+        "bonusHint": "<script>bossCurrentHp -= 2; updateHpBars();</script>",
+        "inSector": true,
+        "inBonus": true,
+        "targetLevels": [
+          "2"
+        ],
+        "allLevels": false
+      },
+      {
+        "number": 3,
+        "variants": [
+          "8"
+        ],
+        "bonusTime": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0,
+          "negative": false
+        },
+        "delay": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0
+        },
+        "relativeLimit": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0
+        },
+        "sectorName": "Блок 2, сектор 3",
+        "bonusName": "Блок 2, бонус 3",
+        "bonusTask": "Бонусное задание",
+        "bonusHint": "<script>bossCurrentHp -= 3; updateHpBars();</script>",
+        "inSector": true,
+        "inBonus": true,
+        "targetLevels": [
+          "2"
+        ],
+        "allLevels": false
+      }
+    ]
+  },
+  {
+    "sectorPattern": "Блок 3, сектор &",
+    "bonusPattern": "Блок 3, бонус &",
+    "bonusTaskPattern": "Бонусное задание",
+    "bonusHintPattern": "Подсказка",
+    "quickTime": {
+      "hours": 0,
+      "minutes": 1,
+      "seconds": 0,
+      "negative": false
+    },
+    "rows": [
+      {
+        "number": 1,
+        "variants": [
+          "9"
+        ],
+        "bonusTime": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0,
+          "negative": false
+        },
+        "delay": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0
+        },
+        "relativeLimit": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0
+        },
+        "sectorName": "Блок 3, сектор 1",
+        "bonusName": "Блок 3, бонус 1",
+        "bonusTask": "Бонусное задание",
+        "bonusHint": "Подсказка",
+        "inSector": true,
+        "inBonus": true,
+        "targetLevels": [
+          "2",
+          "3"
+        ],
+        "allLevels": false
+      },
+      {
+        "number": 2,
+        "variants": [
+          "10"
+        ],
+        "bonusTime": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0,
+          "negative": false
+        },
+        "delay": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0
+        },
+        "relativeLimit": {
+          "hours": 0,
+          "minutes": 1,
+          "seconds": 0
+        },
+        "sectorName": "Блок 3, сектор 2",
+        "bonusName": "Блок 3, бонус 2",
+        "bonusTask": "Бонусное задание",
+        "bonusHint": "Подсказка",
+        "inSector": true,
+        "inBonus": true,
+        "targetLevels": [
+          "2",
+          "3"
+        ],
+        "allLevels": false
+      }
+    ]
+  }
+]
