@@ -103,23 +103,11 @@ The application uses a registry system for level types, fields, and controls loc
 - Server handles authentication headers and session management
 - Frontend uses axios with automatic retry logic for uploads
 
-## Development Testing
-
-- No automated tests currently configured
-- Manual testing through development environment
-- Test credentials: `test/test` for bypassing authentication checks
-
 ## Current Refactoring Context
 
 The codebase is undergoing a major refactoring to:
-- Consolidate Olympic level variants into unified components
-- Implement registry-based architecture for extensibility
 - Migrate to PrimeVue for consistent UI
 - Prepare for adding 20+ new level types
-
-Key refactoring documents:
-- `plan.md`
-- `FRONTEND_REFACTORING_FINAL.md`
 
 When working with this codebase, prioritize the registry-based approach and PrimeVue components over creating new custom implementations.
 
