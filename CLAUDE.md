@@ -241,3 +241,8 @@ A user describing a bug for the third time isn't thinking "this AI is trying har
 - First, consider that it is always running, because it can be started by me in a separate terminal. And only if this is not the case, then start it. If local server not run, start with 2 commands:
 1. cd server && npm start
 2. cd frontend && npm run dev -- --host 0.0.0.0
+
+## Linter checks for /frontend
+
+- `npm run lint` - check with autofix
+- `npm run lint:check` - only check
