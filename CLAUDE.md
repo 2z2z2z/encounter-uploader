@@ -132,22 +132,18 @@ You are thoughtful, give nuanced answers, and are brilliant at reasoning. You ca
 
 ### TypeScript Usage
 
-- Use TypeScript for all code; prefer interfaces over types for their extendability and ability to merge.
-- Avoid enums; use maps instead for better type safety and flexibility.
-- Use functional components with TypeScript interfaces.
-- Use strict mode in TypeScript for better type safety.
+- Use TypeScript for all code with strict mode enabled
+- Avoid enums; use maps instead for better type safety and flexibility
+- Use functional components with TypeScript interfaces
 
 ### Syntax and Formatting
 
-- Use the "function" keyword for pure functions to benefit from hoisting and clarity.
-- Always use the Vue Composition API script setup style.
-- Use Prettier for consistent code formatting.
+- Use the "function" keyword for pure functions to benefit from hoisting and clarity
+- Use Prettier for consistent code formatting
 
 ### UI and Styling
 
-- Don't use HTML elements. Use PrimeVue to its full potential by finding the components you need and configuring them through PrimeVue's default settings. Customization is only possible when necessary.
-- Don't use custom CSS styles. Always use TailwindCSS classes for styling PrimeVue-components for the possibility of expanding the styling.
-- Implement responsive design with TailwindCSS; use a mobile-first approach.
+- Don't use custom CSS styles. Always use TailwindCSS classes for styling PrimeVue components
 
 ### Performance Optimization
 
@@ -157,12 +153,9 @@ You are thoughtful, give nuanced answers, and are brilliant at reasoning. You ca
 ### Vue.js rules
 
 - Use the Composition API with `<script setup>` for better type inference and organization
-- Define props with type definitions and defaults
 - Use emits for component events
-- Use v-model for two-way binding
 - Use computed properties for derived state
 - Use watchers for side effects
-- Use provide/inject for deep component communication
 - Use async components for code-splitting
 - Use Vitest for testing
 
@@ -172,7 +165,7 @@ You are thoughtful, give nuanced answers, and are brilliant at reasoning. You ca
 - Never use `any` type - use `unknown` for truly unknown types, `Record<string, unknown>` for objects
 - Always provide explicit return types for functions except for simple expressions
 - Use type assertions only when necessary and prefer type guards
-- Prefer `interface` over `type` for object shapes (better error messages and extensibility)
+- Always prefer `interface` over `type` for object shapes (better error messages and extensibility)
 
 **Global Objects:**
 - Always prefix browser APIs with `globalThis.` to avoid `no-undef` errors:
@@ -189,6 +182,11 @@ You are thoughtful, give nuanced answers, and are brilliant at reasoning. You ca
     const message = err instanceof Error ? err.message : String(err)
   }
   ```
+
+**Strict Mode Compliance:**
+- Never use reserved words as identifiers: `let`, `eval`, `arguments`, `yield`
+- All classes and modules are automatically in strict mode
+- Avoid `with` statements completely - unsupported and unsafe
 
 ### Module Resolution & Imports
 
@@ -235,6 +233,25 @@ You are thoughtful, give nuanced answers, and are brilliant at reasoning. You ca
 - Avoid `v-html` unless absolutely necessary - creates XSS vulnerabilities
 - If `v-html` is required, sanitize content and document the security consideration
 
+### PrimeVue 4 Best Practices
+
+**Component Usage:**
+- Always use PrimeVue components over native HTML elements
+- Leverage PrimeVue's built-in validation and accessibility features
+- Import components individually to optimize bundle size: `import InputText from 'primevue/inputtext'`
+
+### TailwindCSS Utility-First Patterns
+
+**Responsive Design:**
+- Use mobile-first approach: `class="w-full md:w-1/2 lg:w-1/3"`
+- Apply responsive classes systematically across breakpoints
+- Group utility classes logically: layout → spacing → colors → typography
+
+**Component Styling:**
+- Compose complex layouts with utility classes rather than custom CSS
+- Use Tailwind's design tokens consistently: spacing scale, color palette
+- Leverage hover/focus/active states with utility variants: `hover:bg-blue-500 focus:ring-2`
+
 ### Error Prevention Guidelines
 
 **Variable Usage:**
@@ -244,13 +261,31 @@ You are thoughtful, give nuanced answers, and are brilliant at reasoning. You ca
 
 **Function Parameters:**
 - Type all function parameters explicitly
-- Use proper event types instead of generic `Event`
 - Avoid implicit `any` parameters
 
 **Component Lifecycle:**
 - Use proper cleanup in `onUnmounted` for timers, listeners, subscriptions
 - Handle async operations with proper error boundaries
 - Use `readonly` for reactive objects that shouldn't be mutated
+
+### Vue 3.5+ Modern Features
+
+**Reactive Props Destructuring (Vue 3.5+):**
+```typescript
+// Modern approach with automatic reactivity
+const { msg = 'hello', labels = ['one', 'two'] } = defineProps<{
+  msg?: string
+  labels?: string[]
+}>()
+```
+
+**Provide/Inject Type Safety:**
+```typescript
+// Always use InjectionKey for type safety
+const key = Symbol() as InjectionKey<string>
+provide(key, 'foo')
+const foo = inject(key) // automatically typed as string | undefined
+```
 
 ### IDE Integration Rules
 
