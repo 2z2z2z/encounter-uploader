@@ -163,19 +163,148 @@ You are thoughtful, give nuanced answers, and are brilliant at reasoning. You ca
 - Use computed properties for derived state
 - Use watchers for side effects
 - Use provide/inject for deep component communication
-- Use async components for code-splitting# Vue.js rules
+- Use async components for code-splitting
 - Use Vitest for testing
+
+### TypeScript Strict Mode Rules
+
+**Type Safety:**
+- Never use `any` type - use `unknown` for truly unknown types, `Record<string, unknown>` for objects
+- Always provide explicit return types for functions except for simple expressions
+- Use type assertions only when necessary and prefer type guards
+- Prefer `interface` over `type` for object shapes (better error messages and extensibility)
+
+**Global Objects:**
+- Always prefix browser APIs with `globalThis.` to avoid `no-undef` errors:
+  - `globalThis.setTimeout()`, `globalThis.fetch()`, `globalThis.document`
+  - `globalThis.Event`, `globalThis.MouseEvent`, `globalThis.HTMLElement`
+  - `globalThis.File`, `globalThis.FileReader`, `globalThis.URLSearchParams`
+- Use proper DOM types: `globalThis.HTMLInputElement`, `globalThis.HTMLTextAreaElement`
+
+**Error Handling:**
+- Use `unknown` instead of `any` in catch blocks: `catch (err: unknown)`
+- Provide proper type guards for error handling:
+  ```typescript
+  catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+  }
+  ```
+
+### Module Resolution & Imports
+
+**Path Aliases:**
+- Always use `@/` alias for src imports: `import Component from '@/components/Component.vue'`
+- Ensure all imports have proper file extensions for Vue files: `.vue`
+- Verify that tsconfig paths are correctly configured for module resolution
+
+**Import Organization:**
+- Group imports: Vue/framework imports first, then local components, then utilities
+- Use consistent import naming patterns
+- Avoid default imports when named exports are available
+
+### Vue 3 Modern Patterns
+
+**Component Props:**
+- Always provide default values for optional props to avoid `vue/require-default-prop` warnings:
+  ```typescript
+  interface Props {
+    label?: string
+    error?: string
+  }
+  const props = withDefaults(defineProps<Props>(), {
+    label: '',
+    error: ''
+  })
+  ```
+
+**V-Model Patterns:**
+- Never mutate props directly - use `:model-value` and `@update:model-value` pattern:
+  ```vue
+  <input 
+    :value="modelValue" 
+    @input="$emit('update:modelValue', $event.target.value)"
+  >
+  ```
+- For PrimeVue components, use `:model-value` instead of `v-model` in custom components
+
+**Event Handling:**
+- Use proper event types: `globalThis.Event`, `globalThis.MouseEvent`, `globalThis.FocusEvent`
+- Avoid unused event parameters - prefix with underscore: `(_event) => {}`
+
+**Security:**
+- Avoid `v-html` unless absolutely necessary - creates XSS vulnerabilities
+- If `v-html` is required, sanitize content and document the security consideration
+
+### Error Prevention Guidelines
+
+**Variable Usage:**
+- Prefix intentionally unused variables with underscore: `_unused`
+- Remove truly unused imports and variables
+- Use meaningful variable names that indicate purpose
+
+**Function Parameters:**
+- Type all function parameters explicitly
+- Use proper event types instead of generic `Event`
+- Avoid implicit `any` parameters
+
+**Component Lifecycle:**
+- Use proper cleanup in `onUnmounted` for timers, listeners, subscriptions
+- Handle async operations with proper error boundaries
+- Use `readonly` for reactive objects that shouldn't be mutated
+
+### IDE Integration Rules
+
+**Multiple Diagnostic Sources:**
+- `mcp__ide__getDiagnostics` combines multiple sources: TypeScript, ESLint, Vue Language Server, cSpell
+- ESLint only shows linting errors, IDE shows type errors, import issues, and language server warnings
+- Always fix both ESLint warnings AND IDE diagnostics before completing tasks
+
+**Common IDE Error Types:**
+- **TypeScript errors**: Type mismatches, missing properties, operator usage
+- **Module resolution**: Cannot find module errors, incorrect import paths  
+- **Vue language server**: Template parsing errors, directive issues
+- **ESLint extensions**: Additional rules beyond basic ESLint config
+
+**Diagnostic Priorities:**
+1. **Errors** (red) - Must be fixed, will break build/runtime
+2. **Warnings** (yellow) - Should be fixed for code quality
+3. **Hints** (blue) - Optional improvements, deprecated usage
 
 ## EXTREMELY IMPORTANT: Code Quality Checks
 
 **ALWAYS run the following commands before completing any task:**
 
-Automatically use the IDE's built-in diagnostics tool to check for linting and type errors:
+Use multiple diagnostic tools to ensure code quality:
 
-- Run `mcp__ide__getDiagnostics` to check all files for diagnostics
-- Run ESLitne to check all files for diagnostics
-- Fix any linting or type errors before considering the task complete
-- Do this for any file you create or modify
+**ESLint Checks:**
+```bash
+cd frontend
+npm run lint        # Auto-fix what can be fixed
+npm run lint:check  # Check remaining issues
+```
+
+**IDE Comprehensive Diagnostics:**
+```typescript
+mcp__ide__getDiagnostics() // Checks TypeScript, Vue, ESLint, imports, spelling
+```
+
+**Quality Assurance Process:**
+1. **First run ESLint** to fix basic linting issues and code style
+2. **Then run IDE diagnostics** to catch type errors, import issues, and Vue problems
+3. **Address all ERRORS first** (red diagnostics) - these will break build/runtime
+4. **Address critical WARNINGS** (yellow diagnostics) - important for code quality
+5. **Consider HINTS** (blue diagnostics) - improvements and deprecation warnings
+
+**Error Categories to Always Fix:**
+- ❌ **TypeScript errors**: Type mismatches, undefined variables, operator issues
+- ❌ **Module resolution errors**: Cannot find module, incorrect import paths
+- ❌ **Vue parsing errors**: Template syntax, directive usage, component issues
+- ❌ **Runtime errors**: `no-undef`, missing global object prefixes
+
+**Warnings to Address:**
+- ⚠️ **Unused variables/imports**: Clean up or prefix with underscore
+- ⚠️ **Type safety warnings**: Replace `any` with proper types
+- ⚠️ **Vue best practices**: Props defaults, v-model patterns, security issues
 
 This is a CRITICAL step that must NEVER be skipped when working on any code-related task.
 
