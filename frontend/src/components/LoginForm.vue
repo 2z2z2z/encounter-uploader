@@ -28,10 +28,10 @@
                   v-model="password"
                   :feedback="false"
                   :invalid="!!authStore.error"
-                  toggleMask
+                  toggle-mask
                   fluid
                   class="transition-all duration-200"
-                  :inputProps="{ autocomplete: 'current-password' }"
+                  :input-props="{ autocomplete: 'current-password' }"
                 />
                 <label for="password">Пароль</label>
               </FloatLabel>

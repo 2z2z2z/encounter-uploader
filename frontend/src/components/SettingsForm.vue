@@ -57,8 +57,8 @@
                   id="uploadType"
                   v-model="store.uploadType"
                   :options="uploadTypeOptions"
-                  optionLabel="label"
-                  optionValue="value"
+                  option-label="label"
+                  option-value="value"
                   placeholder="Выберите тип уровня"
                   fluid
                   class="transition-all duration-200"

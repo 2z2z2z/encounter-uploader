@@ -5,7 +5,7 @@
     width="50vw"
   >
     <div class="codes-container">
-      <TabView v-model:activeIndex="activeTab">
+      <TabView v-model:active-index="activeTab">
         <TabPanel header="Ручной ввод" value="0">
           <div class="manual-input">
             <label class="block text-sm font-medium mb-2">
@@ -16,7 +16,7 @@
               :rows="10"
               placeholder="Код 1&#10;Код 2&#10;Код 3..."
               class="w-full"
-              :autoResize="true"
+              :auto-resize="true"
             />
             <div class="mt-2 text-sm text-gray-600">
               Введено кодов: {{ manualCodesCount }}
@@ -43,24 +43,24 @@
               </div>
               <div>
                 <BaseInput
-                  :modelValue="String(generationOptions.startFrom)"
-                  @update:modelValue="generationOptions.startFrom = Number($event)"
+                  :model-value="String(generationOptions.startFrom)"
+                  @update:model-value="generationOptions.startFrom = Number($event)"
                   type="number"
                   label="Начать с"
                 />
               </div>
               <div>
                 <BaseInput
-                  :modelValue="String(generationOptions.count)"
-                  @update:modelValue="generationOptions.count = Number($event)"
+                  :model-value="String(generationOptions.count)"
+                  @update:model-value="generationOptions.count = Number($event)"
                   type="number"
                   label="Количество"
                 />
               </div>
               <div>
                 <BaseInput
-                  :modelValue="String(generationOptions.padding)"
-                  @update:modelValue="generationOptions.padding = Number($event)"
+                  :model-value="String(generationOptions.padding)"
+                  @update:model-value="generationOptions.padding = Number($event)"
                   type="number"
                   label="Дополнение нулями"
                   help="Например, 3 → 001, 002, 003"
@@ -101,10 +101,10 @@
               mode="basic"
               name="codes"
               accept=".txt,.csv"
-              :maxFileSize="1000000"
+              :max-file-size="1000000"
               @select="handleFileImport"
               :auto="false"
-              chooseLabel="Выбрать файл"
+              choose-label="Выбрать файл"
             />
             
             <div v-if="importedCodes" class="mt-4">

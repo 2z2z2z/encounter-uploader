@@ -3,7 +3,7 @@
     <div class="loading-content">
       <ProgressSpinner 
         :style="{ width: spinnerSize, height: spinnerSize }"
-        strokeWidth="4"
+        stroke-width="4"
       />
       <div v-if="text" class="loading-text">{{ text }}</div>
       <ProgressBar 

@@ -12,7 +12,7 @@
         placeholder="ч"
         :disabled="disabled"
         class="w-20"
-        @update:modelValue="updateTime"
+        @update:model-value="updateTime"
       />
       <span class="text-gray-500">:</span>
       <InputNumber
@@ -22,7 +22,7 @@
         placeholder="м"
         :disabled="disabled"
         class="w-20"
-        @update:modelValue="updateTime"
+        @update:model-value="updateTime"
       />
       <span class="text-gray-500">:</span>
       <InputNumber
@@ -32,13 +32,13 @@
         placeholder="с"
         :disabled="disabled"
         class="w-20"
-        @update:modelValue="updateTime"
+        @update:model-value="updateTime"
       />
       <Checkbox
         v-if="showNegative"
         v-model="negative"
         :disabled="disabled"
-        @update:modelValue="updateTime"
+        @update:model-value="updateTime"
       />
       <label v-if="showNegative" class="text-gray-500 cursor-pointer" @click="negative = !negative">
         Отрицательное

@@ -6,7 +6,7 @@
       :placeholder="placeholder"
       :help="help"
       :disabled="disabled"
-      @update:modelValue="handleUpdate"
+      @update:model-value="handleUpdate"
     />
     <div v-if="showPreview && preview" class="mt-2 p-2 bg-gray-100 rounded text-sm">
       <strong>Предпросмотр:</strong>

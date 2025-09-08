@@ -9,10 +9,10 @@
         mode="basic"
         name="import"
         :accept="accept"
-        :maxFileSize="maxFileSize"
+        :max-file-size="maxFileSize"
         @select="handleFileSelect"
         :auto="false"
-        chooseLabel="Выбрать файл"
+        choose-label="Выбрать файл"
       />
       
       <div v-if="selectedFile" class="file-info mt-4">

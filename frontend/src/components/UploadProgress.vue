@@ -1,10 +1,12 @@
 <template>
   <Toast :position="settings.progressPosition" group="upload-progress" :life="0" @close="handleClose">
     <template #container>
-      <section :class="[
+      <section
+:class="[
         'flex flex-col p-4 gap-4 w-full bg-primary/75 rounded-xl',
         settings.progressAnimations ? 'transition-all duration-300 ease-in-out' : ''
-      ]">
+      ]"
+>
         <div class="flex items-center gap-3">
           <i 
             :class="progressIcon" 
@@ -18,7 +20,7 @@
         <div class="flex flex-col gap-2">
           <ProgressBar 
             :value="progress.percent" 
-            :showValue="false" 
+            :show-value="false" 
             :style="{ height: '6px' }" 
             pt:value:class="!bg-primary-50" 
             class="!bg-primary/80"

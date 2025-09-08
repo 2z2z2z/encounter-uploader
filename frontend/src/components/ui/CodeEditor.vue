@@ -9,7 +9,7 @@
       :placeholder="placeholder"
       :disabled="disabled"
       :rows="rows"
-      :autoResize="autoResize"
+      :auto-resize="autoResize"
       class="w-full font-mono text-sm"
       @input="handleInput"
     />

@@ -1,14 +1,16 @@
 <template>
   <div>
-    <LevelUploadLayout title="100500 секторов и бонусов"
-      :showTitle="true"
-      :showPreview="false"
-      :containerClass="'container max-w-[120rem] mx-auto bg-white p-12 rounded-md shadow-sm'"
-      :showMeta="true"
-      :showBack="true"
-      :showCommonActions="true"
+    <LevelUploadLayout
+title="100500 секторов и бонусов"
+      :show-title="true"
+      :show-preview="false"
+      :container-class="'container max-w-[120rem] mx-auto bg-white p-12 rounded-md shadow-sm'"
+      :show-meta="true"
+      :show-back="true"
+      :show-common-actions="true"
       @back="$router.push('/settings')"
-      @clear="onClear" @export="() => (showExport = true)" @importChange="importData">
+      @clear="onClear" @export="() => (showExport = true)" @import-change="importData"
+>
       <template #controls>
         <!-- Tabs -->
         <div class="flex flex-wrap items-center gap-2 mt-0 mb-6 w-full">

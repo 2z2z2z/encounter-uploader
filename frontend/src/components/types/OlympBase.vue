@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<LevelUploadLayout :title="levelTypeLabel" :showPreview="true" :showTitle="true" :showMeta="true" :showBack="true" :showCommonActions="true" :containerClass="'container max-w-[120rem] mx-auto bg-white p-12 rounded-md shadow-sm'" @back="$router.push('/settings')" @clear="onClear" @export="() => (showExport = true)" @importChange="importData" @preview="() => (showPreview = true)">
+		<LevelUploadLayout :title="levelTypeLabel" :show-preview="true" :show-title="true" :show-meta="true" :show-back="true" :show-common-actions="true" :container-class="'container max-w-[120rem] mx-auto bg-white p-12 rounded-md shadow-sm'" @back="$router.push('/settings')" @clear="onClear" @export="() => (showExport = true)" @import-change="importData" @preview="() => (showPreview = true)">
 			<template #error>
 				<Message v-if="error" severity="error" :closable="false" class="mt-4">{{ error }}</Message>
 			</template>
@@ -11,8 +11,8 @@
 							id="sectorMode"
 							v-model="sectorMode"
 							:options="sectorModeOptions"
-							optionLabel="label"
-							optionValue="value"
+							option-label="label"
+							option-value="value"
 							placeholder="Выберите режим"
 							@change="applySectorMode"
 							fluid
@@ -28,32 +28,32 @@
 								v-model="quickTime.hours"
 								:min="0"
 								:step="1"
-								showButtons
+								show-buttons
 								suffix=" ч"
-								:minFractionDigits="0"
-								:maxFractionDigits="0"
+								:min-fraction-digits="0"
+								:max-fraction-digits="0"
 								class="z-w-5"
 							/>
 							<InputNumber
 								id="bonusMinutes"
 								v-model="quickTime.minutes"
 								:min="0"
-								showButtons
+								show-buttons
 								suffix=" м"
 								:step="1"
-								:minFractionDigits="0"
-								:maxFractionDigits="0"
+								:min-fraction-digits="0"
+								:max-fraction-digits="0"
 								class="z-w-5"
 							/>
 							<InputNumber
 								id="bonusSeconds"
 								v-model="quickTime.seconds"
 								:min="0"
-								showButtons
+								show-buttons
 								suffix=" с"
 								:step="1"
-								:minFractionDigits="0"
-								:maxFractionDigits="0"
+								:min-fraction-digits="0"
+								:max-fraction-digits="0"
 								class="z-w-5"
 							/>
 						</div>
@@ -65,7 +65,7 @@
 							v-model="quickTime.negative"
 							:binary="true"
 							class="cursor-pointer"
-							inputId="bonusNegativeCheckbox"
+							input-id="bonusNegativeCheckbox"
 							size="large"
 						/>
 						<label for="bonusNegative" class="text-sm text-surface-600 cursor-pointer">

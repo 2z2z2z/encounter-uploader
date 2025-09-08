@@ -3,10 +3,10 @@
     <TimeInput
       v-model="timeValue"
       :label="label"
-      :showNegative="showNegative"
+      :show-negative="showNegative"
       :disabled="disabled"
       :required="required"
-      @update:modelValue="handleUpdate"
+      @update:model-value="handleUpdate"
     />
     <div v-if="showApplyButton" class="mt-2">
       <BaseButton 

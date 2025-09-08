@@ -8,7 +8,7 @@
       <div class="mb-4">
         <RadioButton 
           v-model="selectionMode" 
-          inputId="all" 
+          input-id="all" 
           value="all"
         />
         <label for="all" class="ml-2 cursor-pointer">
@@ -19,7 +19,7 @@
       <div class="mb-4">
         <RadioButton 
           v-model="selectionMode" 
-          inputId="selected" 
+          input-id="selected" 
           value="selected"
         />
         <label for="selected" class="ml-2 cursor-pointer">
@@ -40,7 +40,7 @@
           <div v-for="level in availableLevels" :key="level.value" class="flex items-center">
             <Checkbox
               v-model="selectedLevels"
-              :inputId="`level-${level.value}`"
+              :input-id="`level-${level.value}`"
               :value="level.value"
               :disabled="level.value === currentLevel"
             />
