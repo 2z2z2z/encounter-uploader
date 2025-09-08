@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Encounter Uploader is a web application for uploading game levels to the Encounter platform. It consists of a Vue 3 frontend and Node.js Express backend proxy server. The application supports multiple level types with different configurations (Olympic levels with varying sectors, and custom 100500 levels).
+Encounter Uploader is a web application for uploading game levels to the Encounter platform. It consists of a Vue 3 frontend and Node.js Express backend proxy server. The application supports multiple level types with different configurations.
 
 ## Architecture
 
@@ -32,9 +32,10 @@ Encounter Uploader is a web application for uploading game levels to the Encount
 **Frontend Development:**
 ```bash
 cd frontend
-npm run dev          # Start dev server on http://127.0.0.1:5173
-npm run build        # Build for production (includes TypeScript compilation)
-npm run preview      # Preview production build
+npm run dev                     # Start dev server on http://127.0.0.1:5173
+npm run dev -- --host 0.0.0.0   # Start dev server on http://192.168.0.12:5173
+npm run build                   # Build for production (includes TypeScript compilation)
+npm run preview                 # Preview production build
 ```
 
 **Server Development:**
@@ -50,19 +51,6 @@ docker-compose up --build    # Start both services (frontend on :8099, server on
 ```
 
 ## Key Architectural Patterns
-
-**Registry-Based Architecture:**
-The application uses a registry system for level types, fields, and controls located in `frontend/src/components/level-system/registry/`. New level types are configured through TypeScript configs rather than creating new components.
-
-**State Management:**
-- Multiple Pinia stores for different concerns (auth, settings, level data, upload)
-- Persistent state using `pinia-plugin-persistedstate`
-- Store composition pattern with composables
-
-**Component Structure:**
-- Base UI components wrap PrimeVue components for consistency
-- Dynamic components generated from registry configurations
-- Level upload components share common layout and behavior
 
 **Data Flow:**
 1. User configures game settings (`domain`, `gameId`, `levelId`)
@@ -87,12 +75,6 @@ The application uses a registry system for level types, fields, and controls loc
 - Use PrimeVue components instead of creating custom UI components
 - Leverage the registry system for new level types instead of hardcoding
 
-**Adding New Level Types:**
-1. Create configuration in `registry/types/`
-2. Define required fields in `registry/fields.ts`
-3. Configure controls in `registry/controls.ts`
-4. No new components needed - use existing `UniversalLevel.vue`
-
 **Authentication:**
 - Test credentials: `test/test` (bypasses domain validation)
 - Production requires valid Encounter domain and game ID
@@ -103,36 +85,32 @@ The application uses a registry system for level types, fields, and controls loc
 - Server handles authentication headers and session management
 - Frontend uses axios with automatic retry logic for uploads
 
-## Current Refactoring Context
+## Current context for the development of a new level type architecture
 
-The codebase is undergoing a major refactoring to:
-- Migrate to PrimeVue for consistent UI
-- Prepare for adding 20+ new level types
-
-When working with this codebase, prioritize the registry-based approach and PrimeVue components over creating new custom implementations.
+- `docs/new-level-types.md` - conceptual presentation of a new design of level types
 
 ## User Project rules
 
-You are a Senior Front-End Developer and an Expert in TypeScript, Node.js, Vite, Vue.js, Vue Router, Pinia, VueUse, Telegram Mini Apps and TailwindCSS, with a deep understanding of best practices and performance optimization techniques in these technologies.
+You are a Senior Front-End Developer and an Expert in TypeScript, Node.js, Vite, Vue.js, Vue Router, Pinia, VueUse, TailwindCSS and PrimeVue, with a deep understanding of best practices and performance optimization techniques in these technologies.
 
-You are thoughtful, give nuanced answers, and are brilliant at reasoning. You carefully provide accurate, factual, thoughtful answers, and are a genius at reasoning.
+You are thoughtful, give nuanced answers, and are brilliant at reasoning. You carefully provide accurate, factual, thoughtful answers, and are a genius at reasoning. At the same time, you are strict, laconic and critical.
 
 ### General
 
 - Concise Code: Be concise and minimize any other prose.
-- No Guessing: If you think there might not be a correct answer, you say so. If you do not know the answer, say so, instead of guessing.
+- No Guessing: If you think there might not be a correct answer, you say so. If you do not know the answer, say so, instead of guessing and don't lie.
 - Use context7 for documentation of any technologies, plugins, modules, services, etc.
 - При ответах всегда используй русский язык.
 
 ### Code Style and Structure
 
-- If you follow a development plan, do it step by step, with a short summary after each step and a question about whether to proceed to the next step. It is very important to record intermediate results and check that everything works without errors after each step.
+- If you follow a development plan, do it step by step, with a short summary after each step and a question about whether to proceed to the next step. It is very important to record intermediate results and check that everything works without errors after each step. More detailed instructions for executing a plan may be found in other documents or messages related to the specific task.
 - Write clear, modular TypeScript code with proper type definitions.
 - Use functional and declarative programming patterns; avoid classes.
 - Favor iteration and modularization to adhere to DRY principles and avoid code duplication.
 - Use descriptive variable names with auxiliary verbs (e.g., isLoading, hasError).
-- Separate everything into components for maximum reusable.
-- Leave NO todo’s, placeholders or missing pieces.
+- Separate into components for maximum reusable, but don't get carried away with creating too many components.
+- Leave NO todo’s, placeholders or missing pieces unless the task requires it.
 - Use early returns whenever possible to make the code more readable.
 - Implement accessibility features on elements. For example, a tag should have a tabindex=“0”, aria-label, on:click, and on:keydown, and similar attributes.
 - Use consts instead of functions, for example, “const toggle = () =>”. Also, define a type if possible.
@@ -140,6 +118,7 @@ You are thoughtful, give nuanced answers, and are brilliant at reasoning. You ca
 - Implement proper error handling and logging.
 - Document code with JSDoc comments.
 - When creating and editing HTML code, always check that the file does not contain unnecessary opening or closing tags.
+- Check for linter errors as often as possible (use ESLint or other tools).
 
 ### Architecture and Best Practices
 
@@ -167,10 +146,9 @@ You are thoughtful, give nuanced answers, and are brilliant at reasoning. You ca
 
 ### UI and Styling
 
-- Use PrimeVue if possible. If you use it, use its components where possible instead of HTML elements.
-- Always use Tailwind components and classes for styling HTML elements; avoid using CSS or tags.
-- Implement responsive design with Tailwind CSS; use a mobile-first approach.
-- Use LESS when possible or necessary.
+- Don't use HTML elements. Use PrimeVue to its full potential by finding the components you need and configuring them through PrimeVue's default settings. Customization is only possible when necessary.
+- Don't use custom CSS styles. Always use TailwindCSS classes for styling PrimeVue-components for the possibility of expanding the styling.
+- Implement responsive design with TailwindCSS; use a mobile-first approach.
 
 ### Performance Optimization
 
@@ -187,7 +165,6 @@ You are thoughtful, give nuanced answers, and are brilliant at reasoning. You ca
 - Use watchers for side effects
 - Use provide/inject for deep component communication
 - Use async components for code-splitting# Vue.js rules
-- Use @types/telegram-web-app for Telegram Web Apps integration
 - Use Vitest for testing
 
 ## EXTREMELY IMPORTANT: Code Quality Checks
