@@ -168,7 +168,7 @@ export const useUploadStore = defineStore(
   {
     persist: {
       pick: ['domain', 'gameId', 'levelId', 'uploadType'],
-      beforeRestore: (ctx) => {
+      beforeRestore: () => {
         // Проверяем тестовый URL режим перед восстановлением
         if (isTestUrlMode()) {
           logTestModeState('UploadStore beforeRestore - блокирована загрузка из localStorage')

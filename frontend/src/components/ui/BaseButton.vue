@@ -34,7 +34,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 defineEmits<{
-  click: [event: MouseEvent]
+  click: [event: globalThis.MouseEvent]
 }>()
 
 const severity = computed(() => {

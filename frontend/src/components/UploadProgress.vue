@@ -316,7 +316,7 @@ watch(() => progress.visible, (visible) => {
 watch(() => [progress.current, progress.total, progress.hasErrors, progress.successCount, progress.errorCount], ([current, total, hasErrors, successCount, errorCount]) => {
   if (current >= total && total > 0 && progress.visible) {
     // Через небольшую задержку показываем уведомление о завершении
-    setTimeout(() => {
+    globalThis.setTimeout(() => {
       const typeNames = {
         'task': 'Задание',
         'sector': 'Секторы', 

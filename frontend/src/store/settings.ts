@@ -29,7 +29,7 @@ export const useSettingsStore = defineStore(
         'progressPosition',
         'progressAnimations',
       ],
-      beforeRestore: (ctx) => {
+      beforeRestore: () => {
         // Проверяем тестовый URL режим перед восстановлением
         if (isTestUrlMode()) {
           logTestModeState('SettingsStore beforeRestore - блокирована загрузка из localStorage')

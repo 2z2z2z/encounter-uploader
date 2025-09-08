@@ -85,7 +85,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
-  'import': [file: File]
+  'import': [file: globalThis.File]
 }>()
 
 const visible = computed({
@@ -93,12 +93,12 @@ const visible = computed({
   set: (value: boolean) => emit('update:modelValue', value)
 })
 
-const selectedFile = ref<File | null>(null)
+const selectedFile = ref<globalThis.File | null>(null)
 const error = ref('')
 const validationResult = ref<ValidationResult | null>(null)
 const importing = ref(false)
 
-function handleFileSelect(event: any) {
+function handleFileSelect(event: Record<string, unknown>) {
   const file = event.files[0]
   if (file) {
     selectedFile.value = file
@@ -108,7 +108,7 @@ function handleFileSelect(event: any) {
   }
 }
 
-async function validateFile(_file: File) {
+async function validateFile(_file: globalThis.File) {
   // Здесь будет вызов composable для валидации
   // Пока заглушка
   validationResult.value = {
@@ -124,7 +124,7 @@ async function handleImport() {
   emit('import', selectedFile.value)
   
   // Закрываем модалку после импорта
-  setTimeout(() => {
+  globalThis.setTimeout(() => {
     importing.value = false
     visible.value = false
     resetState()

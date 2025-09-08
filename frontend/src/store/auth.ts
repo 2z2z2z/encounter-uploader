@@ -7,7 +7,7 @@ import { isTestUrlMode, logTestModeState } from '../utils/testMode'
 export const useAuthStore = defineStore(
   'auth',
   () => {
-    const { isTestUrlMode } = useTestUrlMode()
+    useTestUrlMode() // для побочных эффектов
     const username = ref('')
     const password = ref('')
     const loggedIn = ref(false)
@@ -36,8 +36,8 @@ export const useAuthStore = defineStore(
           { withCredentials: true }
         )
         loggedIn.value = true
-      } catch (err: any) {
-        error.value = err.response?.data || err.message
+      } catch (err: unknown) {
+        error.value = (err as { response?: { data: string }, message: string }).response?.data || (err as Error).message
         loggedIn.value = false
       }
     }
@@ -54,7 +54,7 @@ export const useAuthStore = defineStore(
   },
   {
     persist: {
-      beforeRestore: (ctx) => {
+      beforeRestore: () => {
         // Проверяем тестовый URL режим перед восстановлением
         if (isTestUrlMode()) {
           logTestModeState('AuthStore beforeRestore - блокирована загрузка из localStorage')

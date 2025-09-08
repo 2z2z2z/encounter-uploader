@@ -804,10 +804,10 @@ function removeRow(row: Row) {
   t.rows.forEach((r, i) => (r.number = i + 1))
 }
 
-function importData(e: Event) {
+function importData(e: globalThis.Event) {
   const file = (e.target as HTMLInputElement).files?.[0]
   if (!file) return
-  const reader = new FileReader()
+  const reader = new globalThis.FileReader()
   reader.onload = () => {
     try {
       const text = String(reader.result || '')

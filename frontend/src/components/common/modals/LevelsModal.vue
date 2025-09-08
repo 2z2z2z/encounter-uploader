@@ -155,7 +155,7 @@ async function loadAvailableLevels() {
   try {
     // Здесь будет вызов API для получения списка уровней
     // Пока используем заглушку
-    await new Promise(resolve => setTimeout(resolve, 500))
+    await new Promise(resolve => globalThis.setTimeout(resolve, 500))
     
     // Генерируем тестовые уровни
     availableLevels.value = Array.from({ length: 20 }, (_, i) => ({
@@ -167,7 +167,7 @@ async function loadAvailableLevels() {
     if (!selectedLevels.value.includes(props.currentLevel)) {
       selectedLevels.value.push(props.currentLevel)
     }
-  } catch (err) {
+  } catch (_err) {
     error.value = 'Не удалось загрузить список уровней'
   } finally {
     loading.value = false

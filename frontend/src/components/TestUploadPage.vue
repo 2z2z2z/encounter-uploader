@@ -127,7 +127,7 @@ const debugInfo = computed(() => {
       localStorageInfo.available = true
       localStorageInfo.keys = Object.keys(localStorage).sort()
     }
-  } catch (e) {
+  } catch (_e) {
     // localStorage может быть недоступен в приватном режиме
   }
   
@@ -139,22 +139,22 @@ const debugInfo = computed(() => {
   }
   
   try {
-    sessionInfo.sessionStorage = typeof Storage !== 'undefined' && !!sessionStorage
-  } catch (e) {
+    sessionInfo.sessionStorage = typeof Storage !== 'undefined' && !!globalThis.sessionStorage
+  } catch (_e) {
     // sessionStorage может быть недоступен
   }
   
   try {
-    sessionInfo.cookiesEnabled = navigator.cookieEnabled
+    sessionInfo.cookiesEnabled = globalThis.navigator.cookieEnabled
     sessionInfo.documentCookies = document.cookie ? document.cookie.split(';').map(c => c.trim()) : []
-  } catch (e) {
+  } catch (_e) {
     // cookies могут быть недоступны
   }
   
   return {
     testMode: isTestUrlMode(),
     currentPath: window.location.pathname,
-    userAgent: navigator.userAgent,
+    userAgent: globalThis.navigator.userAgent,
     localStorage: localStorageInfo,
     session: sessionInfo,
     stores: {

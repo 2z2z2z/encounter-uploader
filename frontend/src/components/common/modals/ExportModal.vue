@@ -64,7 +64,7 @@ async function handleExport(format: 'json' | 'csv') {
   emit('export', format)
   
   // Даем время на завершение экспорта
-  setTimeout(() => {
+  globalThis.setTimeout(() => {
     exporting.value = null
     visible.value = false
   }, 500)

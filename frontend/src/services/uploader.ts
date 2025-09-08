@@ -19,7 +19,7 @@ async function sleep(ms: number): Promise<void> {
     await progress.waitForResume()
   }
   
-  return new Promise((resolve) => setTimeout(resolve, ms))
+  return new Promise((resolve) => globalThis.setTimeout(resolve, ms))
 }
 
 /**
@@ -91,8 +91,8 @@ export interface Answer {
 }
 
 // ==== БИЛДЕРЫ PAYLOAD ====
-export function buildTaskPayload(domain: string, gid: string | number, level: string | number, html: string): URLSearchParams {
-  const params = new URLSearchParams()
+export function buildTaskPayload(domain: string, gid: string | number, level: string | number, html: string): globalThis.URLSearchParams {
+  const params = new globalThis.URLSearchParams()
   params.append('domain', domain)
   params.append('gid', String(gid))
   params.append('level', String(level))
@@ -106,8 +106,8 @@ export function buildSectorPayload(
   level: string | number,
   variants: string[],
   sectorName = ''
-): URLSearchParams {
-  const params = new URLSearchParams()
+): globalThis.URLSearchParams {
+  const params = new globalThis.URLSearchParams()
   params.append('domain', domain)
   params.append('gid', String(gid))
   params.append('level', String(level))
@@ -124,8 +124,8 @@ export function buildBonusPayload(
   base: { domain: string; gid: string | number; level: string | number },
   bonus: Answer,
   levelLabelToName: Record<string, string>
-): URLSearchParams {
-  const params = new URLSearchParams()
+): globalThis.URLSearchParams {
+  const params = new globalThis.URLSearchParams()
   params.append('domain', base.domain)
   params.append('gid', String(base.gid))
   params.append('level', String(base.level))

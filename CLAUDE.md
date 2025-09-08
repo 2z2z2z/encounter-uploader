@@ -32,7 +32,6 @@ Encounter Uploader is a web application for uploading game levels to the Encount
 **Frontend Development:**
 ```bash
 cd frontend
-npm run dev                     # Start dev server on http://127.0.0.1:5173
 npm run dev -- --host 0.0.0.0   # Start dev server on http://192.168.0.12:5173
 npm run build                   # Build for production (includes TypeScript compilation)
 npm run preview                 # Preview production build
@@ -174,6 +173,7 @@ You are thoughtful, give nuanced answers, and are brilliant at reasoning. You ca
 Automatically use the IDE's built-in diagnostics tool to check for linting and type errors:
 
 - Run `mcp__ide__getDiagnostics` to check all files for diagnostics
+- Run ESLitne to check all files for diagnostics
 - Fix any linting or type errors before considering the task complete
 - Do this for any file you create or modify
 

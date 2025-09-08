@@ -135,7 +135,7 @@ async function fetchGamesList() {
 /**
  * onLevelIdInput — оставляет в поле только цифры и проверяет непустоту.
  */
-function onLevelIdInput(event: Event) {
+function onLevelIdInput(event: globalThis.Event) {
   const input = event.target as HTMLInputElement
   const raw = input.value
   // Оставляем только цифры
@@ -188,12 +188,12 @@ async function onContinue() {
       }
       const { ActiveGames = [], ComingGames = [] } = res.data
       const all = [...ActiveGames, ...ComingGames]
-      if (!all.some((g: any) => String(g.GameID) === String(store.gameId))) {
+      if (!all.some((g: Record<string, unknown>) => String(g.GameID) === String(store.gameId))) {
         error.value = 'Игра с указанным ID не найдена на этом домене.'
         return
       }
-    } catch (e: any) {
-      error.value = `Ошибка при проверке домена/игры: ${e.message}`
+    } catch (e: unknown) {
+      error.value = `Ошибка при проверке домена/игры: ${e instanceof Error ? e.message : String(e)}`
       return
     }
   }

@@ -6,13 +6,13 @@
     </label>
     <InputText
       :id="inputId"
-      v-model="modelValue"
+:value="modelValue"
       :type="type"
       :placeholder="placeholder"
       :disabled="disabled"
       :invalid="!!error"
       :class="inputClass"
-      @input="handleInput"
+@input="handleInput"
       @blur="$emit('blur', $event)"
       @focus="$emit('focus', $event)"
     />
@@ -46,8 +46,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
-  'blur': [event: FocusEvent]
-  'focus': [event: FocusEvent]
+  'blur': [event: globalThis.FocusEvent]
+  'focus': [event: globalThis.FocusEvent]
 }>()
 
 const inputId = ref(`input-${Math.random().toString(36).substr(2, 9)}`)
@@ -57,8 +57,8 @@ const inputClass = computed(() => {
   return classes.join(' ')
 })
 
-function handleInput(event: Event) {
-  const target = event.target as HTMLInputElement
+function handleInput(event: globalThis.Event) {
+  const target = event.target as globalThis.HTMLInputElement
   emit('update:modelValue', target.value)
 }
 </script>

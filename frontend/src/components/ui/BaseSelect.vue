@@ -6,7 +6,7 @@
     </label>
     <Select
       :id="selectId"
-      v-model="modelValue"
+      :model-value="modelValue"
       :options="options"
       :option-label="optionLabel"
       :option-value="optionValue"
@@ -16,7 +16,7 @@
       :show-clear="showClear"
       :filter="filter"
       :class="selectClass"
-      @change="handleChange"
+      @update:model-value="(value) => $emit('update:modelValue', value)"
     />
     <small v-if="error" class="text-red-500 text-xs mt-1 block">{{ error }}</small>
     <small v-else-if="help" class="text-gray-500 text-xs mt-1 block">{{ help }}</small>
@@ -65,10 +65,6 @@ const selectClass = computed(() => {
   return classes.join(' ')
 })
 
-function handleChange(event: any) {
-  emit('update:modelValue', event.value)
-  emit('change', event)
-}
 </script>
 
 <style scoped>

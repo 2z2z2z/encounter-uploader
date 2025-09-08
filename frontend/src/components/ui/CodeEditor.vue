@@ -5,13 +5,13 @@
       <span v-if="required" class="text-red-500">*</span>
     </label>
     <Textarea
-      v-model="modelValue"
+:model-value="modelValue"
       :placeholder="placeholder"
       :disabled="disabled"
       :rows="rows"
       :auto-resize="autoResize"
       class="w-full font-mono text-sm"
-      @input="handleInput"
+@input="handleInput" @update:model-value="(value: string) => $emit('update:modelValue', value)"
     />
     <small v-if="error" class="text-red-500 text-xs mt-1 block">{{ error }}</small>
     <small v-else-if="help" class="text-gray-500 text-xs mt-1 block">{{ help }}</small>
@@ -44,8 +44,8 @@ const emit = defineEmits<{
   'update:modelValue': [value: string]
 }>()
 
-function handleInput(event: Event) {
-  const target = event.target as HTMLTextAreaElement
+function handleInput(event: globalThis.Event) {
+  const target = event.target as globalThis.HTMLTextAreaElement
   emit('update:modelValue', target.value)
 }
 </script>
