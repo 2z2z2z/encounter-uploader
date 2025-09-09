@@ -55,12 +55,12 @@
 4. **LevelFooter** - "подвал" с кнопками. Разделено на 3 части: левая, центральная, правая.
 
 Логическое содержание общего шаблона страницы загрузки:
-<LevelUploadLayout>
+<LevelUploadPage>
 <LevelHeader />
 <LevelControlPanel />
 <LevelContent />
 <LevelFooter />
-</LevelUploadLayout>
+</LevelUploadPage>
 
 Каждый слот имеет свою представление и разметку (обертку).
 
