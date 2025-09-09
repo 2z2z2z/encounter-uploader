@@ -16,7 +16,20 @@ import { useLevelV2Store } from '../store'
 
 const store = useLevelV2Store()
 
-const title = computed(() => store.levelType || 'Новая архитектура v2')
+// Формирование заголовка с учетом типа и подтипа
+const title = computed(() => {
+	if (!store.levelType) return 'Новая архитектура v2'
+	
+	const baseTitle = store.levelType === 'olymp' ? 'Олимпийка' : '100500 секторов и бонусов'
+	
+	// Добавляем информацию о подтипе для Олимпийки
+	if (store.levelType === 'olymp' && store.subtypeId) {
+		const dimensionText = store.dimension ? ` (${store.dimension})` : ''
+		return `${baseTitle}${dimensionText}`
+	}
+	
+	return baseTitle
+})
 </script>
 
 
