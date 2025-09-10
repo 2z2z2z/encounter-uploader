@@ -1,49 +1,44 @@
 <template>
-  <div class="level-upload-page min-h-screen bg-surface-0 p-6">
-    <!-- Шаг 4: Базовая информация для тестирования роутинга -->
-    <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-6">
-      <h1 class="text-2xl font-bold text-blue-800 mb-2">
-        🚀 Новая архитектура level-system-v2
-      </h1>
-      <div class="text-blue-700">
-        <p><strong>Тип уровня:</strong> {{ typeId }}</p>
-        <p v-if="subtype"><strong>Подтип:</strong> {{ subtype }} секторов</p>
-        <p><strong>URL параметр:</strong> {{ levelType }}</p>
-        <p><strong>Store ID:</strong> {{ storeId }}</p>
-      </div>
-    </div>
+  <div class="min-h-screen flex items-center justify-center bg-surface-50 p-4">
+    <div class="w-full max-w-[1920px]">
+      <Card>
+        <template #content>
+          <!-- Слот 1: LevelHeader - шапка с названием и мета-данными -->
+          <LevelHeader :type-id="typeId" :subtype="subtype" />
 
-    <!-- TODO Шаг 5: LevelHeader - шапка с названием и мета-данными -->
-    <div class="bg-gray-50 p-4 rounded border-2 border-dashed border-gray-300 mb-4">
-      <p class="text-gray-600">📋 LevelHeader (Шаг 6)</p>
-    </div>
+          <!-- Слот 2: LevelTabs - блоки/табы (новый слот) -->  
+          <LevelTabs />
 
-    <!-- TODO Шаг 7: LevelTabs - блоки/табы -->
-    <div class="bg-gray-50 p-4 rounded border-2 border-dashed border-gray-300 mb-4">
-      <p class="text-gray-600">📑 LevelTabs (Шаг 7)</p>
-    </div>
+          <!-- Слот 3: LevelControlPanel - контрол-панель -->
+          <div class="flex flex-wrap justify-between items-end gap-x-8 gap-y-10 mt-8 mb-6 rounded-2xl bg-violet-50 py-10 px-5">
+            <LevelControlPanel />
+          </div>
 
-    <!-- TODO Шаг 18: LevelControlPanel - контрол-панель -->
-    <div class="bg-gray-50 p-4 rounded border-2 border-dashed border-gray-300 mb-4">
-      <p class="text-gray-600">🎛️ LevelControlPanel (Шаг 18)</p>
-    </div>
+          <!-- Слот 4: LevelContent - таблица с данными -->
+          <LevelContent />
 
-    <!-- TODO Шаг 13: LevelContent - таблица с данными -->
-    <div class="bg-gray-50 p-4 rounded border-2 border-dashed border-gray-300 mb-4">
-      <p class="text-gray-600">📊 LevelContent (Шаг 13)</p>
-    </div>
-
-    <!-- TODO Шаг 22: LevelFooter - подвал с кнопками -->
-    <div class="bg-gray-50 p-4 rounded border-2 border-dashed border-gray-300">
-      <p class="text-gray-600">🔘 LevelFooter (Шаг 22)</p>
+          <!-- Слот 5: LevelFooter - подвал с кнопками -->
+          <LevelFooter />
+        </template>
+      </Card>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useLevelV2Store } from '../store'
+
+// PrimeVue components
+import Card from 'primevue/card'
+
+// Level system v2 components
+import LevelHeader from './LevelHeader.vue'
+import LevelTabs from './LevelTabs.vue'
+import LevelControlPanel from './LevelControlPanel.vue'
+import LevelContent from './LevelContent.vue'
+import LevelFooter from './LevelFooter.vue'
 
 const route = useRoute()
 const levelV2Store = useLevelV2Store()
@@ -76,9 +71,15 @@ const subtype = computed(() => {
 })
 
 /**
- * ID store для демонстрации изоляции
+ * Инициализация store при монтировании компонента
  */
-const storeId = computed(() => levelV2Store.$id)
+onMounted(() => {
+  // Устанавливаем тип уровня и подтип в store
+  if (typeId.value && typeId.value !== levelV2Store.levelType) {
+    // TODO: Здесь будет логика инициализации типа уровня через configs
+    // levelV2Store.setLevelType(typeId.value, subtype.value)
+  }
+})
 </script>
 
 
