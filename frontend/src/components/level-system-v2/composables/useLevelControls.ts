@@ -6,7 +6,7 @@
 import { useLevelV2Store } from '../store'
 
 export function useLevelControls() {
-	const store = useLevelV2Store()
+	const _store = useLevelV2Store()
 	
 	// Функции управления контролами
 	function applyControl(controlId: string, value: unknown) {

@@ -13,7 +13,7 @@
  */
 import { useLevelV2Store } from '../store'
 
-const store = useLevelV2Store()
+const _store = useLevelV2Store()
 
 // Логика контрол-панели будет добавлена в Шаге 18
 </script>

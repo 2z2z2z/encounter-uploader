@@ -15,7 +15,7 @@
  */
 import { useLevelV2Store } from '../store'
 
-const store = useLevelV2Store()
+const _store = useLevelV2Store()
 
 // Логика кнопок будет добавлена в Шаге 22
 </script>

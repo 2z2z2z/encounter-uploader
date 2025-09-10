@@ -6,7 +6,7 @@
 import { useLevelV2Store } from '../store'
 
 export function useLevelPayloads() {
-	const store = useLevelV2Store()
+	const _store = useLevelV2Store()
 	
 	// Функции для пейлоадов
 	async function uploadTask() {

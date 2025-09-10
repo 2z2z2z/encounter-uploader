@@ -7,7 +7,7 @@ import { computed } from 'vue'
 import { useLevelV2Store } from '../store'
 
 export function useLevelFields() {
-	const store = useLevelV2Store()
+	const _store = useLevelV2Store()
 	
 	// Вычисляемые свойства для полей
 	const fields = computed(() => {
