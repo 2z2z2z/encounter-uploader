@@ -78,7 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, ref } from 'vue'
+import { ref } from 'vue'
 import { useUploadStore } from '../store'
 import { useAuthStore } from '../store/auth'
 import Card from 'primevue/card'

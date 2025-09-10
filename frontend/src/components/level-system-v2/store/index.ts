@@ -332,21 +332,27 @@ export const useLevelV2Store = defineStore('level-v2', () => {
 	/**
 	 * Применяет настройку ко всем ответам в активном табе
 	 */
-	function applyToAllInActiveTab(field: keyof Answer, value: unknown): void {
+	function applyToAllInActiveTab<K extends keyof Answer>(field: K, value: Answer[K]): void {
 		const tab = activeTab.value
 		if (!tab) return
 		
 		tab.answers.forEach(answer => {
-			(answer as any)[field] = value
+			answer[field] = value
 		})
 		
 		isDirty.value = true
 	}
 	
 	/**
-	 * Устанавливает размерность для Олимпийки
+	 * Устанавливает размерность (только для типов уровней с подтипами)
 	 */
 	function setDimension(newDimension: number): void {
+		// Проверяем, что тип уровня поддерживает подтипы
+		if (!subtypeId.value) {
+			console.warn('[LevelV2Store] setDimension called for level type without subtypes')
+			return
+		}
+		
 		dimension.value = newDimension
 		const tab = activeTab.value
 		if (!tab) return
@@ -436,7 +442,8 @@ export const useLevelV2Store = defineStore('level-v2', () => {
 			tabs.value = data.tabs || [createDefaultTab()]
 			config.value = data.config || {
 				sectorMode: 'all',
-				bonusTime: { hours: 0, minutes: 0, seconds: 0, negative: false }
+				bonusTime: { hours: 0, minutes: 0, seconds: 0, negative: false },
+				closedPattern: ''
 			}
 			
 			// Проверяем валидность активного таба
