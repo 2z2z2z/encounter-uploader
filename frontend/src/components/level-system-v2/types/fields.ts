@@ -11,8 +11,8 @@ export type FieldId =
 	| 'bonusTime'       // Бонусное время
 	| 'delay'           // Задержка
 	| 'limit'           // Ограничение
-	| 'closedSector'    // Закрытый сектор
-	| 'openSector'      // Открытый сектор
+	| 'closedText'      // Закрытый сектор
+	| 'displayText'     // Открытый сектор
 	| 'sectorName'      // Название сектора
 	| 'bonusName'       // Название бонуса
 	| 'bonusTask'       // Бонусное задание
@@ -61,8 +61,8 @@ export interface Answer {
 	sector: boolean               // Участвует в секторе
 	bonus: boolean                // Участвует в бонусе
 	bonusTime: TimeValue          // Бонусное время
-	closedSector: string          // Закрытый сектор (текст или URL картинки)
-	openSector: string            // Открытый сектор (отображение после ввода)
+	closedText: string            // Закрытый сектор (текст или URL картинки)
+	displayText: string           // Открытый сектор (отображение после ввода)
 	bonusLevels?: string[]        // Уровни для бонуса
 	delay?: TimeValue             // Задержка
 	limit?: TimeValue             // Ограничение

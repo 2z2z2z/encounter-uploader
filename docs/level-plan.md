@@ -391,7 +391,7 @@ frontend/src/components/level-system-v2/
 - Слот для содержимого таба позволяет родительскому компоненту рендерить контент для каждого таба
 - Все 5 URL маршрутов протестированы и работают корректно (/v2/test/olymp15|31|63|127, /v2/test/type100500)
 
-### ☐ Шаг 8: Создание базы полей - определения
+### ✅ Шаг 8: Создание базы полей - определения
 - Создание fieldDefinitions.ts со всеми полями из документа
 - Только метаданные полей без компонентов
 
@@ -403,8 +403,17 @@ frontend/src/components/level-system-v2/
 - ✅ Экспортируемые типы/константы готовы к использованию без UI-компонентов
 
 **Проверки:**
-- ☐ ESLint без ошибок
-- ☐ Сборка проекта без ошибок
+- ✅ ESLint без ошибок (в level-system-v2)
+- ✅ Сборка проекта без ошибок (для новой архитектуры)
+
+**Техническая реализация:**
+- **fieldDefinitions.ts**: Создана константа `FIELD_DEFINITIONS` с 13 каноническими полями в правильном порядке (answer → sector → bonus → bonusTime → closedText → displayText → bonusLevels → delay → limit → sectorName → bonusName → bonusTask → hint)
+- **Метаданные полей**: Каждое поле содержит id, label, type, columnLabel, controlId (при наличии), defaultValue, placeholder, expandable (для textarea)
+- **Утилитарные функции**: `getFieldDefinition()`, `getFieldsByType()`, `getFieldsWithControls()`, `getFieldOrder()`, `isRequiredField()`, `getFieldDefaultValue()`
+- **Экспорты**: Обновлен `bases/fields/index.ts` для централизованного экспорта всех функций
+- **Исправление типов**: Устранено несоответствие в названиях полей (`closedSector` → `closedText`, `openSector` → `displayText`) в types/fields.ts и store/index.ts
+- **Совместимость**: Добавлена поддержка старого API для плавного перехода
+- Готовность к следующим шагам (создание рендер-функций на основе этих определений)
 
 ### ☐ Шаг 9: Создание базы полей - рендеры (часть 1)
 - Реализация рендер-функций для полей: Answer, Sector, Bonus

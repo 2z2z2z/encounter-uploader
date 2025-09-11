@@ -11,11 +11,10 @@
  * Компонент таблицы контента
  * Будет реализовано в Шаге 13
  */
-import { useLevelV2Store } from '../store'
-
-const _store = useLevelV2Store()
+// import { useLevelV2Store } from '../store'
 
 // Логика таблицы будет добавлена в Шаге 13
+// const store = useLevelV2Store()
 </script>
 
 

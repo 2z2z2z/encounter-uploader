@@ -11,11 +11,10 @@
  * Компонент контрол-панели
  * Будет реализовано в Шаге 18
  */
-import { useLevelV2Store } from '../store'
-
-const _store = useLevelV2Store()
+// import { useLevelV2Store } from '../store'
 
 // Логика контрол-панели будет добавлена в Шаге 18
+// const store = useLevelV2Store()
 </script>
 
 

@@ -13,11 +13,10 @@
  * Компонент подвала с кнопками
  * Будет реализовано в Шаге 22
  */
-import { useLevelV2Store } from '../store'
-
-const _store = useLevelV2Store()
+// import { useLevelV2Store } from '../store'
 
 // Логика кнопок будет добавлена в Шаге 22
+// const store = useLevelV2Store()
 </script>
 
 

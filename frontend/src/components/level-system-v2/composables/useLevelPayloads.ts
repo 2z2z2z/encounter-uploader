@@ -3,10 +3,10 @@
  * Будет реализовано при необходимости
  */
 
-import { useLevelV2Store } from '../store'
+// import { useLevelV2Store } from '../store'
 
 export function useLevelPayloads() {
-	const _store = useLevelV2Store()
+	// const store = useLevelV2Store()
 	
 	// Функции для пейлоадов
 	async function uploadTask() {
