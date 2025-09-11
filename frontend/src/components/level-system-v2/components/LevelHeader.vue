@@ -6,10 +6,11 @@
 
 <script setup lang="ts">
 /**
- * Компонент шапки страницы загрузки
- * Принимает данные роута как props
+ * Компонент шапки страницы загрузки (универсальная логика)
+ * Получает название из конфигов типа уровня
  */
 import { computed } from 'vue'
+import { getLevelTypeConfig, getSubtypeConfig } from '../configs'
 
 interface Props {
   typeId: string
@@ -18,12 +19,22 @@ interface Props {
 
 const props = defineProps<Props>()
 
-// Формирование заголовка с учетом типа и подтипа
+// Универсальное формирование заголовка через конфиги
 const title = computed(() => {
-  const baseTitle = props.typeId === 'olymp' ? 'Олимпийка' : '100500 секторов и бонусов'
+  const config = getLevelTypeConfig(props.typeId)
+  if (!config) {
+    return 'Неизвестный тип уровня'
+  }
   
-  // Добавляем информацию о подтипе для Олимпийки
-  if (props.typeId === 'olymp' && props.subtype) {
+  const baseTitle = config.name
+  
+  // Добавляем информацию о подтипе если он есть
+  if (props.subtype && config.subtypes) {
+    const subtypeConfig = getSubtypeConfig(props.typeId, props.subtype)
+    if (subtypeConfig) {
+      return `${baseTitle} - ${subtypeConfig.name}`
+    }
+    // Fallback если подтип не найден в конфиге
     return `${baseTitle} (${props.subtype})`
   }
   

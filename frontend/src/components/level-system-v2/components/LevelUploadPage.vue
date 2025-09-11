@@ -29,6 +29,7 @@
 import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useLevelV2Store } from '../store'
+import { parseRouteParams } from '../configs'
 
 // PrimeVue components
 import Card from 'primevue/card'
@@ -49,35 +50,34 @@ const levelV2Store = useLevelV2Store()
 const levelType = computed(() => route.params.levelType as string)
 
 /**
- * Парсинг levelType на typeId и subtype
- * olymp15 -> typeId: 'olymp', subtype: '15'
- * type100500 -> typeId: 'type100500', subtype: undefined
+ * Универсальный парсинг levelType через реестр конфигов
+ * Работает с любыми зарегистрированными типами и подтипами
  */
-const typeId = computed(() => {
-  if (levelType.value?.startsWith('olymp')) {
-    return 'olymp'
+const parsedRoute = computed(() => {
+  if (!levelType.value) {
+    return { typeId: undefined }
   }
-  if (levelType.value === 'type100500') {
-    return 'type100500'
-  }
-  return levelType.value
+  return parseRouteParams(levelType.value)
 })
 
-const subtype = computed(() => {
-  if (levelType.value?.startsWith('olymp')) {
-    return levelType.value.replace('olymp', '')
-  }
-  return undefined
-})
+const typeId = computed(() => parsedRoute.value.typeId)
+const subtype = computed(() => parsedRoute.value.subtypeId)
+const config = computed(() => parsedRoute.value.config)
+const subtypeConfig = computed(() => parsedRoute.value.subtypeConfig)
 
 /**
- * Инициализация store при монтировании компонента
+ * Инициализация store при монтировании компонента (универсальная логика)
  */
 onMounted(() => {
-  // Устанавливаем тип уровня и подтип в store
-  if (typeId.value && typeId.value !== levelV2Store.levelType) {
-    // TODO: Здесь будет логика инициализации типа уровня через configs
-    // levelV2Store.setLevelType(typeId.value, subtype.value)
+  // Инициализируем store если удалось распарсить роут
+  if (typeId.value && config.value) {
+    levelV2Store.initializeLevelType(
+      typeId.value as any,  // TODO: типизация будет исправлена в следующих шагах
+      subtypeConfig.value || subtype.value,
+      true // загружать из localStorage
+    )
+  } else {
+    console.error(`[LevelUploadPage] Unknown route parameter: ${levelType.value}`)
   }
 })
 </script>

@@ -53,8 +53,6 @@ export interface TimeValue {
  * Структура ответа (строка в таблице контента)
  * 
  * Представляет одну строку в таблице LevelContent.
- * Обязательные поля используются в Олимпийке,
- * опциональные - только в 100500
  */
 export interface Answer {
 	id: string                    // Уникальный ID ответа
@@ -65,8 +63,6 @@ export interface Answer {
 	bonusTime: TimeValue          // Бонусное время
 	closedSector: string          // Закрытый сектор (текст или URL картинки)
 	openSector: string            // Открытый сектор (отображение после ввода)
-	
-	// Поля для type100500
 	bonusLevels?: string[]        // Уровни для бонуса
 	delay?: TimeValue             // Задержка
 	limit?: TimeValue             // Ограничение

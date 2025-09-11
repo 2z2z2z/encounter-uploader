@@ -1,24 +1,105 @@
 /**
- * Реестр типов уровней
- * Будет реализовано в Шаге 27
+ * Реестр типов уровней - универсальная система без хардкода конкретных типов
  */
 
-import type { LevelTypeConfig } from '../types'
+import type { LevelTypeConfig, LevelSubtype } from '../types'
 
 // Мапа конфигов типов уровней
 const levelTypeConfigs: Map<string, LevelTypeConfig> = new Map()
 
-// Функция регистрации типа уровня
+/**
+ * Регистрирует тип уровня в реестре
+ */
 export function registerLevelType(config: LevelTypeConfig): void {
 	levelTypeConfigs.set(config.id, config)
 }
 
-// Функция получения конфига по ID
+/**
+ * Получает конфиг типа уровня по ID
+ */
 export function getLevelTypeConfig(typeId: string): LevelTypeConfig | undefined {
 	return levelTypeConfigs.get(typeId)
 }
 
-// Экспорт конфигов (будут заполнены в Шагах 26, 29)
+/**
+ * Получает все зарегистрированные типы уровней (проверить являются ли функции полными или требуется доработка, например на шагах 26, 29)
+ */
+export function getAllLevelTypes(): LevelTypeConfig[] {
+	return Array.from(levelTypeConfigs.values())
+}
+
+/**
+ * Получает конфиг подтипа
+ */
+export function getSubtypeConfig(typeId: string, subtypeId: string): LevelSubtype | undefined {
+	const config = getLevelTypeConfig(typeId)
+	return config?.subtypes?.find(subtype => subtype.id === subtypeId)
+}
+
+/**
+ * Парсит параметр роута и определяет тип и подтип уровня
+ * Проверяет против всех зарегистрированных конфигов
+ */
+export function parseRouteParams(routeParam: string): {
+	typeId: string | undefined
+	subtypeId?: string
+	config?: LevelTypeConfig
+	subtypeConfig?: LevelSubtype
+} {
+	// Сначала проверяем прямое совпадение с типами уровней
+	for (const config of levelTypeConfigs.values()) {
+		if (config.id === routeParam) {
+			return {
+				typeId: config.id,
+				config
+			}
+		}
+	}
+	
+	// Затем проверяем подтипы
+	for (const config of levelTypeConfigs.values()) {
+		if (config.subtypes) {
+			for (const subtype of config.subtypes) {
+				if (subtype.id === routeParam) {
+					return {
+						typeId: config.id,
+						subtypeId: subtype.id,
+						config,
+						subtypeConfig: subtype
+					}
+				}
+			}
+		}
+	}
+	
+	return { typeId: undefined }
+}
+
+/**
+ * Создает ключ для localStorage на основе типа и подтипа
+ */
+export function createStorageKey(typeId: string, subtypeId?: string): string {
+	const keyPart = subtypeId ? `${typeId}-${subtypeId}` : typeId
+	return `v2-${keyPart}-data`
+}
+
+/**
+ * Проверяет, поддерживает ли тип уровня подтипы
+ */
+export function hasSubtypes(typeId: string): boolean {
+	const config = getLevelTypeConfig(typeId)
+	return Boolean(config?.subtypes && config.subtypes.length > 0)
+}
+
+// Импорт и авто-регистрация конфигов
+import { olympConfig } from './olymp'
+import { type100500Config } from './type100500'
+
+// Авто-регистрация при импорте модуля
+registerLevelType(olympConfig)
+registerLevelType(type100500Config)
+
+// Экспорт конфигов
 export * from './olymp'
 export * from './type100500'
 

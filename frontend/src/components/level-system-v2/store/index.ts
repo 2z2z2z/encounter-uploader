@@ -16,9 +16,14 @@ import type {
 	SectorMode,
 	LevelSubtype
 } from '../types'
+import { 
+	createStorageKey, 
+	getLevelTypeConfig, 
+	getSubtypeConfig,
+	hasSubtypes
+} from '../configs'
 
 // Константы
-const STORAGE_PREFIX = 'v2-'
 const SCHEMA_VERSION = 1
 const MAX_TABS = 10
 const MAX_TAB_NAME_LENGTH = 20
@@ -97,13 +102,10 @@ export const useLevelV2Store = defineStore('level-v2', () => {
 	})
 	
 	/**
-	 * Ключ для localStorage на основе типа уровня
+	 * Ключ для localStorage на основе типа уровня (универсальный)
 	 */
 	const storageKey = computed<string>(() => {
-		const typeKey = levelType.value === 'olymp' 
-			? `olymp${subtypeId.value}` 
-			: levelType.value
-		return `${STORAGE_PREFIX}${typeKey}-data`
+		return createStorageKey(levelType.value, subtypeId.value || undefined)
 	})
 	
 	// ===== Вспомогательные функции =====
@@ -146,7 +148,6 @@ export const useLevelV2Store = defineStore('level-v2', () => {
 			bonusTime: { hours: 0, minutes: 0, seconds: 0, negative: false },
 			closedSector: '',
 			openSector: '',
-			// Поля для type100500
 			bonusLevels: [],
 			delay: { hours: 0, minutes: 0, seconds: 0 },
 			limit: { hours: 0, minutes: 0, seconds: 0 },
@@ -344,12 +345,12 @@ export const useLevelV2Store = defineStore('level-v2', () => {
 	}
 	
 	/**
-	 * Устанавливает размерность (только для типов уровней с подтипами)
+	 * Устанавливает размерность (универсальная проверка подтипов)
 	 */
 	function setDimension(newDimension: number): void {
 		// Проверяем, что тип уровня поддерживает подтипы
-		if (!subtypeId.value) {
-			console.warn('[LevelV2Store] setDimension called for level type without subtypes')
+		if (!hasSubtypes(levelType.value)) {
+			console.warn(`[LevelV2Store] setDimension called for level type '${levelType.value}' without subtypes`)
 			return
 		}
 		
@@ -475,7 +476,7 @@ export const useLevelV2Store = defineStore('level-v2', () => {
 	// ===== Инициализация типа уровня =====
 	
 	/**
-	 * Инициализирует store для конкретного типа уровня
+	 * Инициализирует store для конкретного типа уровня (универсальная логика)
 	 */
 	function initializeLevelType(
 		type: LevelTypeId,
@@ -484,20 +485,23 @@ export const useLevelV2Store = defineStore('level-v2', () => {
 	): void {
 		levelType.value = type
 		
-		if (type === 'olymp' && subtype) {
+		// Получаем конфиг типа уровня
+		const config = getLevelTypeConfig(type)
+		if (!config) {
+			console.error(`[LevelV2Store] Unknown level type: ${type}`)
+			return
+		}
+		
+		// Обрабатываем подтип если есть
+		if (subtype && config.subtypes) {
 			if (typeof subtype === 'object') {
 				subtypeId.value = subtype.id
 				dimension.value = subtype.dimension
 			} else {
 				subtypeId.value = subtype
-				// Определяем размерность по ID подтипа
-				const dimensionMap: Record<string, number> = {
-					'15': 15,
-					'31': 31,
-					'63': 63,
-					'127': 127
-				}
-				dimension.value = dimensionMap[subtype] || 15
+				// Получаем размерность из конфига подтипа
+				const subtypeConfig = getSubtypeConfig(type, subtype)
+				dimension.value = subtypeConfig?.dimension || 0
 			}
 		} else {
 			subtypeId.value = ''
@@ -517,19 +521,22 @@ export const useLevelV2Store = defineStore('level-v2', () => {
 	}
 	
 	/**
-	 * Сбрасывает store к дефолтным значениям
+	 * Сбрасывает store к дефолтным значениям (универсальная логика)
 	 */
 	function resetToDefaults(): void {
 		tabs.value = [createDefaultTab()]
 		activeTabIndex.value = 0
+		
+		// Получаем дефолты из конфига типа уровня
+		const typeConfig = getLevelTypeConfig(levelType.value)
 		config.value = {
-			sectorMode: 'all',
-			bonusTime: { hours: 0, minutes: 0, seconds: 0, negative: false },
-			closedPattern: ''
+			sectorMode: typeConfig?.defaults?.sectorMode || 'all',
+			bonusTime: typeConfig?.defaults?.bonusTime || { hours: 0, minutes: 0, seconds: 0, negative: false },
+			closedPattern: typeConfig?.defaults?.closedPattern || ''
 		}
 		
-		// Если это Олимпийка с фиксированной размерностью
-		if (levelType.value === 'olymp' && dimension.value > 0) {
+		// Если тип поддерживает подтипы и есть фиксированная размерность
+		if (hasSubtypes(levelType.value) && dimension.value > 0) {
 			setDimension(dimension.value)
 		}
 		
