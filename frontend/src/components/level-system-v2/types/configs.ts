@@ -11,7 +11,7 @@ export type LevelTypeId = string
 export type LevelCategory = string
 
 // Режим закрытия уровня
-export type SectorMode = 'all' | 'initialAndFinal' | 'finalOnly'
+export type SectorMode = 'all' | 'initialAndFinal' | 'finalOnly' | 'custom'
 
 // Идентификаторы контролов
 export type ControlId = 

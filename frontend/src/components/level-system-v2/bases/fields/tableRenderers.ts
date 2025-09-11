@@ -9,7 +9,7 @@ import InputNumber from 'primevue/inputnumber'
 import Checkbox from 'primevue/checkbox'
 import Button from 'primevue/button'
 import Textarea from 'primevue/textarea'
-import type { Answer } from '../../types'
+import type { Answer } from '../../types/fields'
 import { useLevelV2Store } from '../../store'
 // TODO: Импорт LevelsModal когда будет готова интеграция
 
