@@ -4,7 +4,7 @@
       <Card>
         <template #content>
           <!-- Слот 1: LevelHeader - шапка с названием и мета-данными -->
-          <LevelHeader :type-id="typeId" :subtype="subtype" />
+          <LevelHeader v-if="typeId" :type-id="typeId" :subtype="subtype" />
 
           <!-- Слот 2: LevelTabs - блоки/табы (новый слот) -->  
           <LevelTabs />
@@ -30,6 +30,7 @@ import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useLevelV2Store } from '../store'
 import { parseRouteParams } from '../configs'
+import type { LevelTypeId } from '../types'
 
 // PrimeVue components
 import Card from 'primevue/card'
@@ -71,8 +72,19 @@ const subtypeConfig = computed(() => parsedRoute.value.subtypeConfig)
 onMounted(() => {
   // Инициализируем store если удалось распарсить роут
   if (typeId.value && config.value) {
+    // Инициализируем мета-данные для тестового режима
+    if (!levelV2Store.domain) {
+      levelV2Store.domain = 'test'
+    }
+    if (!levelV2Store.gameId) {
+      levelV2Store.gameId = 'test'
+    }
+    if (!levelV2Store.levelId) {
+      levelV2Store.levelId = '1'
+    }
+    
     levelV2Store.initializeLevelType(
-      typeId.value as any,  // TODO: типизация будет исправлена в следующих шагах
+      typeId.value as LevelTypeId,
       subtypeConfig.value || subtype.value,
       true // загружать из localStorage
     )
