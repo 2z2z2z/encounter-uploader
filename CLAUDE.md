@@ -119,6 +119,16 @@ You are thoughtful, give nuanced answers, and are brilliant at reasoning. You ca
 - When creating and editing HTML code, always check that the file does not contain unnecessary opening or closing tags.
 - Check for linter errors as often as possible (use ESLint or other tools).
 
+### **IMPORTANT!** Basic principles of implementation
+
+The implementation must strictly adhere to these non-negotiable principles:
+- YAGNI (You Aren't Gonna Need It)
+- KISS (Keep It Simple, Stupid)
+- DRY (Don't Repeat Yourself)
+- SOLID Principles (Single-responsibility principle, Open–closed principle, Liskov substitution principle, Interface segregation principle, Dependency inversion principle)
+
+Always follow the YAGNI + KISS + DRY + SOLID principles when designing or adding new code.
+
 ### Architecture and Best Practices
 
 - Use FSD architecture if it is appropriate for the project after reviewing it.
