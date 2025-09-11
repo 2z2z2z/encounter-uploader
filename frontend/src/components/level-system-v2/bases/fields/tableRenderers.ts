@@ -8,8 +8,10 @@ import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber' 
 import Checkbox from 'primevue/checkbox'
 import Button from 'primevue/button'
+import Textarea from 'primevue/textarea'
 import type { Answer } from '../../types'
 import { useLevelV2Store } from '../../store'
+// TODO: Импорт LevelsModal когда будет готова интеграция
 
 // Тип для функции рендеринга поля в DataTable
 export type FieldRenderer = (data: { data: Answer, index: number }) => VNode
@@ -182,6 +184,186 @@ export const renderOpenSector: FieldRenderer = ({ data }) => {
   })
 }
 
+/**
+ * Рендер поля BonusLevels - выбор уровней для бонуса
+ */
+export const renderBonusLevels: FieldRenderer = ({ data }) => {
+  // TODO: Интеграция с LevelsModal после реализации слота LevelContent
+  const openLevelsModal = (): void => {
+    console.log('Открытие модального окна выбора уровней для:', data)
+    // Здесь будет логика открытия LevelsModal
+  }
+
+  const selectedCount = data.bonusLevels?.length || 0
+  const displayText = selectedCount > 0 
+    ? `Выбрано: ${selectedCount}` 
+    : 'Не выбрано'
+
+  return h('div', { class: 'flex items-center gap-2' }, [
+    h(Button, {
+      onClick: openLevelsModal,
+      icon: 'pi pi-list',
+      severity: 'secondary',
+      size: 'small',
+      variant: 'outlined',
+      label: 'Выбрать'
+    }),
+    h('span', { class: 'text-sm text-gray-600' }, displayText)
+  ])
+}
+
+/**
+ * Рендер поля Delay - время задержки без флага negative
+ */
+export const renderDelay: FieldRenderer = ({ data }) => {
+  if (!data.delay) {
+    data.delay = { hours: 0, minutes: 0, seconds: 0 }
+  }
+
+  return h('div', { class: 'flex items-center gap-1' }, [
+    // Часы
+    h(InputNumber, {
+      modelValue: data.delay.hours,
+      'onUpdate:modelValue': (value: number | null) => {
+        if (data.delay) data.delay.hours = value || 0
+      },
+      min: 0,
+      step: 1,
+      suffix: ' ч',
+      size: 'small',
+      class: 'z-w-3'
+    }),
+    // Минуты
+    h(InputNumber, {
+      modelValue: data.delay.minutes,
+      'onUpdate:modelValue': (value: number | null) => {
+        if (data.delay) data.delay.minutes = value || 0
+      },
+      min: 0,
+      suffix: ' м',
+      size: 'small',
+      class: 'z-w-3'
+    }),
+    // Секунды
+    h(InputNumber, {
+      modelValue: data.delay.seconds,
+      'onUpdate:modelValue': (value: number | null) => {
+        if (data.delay) data.delay.seconds = value || 0
+      },
+      min: 0,
+      suffix: ' с',
+      size: 'small',
+      class: 'z-w-3'
+    })
+  ])
+}
+
+/**
+ * Рендер поля Limit - время ограничения без флага negative
+ */
+export const renderLimit: FieldRenderer = ({ data }) => {
+  if (!data.limit) {
+    data.limit = { hours: 0, minutes: 0, seconds: 0 }
+  }
+
+  return h('div', { class: 'flex items-center gap-1' }, [
+    // Часы
+    h(InputNumber, {
+      modelValue: data.limit.hours,
+      'onUpdate:modelValue': (value: number | null) => {
+        if (data.limit) data.limit.hours = value || 0
+      },
+      min: 0,
+      step: 1,
+      suffix: ' ч',
+      size: 'small',
+      class: 'z-w-3'
+    }),
+    // Минуты
+    h(InputNumber, {
+      modelValue: data.limit.minutes,
+      'onUpdate:modelValue': (value: number | null) => {
+        if (data.limit) data.limit.minutes = value || 0
+      },
+      min: 0,
+      suffix: ' м',
+      size: 'small',
+      class: 'z-w-3'
+    }),
+    // Секунды
+    h(InputNumber, {
+      modelValue: data.limit.seconds,
+      'onUpdate:modelValue': (value: number | null) => {
+        if (data.limit) data.limit.seconds = value || 0
+      },
+      min: 0,
+      suffix: ' с',
+      size: 'small',
+      class: 'z-w-3'
+    })
+  ])
+}
+
+/**
+ * Рендер поля SectorName - название сектора
+ */
+export const renderSectorName: FieldRenderer = ({ data }) => {
+  return h(InputText, {
+    modelValue: data.sectorName || '',
+    'onUpdate:modelValue': (value: string) => {
+      data.sectorName = value
+    },
+    placeholder: 'Название сектора',
+    size: 'small'
+  })
+}
+
+/**
+ * Рендер поля BonusName - название бонуса
+ */
+export const renderBonusName: FieldRenderer = ({ data }) => {
+  return h(InputText, {
+    modelValue: data.bonusName || '',
+    'onUpdate:modelValue': (value: string) => {
+      data.bonusName = value
+    },
+    placeholder: 'Название бонуса',
+    size: 'small'
+  })
+}
+
+/**
+ * Рендер поля BonusTask - бонусное задание
+ */
+export const renderBonusTask: FieldRenderer = ({ data }) => {
+  return h(Textarea, {
+    modelValue: data.bonusTask || '',
+    'onUpdate:modelValue': (value: string) => {
+      data.bonusTask = value
+    },
+    placeholder: 'Текст бонусного задания',
+    autoResize: true,
+    rows: 1,
+    class: 'w-full'
+  })
+}
+
+/**
+ * Рендер поля Hint - подсказка
+ */
+export const renderHint: FieldRenderer = ({ data }) => {
+  return h(Textarea, {
+    modelValue: data.hint || '',
+    'onUpdate:modelValue': (value: string) => {
+      data.hint = value
+    },
+    placeholder: 'Текст подсказки',
+    autoResize: true,
+    rows: 1,
+    class: 'w-full'
+  })
+}
+
 // Мапа рендеров по ID поля
 export const fieldRenderers: Record<string, FieldRenderer> = {
   answer: renderAnswer,
@@ -189,7 +371,14 @@ export const fieldRenderers: Record<string, FieldRenderer> = {
   bonus: renderBonus,
   bonusTime: renderBonusTime,
   closedText: renderClosedSector,
-  displayText: renderOpenSector
+  displayText: renderOpenSector,
+  bonusLevels: renderBonusLevels,
+  delay: renderDelay,
+  limit: renderLimit,
+  sectorName: renderSectorName,
+  bonusName: renderBonusName,
+  bonusTask: renderBonusTask,
+  hint: renderHint
 }
 
 // Функция получения рендера по ID поля
