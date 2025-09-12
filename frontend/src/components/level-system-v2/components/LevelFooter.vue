@@ -1,8 +1,10 @@
 <template>
   <div class="level-footer">
     <!-- Подвал с кнопками -->
-    <!-- Будет реализовано в Шаге 22 -->
-    <div class="footer-left"><!-- Навигационные кнопки --></div>
+    <!-- Шаг 19: NavigationButtons добавлен для тестирования -->
+    <div class="footer-left">
+      <NavigationButtons />
+    </div>
     <div class="footer-center"><!-- Функциональные кнопки --></div>
     <div class="footer-right"><!-- Экшн-кнопки --></div>
   </div>
@@ -11,12 +13,10 @@
 <script setup lang="ts">
 /**
  * Компонент подвала с кнопками
- * Будет реализовано в Шаге 22
+ * Шаг 19: NavigationButtons интегрирован для тестирования
+ * Шаг 22: Полная реализация футера
  */
-// import { useLevelV2Store } from '../store'
-
-// Логика кнопок будет добавлена в Шаге 22
-// const store = useLevelV2Store()
+import { NavigationButtons } from '../bases/buttons'
 </script>
 
 
