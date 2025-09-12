@@ -13,6 +13,10 @@ import BonusTimeControl from './BonusTimeControl.vue'
 import ClosedSectorControl from './ClosedSectorControl.vue'
 import OpenSectorControl from './OpenSectorControl.vue'
 
+// Импорты контролов (Шаг 16)
+import SectorNameControl from './SectorNameControl.vue'
+import BonusNameControl from './BonusNameControl.vue'
+
 // Тип для контрол-компонента
 export type ControlComponent = Component
 
@@ -24,9 +28,9 @@ export const controls: Record<ControlId, ControlComponent> = {
 	closedSectorName: ClosedSectorControl,
 	openSectorFill: OpenSectorControl,
 	
-	// TODO Шаг 16-17: Контролы 100500 (будут добавлены)
-	sectorNames: undefined as unknown as ControlComponent,     // Placeholder
-	bonusNames: undefined as unknown as ControlComponent,      // Placeholder  
+	// Шаг 16: Контролы названий
+	sectorNames: SectorNameControl,
+	bonusNames: BonusNameControl,  
 	delay: undefined as unknown as ControlComponent,           // Placeholder
 	limit: undefined as unknown as ControlComponent,           // Placeholder
 	bonusTasks: undefined as unknown as ControlComponent,      // Placeholder
@@ -45,6 +49,8 @@ export {
 	BonusTimeControl,
 	ClosedSectorControl,
 	OpenSectorControl,
+	SectorNameControl,
+	BonusNameControl,
 }
 
 

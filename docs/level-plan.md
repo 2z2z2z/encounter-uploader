@@ -593,7 +593,7 @@ fieldRenderers = {
 - **Обновлен bases/controls/index.ts**: Экспортированы все 4 контрола с каноническими ControlId, добавлены placeholder'ы для будущих контролов 100500
 - **Исправлены типы**: Добавлен 'custom' в SectorMode, исправлены импорты типов для совместимости
 
-### ☐ Шаг 16: Создание базы контрол-сниппетов (часть 3)
+### ✅ Шаг 16: Создание базы контрол-сниппетов (часть 3)
 - Реализация контролов для 100500: SectorNameControl, BonusNameControl
 - Создание с нуля на PrimeVue
 
@@ -604,8 +604,15 @@ fieldRenderers = {
 - ✅ Никаких побочных эффектов вне активного таба
 
 **Проверки:**
-- ☐ ESLint без ошибок
-- ☐ Сборка проекта без ошибок
+- ✅ ESLint без ошибок
+- ✅ Сборка проекта без ошибок
+
+**Техническая реализация:**
+- **SectorNameControl.vue**: InputText с FloatLabel, реактивная связка через watch с store.activeTab?.answers, массовое применение изменений к полю sectorName всех ответов активного таба, placeholder "Название секторов"
+- **BonusNameControl.vue**: InputText с FloatLabel, реактивная связка через watch с store.activeTab?.answers, массовое применение изменений к полю bonusName всех ответов активного таба, placeholder "Название бонусов"
+- **Обновлен bases/controls/index.ts**: Добавлены импорты новых контролов, заменены placeholder'ы на реальные компоненты для sectorNames и bonusNames ControlId, добавлены в экспорт
+- **Архитектура**: Следование паттерну ClosedSectorControl.vue, использование ref + watch для локального состояния, автоматическое применение без кнопок
+- **100% PrimeVue**: InputText, FloatLabel без кастомного CSS, минимальная ширина 240px для консистентности
 
 ### ☐ Шаг 17: Создание базы контрол-сниппетов (часть 4)  
 - Реализация DelayControl, LimitControl, BonusTaskControl, HintControl, BonusLevelsControl
