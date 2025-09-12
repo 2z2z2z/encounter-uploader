@@ -614,7 +614,7 @@ fieldRenderers = {
 - **Архитектура**: Следование паттерну ClosedSectorControl.vue, использование ref + watch для локального состояния, автоматическое применение без кнопок
 - **100% PrimeVue**: InputText, FloatLabel без кастомного CSS, минимальная ширина 240px для консистентности
 
-### ☐ Шаг 17: Создание базы контрол-сниппетов (часть 4)  
+### ✅ Шаг 17: Создание базы контрол-сниппетов (часть 4)  
 - Реализация DelayControl, LimitControl, BonusTaskControl, HintControl, BonusLevelsControl
 - Создание с нуля на PrimeVue
 
@@ -622,12 +622,22 @@ fieldRenderers = {
 
 **Критерии завершения:**
 - ✅ Все 5 контролов доступны и корректно обновляют соответствующие поля
-- ✅ Delay/Limit используют `TimeInput` без `negative`
+- ✅ Delay/Limit используют InputNumber без `negative`
 - ✅ BonusLevelsControl открывает `LevelsModal` и применяет изменения
 
 **Проверки:**
-- ☐ ESLint без ошибок
-- ☐ Сборка проекта без ошибок
+- ✅ ESLint без ошибок
+- ✅ Сборка проекта без ошибок
+
+**Техническая реализация:**
+- **DelayControl.vue**: 3 InputNumber поля (ч:м:с) с show-buttons, suffix, реактивная связка через watch с store.activeTab?.answers, массовое применение к полю delay всех ответов активного таба
+- **LimitControl.vue**: Аналогичная структура для поля limit, placeholder "Ограничение (ч, м, с)"
+- **BonusTaskControl.vue**: InputText с FloatLabel, паттерн SectorNameControl для поля bonusTask, placeholder "Бонусное задание"
+- **HintControl.vue**: InputText с FloatLabel, паттерн SectorNameControl для поля hint, placeholder "Подсказка"  
+- **BonusLevelsControl.vue**: Button с интеграцией LevelsModal, открытие модала, применение выбранных уровней к полю bonusLevels всех ответов активного таба
+- **Обновлен bases/controls/index.ts**: Заменены все placeholder'ы на реальные компоненты, добавлены импорты и экспорт всех 5 новых контролов
+- **Архитектура**: Следование принципам YAGNI + KISS + DRY + SOLID, переиспользование паттернов BonusTimeControl и SectorNameControl
+- **100% PrimeVue**: InputNumber, InputText, Button, FloatLabel без кастомного CSS, консистентная минимальная ширина
 
 ### ☐ Шаг 18: Реализация слота LevelControlPanel
 - Создание LevelControlPanel.vue

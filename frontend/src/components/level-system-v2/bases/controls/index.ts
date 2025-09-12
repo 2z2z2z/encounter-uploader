@@ -17,6 +17,13 @@ import OpenSectorControl from './OpenSectorControl.vue'
 import SectorNameControl from './SectorNameControl.vue'
 import BonusNameControl from './BonusNameControl.vue'
 
+// Импорты контролов (Шаг 17)
+import DelayControl from './DelayControl.vue'
+import LimitControl from './LimitControl.vue'
+import BonusTaskControl from './BonusTaskControl.vue'
+import HintControl from './HintControl.vue'
+import BonusLevelsControl from './BonusLevelsControl.vue'
+
 // Тип для контрол-компонента
 export type ControlComponent = Component
 
@@ -30,12 +37,14 @@ export const controls: Record<ControlId, ControlComponent> = {
 	
 	// Шаг 16: Контролы названий
 	sectorNames: SectorNameControl,
-	bonusNames: BonusNameControl,  
-	delay: undefined as unknown as ControlComponent,           // Placeholder
-	limit: undefined as unknown as ControlComponent,           // Placeholder
-	bonusTasks: undefined as unknown as ControlComponent,      // Placeholder
-	hints: undefined as unknown as ControlComponent,           // Placeholder
-	bonusLevels: undefined as unknown as ControlComponent,     // Placeholder
+	bonusNames: BonusNameControl,
+	
+	// Шаг 17: Контролы 100500
+	delay: DelayControl,
+	limit: LimitControl,
+	bonusTasks: BonusTaskControl,
+	hints: HintControl,
+	bonusLevels: BonusLevelsControl
 }
 
 // Функция получения контрола по ID
@@ -51,6 +60,11 @@ export {
 	OpenSectorControl,
 	SectorNameControl,
 	BonusNameControl,
+	DelayControl,
+	LimitControl,
+	BonusTaskControl,
+	HintControl,
+	BonusLevelsControl,
 }
 
 
