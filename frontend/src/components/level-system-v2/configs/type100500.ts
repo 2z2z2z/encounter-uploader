@@ -43,8 +43,12 @@ export const type100500Config: LevelTypeConfig = {
 		]
 	},
 	
-	// Пейлоады 100500
-	payloads: ['sector', 'bonus'], // НЕТ task!
+	// Пейлоады 100500 (новая структура без Task пейлоада)
+	payloads: {
+		// task: НЕТ - 100500 не поддерживает Task пейлоад
+		sector: true,   // Поддержка Sector пейлоада с опцией БМП
+		bonus: true     // Поддержка Bonus пейлоада
+	},
 	
 	// Значения по умолчанию для 100500
 	defaults: {

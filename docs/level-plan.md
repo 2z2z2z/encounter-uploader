@@ -766,7 +766,7 @@ fieldRenderers = {
 - Адаптивный дизайн для мобильных устройств
 - Все кнопки работают через конфигурационную систему без хардкода
 
-### ☐ Шаг 23: Создание TaskPayload
+### ✅ Шаг 23: Создание TaskPayload
 - Реализация логики формирования пейлоада для заливки заданий
 - Портирование из services/uploader.ts
 
@@ -778,8 +778,56 @@ fieldRenderers = {
 - ✅ Не зависит от старого store
 
 **Проверки:**
-- ☐ ESLint без ошибок
-- ☐ Сборка проекта без ошибок
+- ✅ ESLint без ошибок
+- ✅ Сборка проекта без ошибок
+
+**Техническая реализация:**
+Реализована **Content Generators System** - архитектура генерации HTML контента для Task пейлоадов через конфигурируемые генераторы.
+
+**Ключевые файлы:**
+- **types/configs.ts**: Типы `ContentGeneratorContext`, `ContentGenerator`, `TaskPayloadConfig` для системы генераторов
+- **payloads/content/generators/index.ts**: Реестр генераторов, функции `getContentGenerator()`, `getAvailableGenerators()`
+- **payloads/content/generators/olymp.task.ts**: Генератор HTML таблиц Олимпийки, поддерживает все 13 полей через конфигурацию
+- **payloads/TaskPayload.ts**: Функция `createTaskPayload()` без хардкода, работает через генераторы
+
+**Структура конфигов:**
+```typescript
+// olymp.ts
+payloads: {
+  task: { generator: 'olymp.task', fields: ['closedText'] },
+  sector: true,
+  bonus: true
+}
+
+// type100500.ts  
+payloads: {
+  // task не поддерживается
+  sector: true,
+  bonus: true
+}
+```
+
+**Принцип работы:**
+1. `createTaskPayload()` получает конфиг типа уровня
+2. Извлекает генератор по имени из реестра через `getContentGenerator()`
+3. Передает контекст (answers, fields, dimension) в генератор
+4. Получает HTML и формирует URLSearchParams
+
+**Добавление генераторов:**
+```typescript
+// 1. Создать generators/новыйТип.task.ts
+export const новыйТипTaskGenerator = (context: ContentGeneratorContext): string => {
+  // HTML логика с использованием context.answers, context.fields
+}
+
+// 2. Добавить в реестр index.ts
+contentGenerators['новыйТип.task'] = новыйТипTaskGenerator
+
+// 3. В конфиге типа указать
+payloads: { task: { generator: 'новыйТип.task', fields: ['answer', 'sector'] } }
+```
+
+**Naming convention:** генераторы именуются `домен.тип` (olymp.task, type100500.task)
 
 ### ☐ Шаг 24: Создание SectorPayload
 - Реализация логики формирования пейлоада для заливки секторов

@@ -112,8 +112,8 @@ export interface LevelTypeConfig {
 		action: ButtonConfig[]      // Экшн-кнопки с конфигурацией
 	}
 	
-	// Пейлоады
-	payloads: PayloadType[]       // Доступные пейлоады
+	// Пейлоады (новая структура с генераторами)
+	payloads: PayloadsConfig      // Конфигурация пейлоадов
 	
 	// Значения по умолчанию
 	defaults?: {
@@ -130,6 +130,67 @@ export interface ActiveLevelConfig {
 	subtypeId?: string            // ID выбранного подтипа
 	dimension?: number            // Активная размерность
 	config: LevelTypeConfig      // Полная конфигурация типа
+}
+
+// ===== CONTENT GENERATORS SYSTEM =====
+
+/**
+ * Контекст для генерации контента пейлоадов
+ * 
+ * Содержит все необходимые данные для создания HTML или другого контента
+ * для отправки в пейлоадах заданий.
+ */
+export interface ContentGeneratorContext {
+	answers: Array<{
+		id: string
+		number: number
+		variants: string[]
+		sector: boolean
+		bonus: boolean
+		bonusTime: { hours: number; minutes: number; seconds: number; negative?: boolean }
+		closedText: string
+		displayText: string
+		bonusLevels?: string[]
+		delay?: { hours: number; minutes: number; seconds: number }
+		limit?: { hours: number; minutes: number; seconds: number }
+		sectorName?: string
+		bonusName?: string
+		bonusTask?: string
+		hint?: string
+	}>           // Массив ответов активного таба
+	fields: FieldId[]               // Поля для использования в генерации  
+	dimension?: number              // Размерность (для типов с подтипами)
+	levelId: string                 // ID уровня
+}
+
+/**
+ * Функция генератора контента
+ * 
+ * Принимает контекст и создает строку контента (обычно HTML)
+ * для отправки в пейлоаде задания.
+ */
+export type ContentGenerator = (context: ContentGeneratorContext) => string
+
+/**
+ * Конфигурация Task пейлоада с генератором контента
+ */
+export interface TaskPayloadConfig {
+	generator: string        // Имя генератора (например: 'olymp.task')
+	fields: FieldId[]       // Поля для использования в генерации
+}
+
+/**
+ * Новая структура конфигурации пейлоадов
+ * 
+ * Объектный формат где каждый тип пейлоада настраивается отдельно:
+ * - task: объект с генератором (если поддерживается) или false
+ * - sector: простой boolean (генератор не нужен)  
+ * - bonus: простой boolean (генератор не нужен)
+ */
+export interface PayloadsConfig {
+	task?: TaskPayloadConfig | boolean  // Конфиг генератора или false
+	sector?: boolean                    // Простая поддержка пейлоада
+	bonus?: boolean                     // Простая поддержка пейлоада
 }
 
 

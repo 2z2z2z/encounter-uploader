@@ -11,9 +11,10 @@
 
     <!-- LevelsModal integration -->
     <LevelsModal
-      v-if="isModalOpen"
-      v-model:visible="isModalOpen"
-      @levels-selected="applyLevels"
+      :model-value="isModalOpen"
+      :current-level="store.levelId"
+      @update:model-value="isModalOpen = $event"
+      @apply="applyLevels"
     />
   </div>
 </template>
@@ -40,9 +41,13 @@ const openLevelsModal = (): void => {
 /**
  * Применение выбранных уровней ко всем ответам в активном табе
  */
-const applyLevels = (selectedLevels: string[]): void => {
+const applyLevels = (selection: { allLevels: boolean; targetLevels?: string[] }): void => {
   const answers = store.activeTab?.answers
   if (!answers) return
+
+  const selectedLevels = selection.allLevels 
+    ? ['all'] 
+    : selection.targetLevels || []
 
   // Применяем выбранные уровни ко всем ответам в активном табе
   answers.forEach((answer) => {

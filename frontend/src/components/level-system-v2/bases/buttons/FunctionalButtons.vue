@@ -314,6 +314,7 @@ const importCSV = async (content: string): Promise<void> => {
       const bonusTimeParts = cols[5] ? cols[5].split(':') : ['0', '0', '0']
       
       answers.push({
+        id: `answer-${Date.now()}-${Math.random().toString(36).substr(2, 9)}-${index}`,
         number: parseInt(cols[1]) || (index + 1),
         variants,
         sector: cols[3] === 'true',

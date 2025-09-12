@@ -45,8 +45,15 @@ export const olympConfig: LevelTypeConfig = {
 		]
 	},
 	
-	// Пейлоады Олимпийки
-	payloads: ['task', 'sector', 'bonus']
+	// Пейлоады Олимпийки (новая структура с генераторами)
+	payloads: {
+		task: {
+			generator: 'olymp.task',
+			fields: ['closedText']  // Используем закрытый сектор для Task пейлоада
+		},
+		sector: true,   // Простая поддержка Sector пейлоада (без генератора)
+		bonus: true     // Простая поддержка Bonus пейлоада (без генератора)
+	}
 }
 
 
