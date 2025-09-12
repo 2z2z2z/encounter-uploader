@@ -78,6 +78,7 @@
 import { ref, computed } from 'vue'
 import Button from 'primevue/button'
 import { useLevelV2Store } from '../../store'
+import { getLevelTypeConfig } from '../../configs'
 import ExportModal from '@/components/common/modals/ExportModal.vue'
 import ImportModal from '@/components/common/modals/ImportModal.vue' 
 import PreviewModal from '@/components/common/modals/PreviewModal.vue'
@@ -93,29 +94,9 @@ const previewModalVisible = ref(false)
 const codesModalVisible = ref(false)
 const previewContent = ref('')
 
-// Получение конфигурации типа (временная логика до полной реализации конфиг-системы)
+// ✅ Правильно: получение конфигурации через универсальную систему БЕЗ хардкода
 const levelConfig = computed(() => {
-  if (!store.levelType) return null
-  
-  // Временная логика определения конфига на основе levelType
-  if (store.levelType === 'olymp') {
-    return {
-      name: 'Олимпийка',
-      manualCodeAddition: false,
-      buttons: {
-        functionalButtons: ['clear', 'export', 'import', 'preview'] // без addCodes
-      }
-    }
-  } else if (store.levelType === 'type100500') {
-    return {
-      name: '100500 секторов и бонусов',
-      manualCodeAddition: true,
-      buttons: {
-        functionalButtons: ['addCodes', 'clear', 'export', 'import'] // без preview
-      }
-    }
-  }
-  return null
+  return getLevelTypeConfig(store.levelType)
 })
 
 // Видимость кнопок на основе конфига
@@ -124,8 +105,8 @@ const showAddCodesButton = computed(() => {
 })
 
 const showPreviewButton = computed(() => {
-  // Предпросмотр только для типов которые поддерживают Task payload (Олимпийка)
-  return store.levelType === 'olymp'
+  // ✅ Правильно: предпросмотр только для типов с 'preview' в functional кнопках
+  return levelConfig.value?.buttons?.functional?.includes('preview') === true
 })
 
 // Состояние активного таба

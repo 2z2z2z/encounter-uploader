@@ -1,0 +1,153 @@
+<template>
+  <div class="action-buttons">
+    <!-- Динамические экшн-кнопки на основе конфига (БЕЗ хардкода типов!) -->
+    <template v-for="button in actionButtons" :key="button.id">
+      <div class="button-group">
+        <!-- Сама кнопка -->
+        <Button
+          :label="button.label"
+          :icon="button.icon"
+          :severity="button.variant || 'secondary'"
+          class="h-10 px-4"
+          @click="handleUpload(button.id)"
+        />
+        
+        <!-- Опция БМП только для кнопки uploadSectors с соответствующей настройкой -->
+        <div 
+          v-if="button.id === 'uploadSectors' && button.options?.combineSectors" 
+          class="mt-2"
+        >
+          <Checkbox
+            v-model="combineSectors"
+            :id="`combine-sectors-${button.id}`"
+            :binary="true"
+          />
+          <label 
+            :for="`combine-sectors-${button.id}`" 
+            class="ml-2 text-sm cursor-pointer"
+          >
+            Объединить сектора (БМП)
+          </label>
+        </div>
+      </div>
+    </template>
+  </div>
+</template>
+
+<script setup lang="ts">
+/**
+ * Компонент экшн-кнопок (правая часть футера)
+ * 
+ * ✅ ПРАВИЛЬНО: Работает через getLevelTypeConfig() БЕЗ хардкода типов
+ * ❌ ЗАПРЕЩЕНО: Хардкод store.levelType === 'olymp' или 'type100500'
+ * 
+ * Кнопки и их видимость определяются ТОЛЬКО через config.buttons.action
+ * Опция БМП настраивается через buttonConfig.options.combineSectors
+ */
+
+import { computed, ref } from 'vue'
+import Button from 'primevue/button'
+import Checkbox from 'primevue/checkbox'
+import { useConfirm } from 'primevue/useconfirm'
+import { useLevelV2Store } from '../../store'
+import { getLevelTypeConfig } from '../../configs'
+import type { ButtonId } from '../../types'
+
+// Store и конфигурация
+const store = useLevelV2Store()
+const confirm = useConfirm()
+
+// ✅ Правильно: получение конфига через универсальную функцию
+const levelConfig = computed(() => {
+  return getLevelTypeConfig(store.levelType)
+})
+
+// ✅ Правильно: кнопки определяются ТОЛЬКО через конфиг
+const actionButtons = computed(() => {
+  return levelConfig.value?.buttons?.action || []
+})
+
+// Состояние чекбокса БМП (реактивная переменная)
+const combineSectors = ref(false)
+
+// Удалена неиспользуемая переменная showCombineSectors
+// Опция БМП проверяется прямо в template через button.options?.combineSectors
+
+/**
+ * Универсальный хэндлер загрузки (заглушки для Шагов 23-25)
+ */
+const handleUpload = async (buttonId: ButtonId): Promise<void> => {
+  try {
+    // Подтверждающий диалог
+    const confirmed = await showUploadConfirmation(buttonId)
+    if (!confirmed) return
+
+    // Заглушка с уведомлением (будет заменена в Шагах 23-25)
+    const action = getActionLabel(buttonId)
+    globalThis.alert(`🚧 Функция "${action}" будет реализована в Шагах 23-25`)
+    
+    console.log(`[ActionButtons] ${buttonId} triggered`, {
+      levelType: store.levelType,
+      combineSectors: buttonId === 'uploadSectors' ? combineSectors.value : undefined,
+      activeTabAnswers: store.activeTab?.answers?.length || 0
+    })
+
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error(`[ActionButtons] Error in ${buttonId}:`, message)
+    globalThis.alert(`Ошибка при ${getActionLabel(buttonId)}: ${message}`)
+  }
+}
+
+/**
+ * Показывает диалог подтверждения загрузки
+ */
+const showUploadConfirmation = (buttonId: ButtonId): Promise<boolean> => {
+  return new Promise<boolean>((resolve) => {
+    const action = getActionLabel(buttonId)
+    confirm.require({
+      message: `⚠️ ВАЖНО: Во время заливки НЕ переключайтесь на другие вкладки браузера и не сворачивайте его.\n\nПродолжить ${action.toLowerCase()}?`,
+      header: `Подтверждение: ${action}`,
+      icon: 'pi pi-exclamation-triangle',
+      rejectLabel: 'Отмена',
+      acceptLabel: 'Продолжить',
+      accept: () => resolve(true),
+      reject: () => resolve(false)
+    })
+  })
+}
+
+/**
+ * Получает человекочитаемое название действия
+ */
+const getActionLabel = (buttonId: ButtonId): string => {
+  const button = actionButtons.value.find(btn => btn.id === buttonId)
+  return button?.label || buttonId
+}
+</script>
+
+<style scoped>
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* Responsive - на мобильных устройствах кнопки по центру */
+@media (max-width: 768px) {
+  .action-buttons {
+    justify-content: center;
+  }
+  
+  .button-group {
+    align-items: center;
+  }
+}
+</style>

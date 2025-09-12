@@ -10,9 +10,9 @@
       <FunctionalButtons />
     </div>
     
-    <!-- Правая область: ActionButtons (пока пустая, для шага 21) -->
+    <!-- Правая область: ActionButtons -->
     <div class="footer-right">
-      <!-- ActionButtons будут добавлены в шаге 21 -->
+      <ActionButtons />
     </div>
   </div>
 </template>
@@ -20,10 +20,11 @@
 <script setup lang="ts">
 /**
  * Компонент подвала с кнопками
- * Шаг 19: NavigationButtons интегрирован для тестирования
- * Шаг 22: Полная реализация футера
+ * Шаг 19: NavigationButtons интегрирован
+ * Шаг 20: FunctionalButtons интегрирован  
+ * Шаг 21: ActionButtons интегрирован (БЕЗ хардкода!)
  */
-import { NavigationButtons, FunctionalButtons } from '../bases/buttons'
+import { NavigationButtons, FunctionalButtons, ActionButtons } from '../bases/buttons'
 </script>
 
 <style scoped>

@@ -1,6 +1,6 @@
 /**
  * Конфигурация типа уровня "100500"
- * Будет реализовано в Шаге 29
+ * Шаг 21: Временная реализация для ActionButtons (будет доработана в Шаге 29)
  */
 
 import type { LevelTypeConfig } from '../types'
@@ -18,14 +18,40 @@ export const type100500Config: LevelTypeConfig = {
 	// У 100500 нет подтипов
 	subtypes: undefined,
 	
-	fields: [],     // Будет заполнено в Шаге 29
-	controls: [],   // Будет заполнено в Шаге 29
-	buttons: {      // Будет заполнено в Шаге 29
-		navigation: [],
-		functional: [],
-		action: []
+	// Поля 100500 согласно документации
+	fields: ['answer', 'sector', 'bonus', 'bonusLevels', 'bonusTime', 'delay', 'limit', 'sectorName', 'bonusName', 'bonusTask', 'hint'],
+	
+	// Контролы для 100500 (все контролы)
+	controls: ['sectorMode', 'bonusTime', 'closedSectorName', 'openSectorFill', 'sectorNames', 'bonusNames', 'delay', 'limit', 'bonusTasks', 'hints', 'bonusLevels'],
+	
+	// Кнопки 100500
+	buttons: {
+		navigation: ['back'],
+		functional: ['addCodes', 'clear', 'export', 'import'], // без preview
+		action: [
+			// НЕТ uploadTask для 100500!
+			{ 
+				id: 'uploadSectors', 
+				label: 'Залить секторы', 
+				icon: 'pi pi-upload', 
+				variant: 'secondary',
+				options: { 
+					combineSectors: true  // Опция БМП включена!
+				}
+			},
+			{ id: 'uploadBonuses', label: 'Залить бонусы', icon: 'pi pi-upload', variant: 'secondary' }
+		]
 	},
-	payloads: []    // Будет заполнено в Шаге 29
+	
+	// Пейлоады 100500
+	payloads: ['sector', 'bonus'], // НЕТ task!
+	
+	// Значения по умолчанию для 100500
+	defaults: {
+		sectorMode: 'all',
+		bonusTime: { hours: 0, minutes: 0, seconds: 0, negative: false },
+		closedPattern: ''
+	}
 }
 
 

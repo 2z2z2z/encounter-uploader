@@ -1,6 +1,6 @@
 /**
  * Конфигурация типа уровня "Олимпийка"
- * Будет реализовано в Шаге 26
+ * Шаг 21: Временная реализация для ActionButtons (будет доработана в Шаге 26)
  */
 
 import type { LevelTypeConfig } from '../types'
@@ -21,14 +21,32 @@ export const olympConfig: LevelTypeConfig = {
 		{ id: 'olymp127', name: '127 секторов', dimension: 127 }
 	],
 	
-	fields: [],     // Будет заполнено в Шаге 26
-	controls: [],   // Будет заполнено в Шаге 26
-	buttons: {      // Будет заполнено в Шаге 26
-		navigation: [],
-		functional: [],
-		action: []
+	// Значения по умолчанию для Олимпийки
+	defaults: {
+		sectorMode: 'all',
+		bonusTime: { hours: 0, minutes: 0, seconds: 0, negative: false },
+		closedPattern: ''
 	},
-	payloads: []    // Будет заполнено в Шаге 26
+	
+	// Поля Олимпийки согласно документации
+	fields: ['answer', 'sector', 'bonus', 'bonusTime', 'closedText', 'displayText'],
+	
+	// Контролы для Олимпийки
+	controls: ['sectorMode', 'bonusTime', 'closedSectorName', 'openSectorFill'],
+	
+	// Кнопки Олимпийки
+	buttons: {
+		navigation: ['back'],
+		functional: ['clear', 'export', 'import', 'preview'],
+		action: [
+			{ id: 'uploadTask', label: 'Залить задание', icon: 'pi pi-upload', variant: 'secondary' },
+			{ id: 'uploadSectors', label: 'Залить секторы', icon: 'pi pi-upload', variant: 'secondary' },
+			{ id: 'uploadBonuses', label: 'Залить бонусы', icon: 'pi pi-upload', variant: 'secondary' }
+		]
+	},
+	
+	// Пейлоады Олимпийки
+	payloads: ['task', 'sector', 'bonus']
 }
 
 

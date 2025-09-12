@@ -300,7 +300,7 @@ const foo = inject(key) // automatically typed as string | undefined
 ### IDE Integration Rules
 
 **Multiple Diagnostic Sources:**
-- `mcp__ide__getDiagnostics` combines multiple sources: TypeScript, ESLint, Vue Language Server, cSpell
+- `mcp__ide__getDiagnostics` combines multiple sources: TypeScript, ESLint, Vue Language Server, Vetur, ts-plugin
 - ESLint only shows linting errors, IDE shows type errors, import issues, and language server warnings
 - Always fix both ESLint warnings AND IDE diagnostics before completing tasks
 
