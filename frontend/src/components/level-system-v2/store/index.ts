@@ -272,6 +272,15 @@ export const useLevelV2Store = defineStore('level-v2', () => {
 	}
 	
 	/**
+	 * Добавляет коды в активный таб (для функциональных кнопок)
+	 * Каждый код становится первым вариантом нового ответа
+	 */
+	function addCodesToActiveTab(codes: string[]): number {
+		const variantsList = codes.map(code => [code.trim()]).filter(variants => variants[0])
+		return addMultipleAnswers(variantsList)
+	}
+	
+	/**
 	 * Удаляет ответ из активного таба
 	 */
 	function removeAnswer(answerId: string): boolean {
@@ -604,6 +613,7 @@ export const useLevelV2Store = defineStore('level-v2', () => {
 		// Управление ответами
 		addAnswer,
 		addMultipleAnswers,
+		addCodesToActiveTab,
 		removeAnswer,
 		updateAnswer,
 		clearActiveTab,

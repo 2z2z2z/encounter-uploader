@@ -1,0 +1,389 @@
+<template>
+  <div class="functional-buttons">
+    <!-- Добавить коды - только для типов с ручным добавлением -->
+    <Button
+      v-if="showAddCodesButton"
+      label="Добавить коды"
+      icon="pi pi-plus"
+      severity="secondary"
+      :disabled="isTabLimitExceeded"
+      @click="handleAddCodes"
+      class="h-10 px-4"
+    />
+    
+    <!-- Очистить -->
+    <Button
+      label="Очистить"
+      icon="pi pi-trash"
+      severity="secondary"
+      :disabled="isTabEmpty"
+      @click="handleClear"
+      class="h-10 px-4"
+    />
+    
+    <!-- Экспорт -->
+    <Button
+      label="Экспорт"
+      icon="pi pi-download"
+      severity="secondary"
+      :disabled="isTabEmpty"
+      @click="handleExport"
+      class="h-10 px-4"
+    />
+    
+    <!-- Импорт -->
+    <Button
+      label="Импорт"
+      icon="pi pi-upload"
+      severity="secondary"
+      @click="handleImport"
+      class="h-10 px-4"
+    />
+    
+    <!-- Предпросмотр - только для Task -->
+    <Button
+      v-if="showPreviewButton"
+      label="Предпросмотр"
+      icon="pi pi-eye"
+      severity="secondary"
+      :disabled="isTabEmpty"
+      @click="handlePreview"
+      class="h-10 px-4"
+    />
+    
+    <!-- Модальные окна -->
+    <ExportModal
+      v-model="exportModalVisible"
+      @export="onExport"
+    />
+    
+    <ImportModal
+      v-model="importModalVisible"
+      @import="onImport"
+    />
+    
+    <PreviewModal
+      v-model="previewModalVisible"
+      :content="previewContent"
+    />
+    
+    <CodesModal
+      v-model="codesModalVisible"
+      @apply="onAddCodes"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import Button from 'primevue/button'
+import { useLevelV2Store } from '../../store'
+import ExportModal from '@/components/common/modals/ExportModal.vue'
+import ImportModal from '@/components/common/modals/ImportModal.vue' 
+import PreviewModal from '@/components/common/modals/PreviewModal.vue'
+import CodesModal from '@/components/common/modals/CodesModal.vue'
+import type { Answer } from '../../types'
+
+const store = useLevelV2Store()
+
+// Модальные окна
+const exportModalVisible = ref(false)
+const importModalVisible = ref(false)
+const previewModalVisible = ref(false)
+const codesModalVisible = ref(false)
+const previewContent = ref('')
+
+// Получение конфигурации типа (временная логика до полной реализации конфиг-системы)
+const levelConfig = computed(() => {
+  if (!store.levelType) return null
+  
+  // Временная логика определения конфига на основе levelType
+  if (store.levelType === 'olymp') {
+    return {
+      name: 'Олимпийка',
+      manualCodeAddition: false,
+      buttons: {
+        functionalButtons: ['clear', 'export', 'import', 'preview'] // без addCodes
+      }
+    }
+  } else if (store.levelType === 'type100500') {
+    return {
+      name: '100500 секторов и бонусов',
+      manualCodeAddition: true,
+      buttons: {
+        functionalButtons: ['addCodes', 'clear', 'export', 'import'] // без preview
+      }
+    }
+  }
+  return null
+})
+
+// Видимость кнопок на основе конфига
+const showAddCodesButton = computed(() => {
+  return levelConfig.value?.manualCodeAddition === true
+})
+
+const showPreviewButton = computed(() => {
+  // Предпросмотр только для типов которые поддерживают Task payload (Олимпийка)
+  return store.levelType === 'olymp'
+})
+
+// Состояние активного таба
+const isTabEmpty = computed(() => {
+  return !store.activeTab || store.activeTab.answers.length === 0
+})
+
+const isTabLimitExceeded = computed(() => {
+  if (!store.activeTab) return false
+  return store.activeTab.answers.length >= 10000
+})
+
+// Обработчики кнопок
+const handleAddCodes = (): void => {
+  codesModalVisible.value = true
+}
+
+const handleClear = (): void => {
+  if (globalThis.confirm('Вы действительно хотите очистить все данные активного таба? Это действие нельзя отменить.')) {
+    store.clearActiveTab()
+  }
+}
+
+const handleExport = (): void => {
+  exportModalVisible.value = true
+}
+
+const handleImport = (): void => {
+  importModalVisible.value = true
+}
+
+const handlePreview = (): void => {
+  // Генерируем Task payload для предпросмотра
+  if (store.activeTab) {
+    previewContent.value = generateTaskPreview(store.activeTab.answers)
+    previewModalVisible.value = true
+  }
+}
+
+// Обработчики событий модальных окон
+const onExport = (format: 'json' | 'csv'): void => {
+  if (!store.activeTab) return
+  
+  if (format === 'json') {
+    exportJSON()
+  } else {
+    exportCSV()
+  }
+}
+
+const onImport = (file: globalThis.File): void => {
+  importFile(file)
+}
+
+const onAddCodes = (codes: string[]): void => {
+  // Проверка дубликатов во всех табах
+  const existingCodes = getAllExistingCodes()
+  const newCodes = codes.filter(code => !existingCodes.has(code))
+  
+  if (newCodes.length === 0) {
+    globalThis.alert('Все указанные коды уже существуют в табах.')
+    return
+  }
+  
+  if (newCodes.length < codes.length) {
+    const duplicates = codes.length - newCodes.length
+    globalThis.alert(`Обнаружено и пропущено дубликатов: ${duplicates}`)
+  }
+  
+  // Проверка лимита на таб
+  const currentCount = store.activeTab?.answers.length || 0
+  if (currentCount + newCodes.length > 10000) {
+    const maxCanAdd = 10000 - currentCount
+    if (maxCanAdd > 0) {
+      globalThis.alert(`Превышен лимит 10000 строк на таб. Будет добавлено только ${maxCanAdd} кодов.`)
+      store.addCodesToActiveTab(newCodes.slice(0, maxCanAdd))
+    } else {
+      globalThis.alert('Достигнут лимит 10000 строк на таб. Невозможно добавить новые коды.')
+    }
+  } else {
+    store.addCodesToActiveTab(newCodes)
+  }
+}
+
+// Утилиты
+const getAllExistingCodes = (): Set<string> => {
+  const codes = new Set<string>()
+  
+  store.tabs.forEach(tab => {
+    tab.answers.forEach(answer => {
+      answer.variants.forEach(variant => {
+        if (variant.trim()) {
+          codes.add(variant.trim())
+        }
+      })
+    })
+  })
+  
+  return codes
+}
+
+const generateTaskPreview = (answers: Answer[]): string => {
+  // Генерируем HTML предпросмотр Task payload
+  let html = '<div class="task-preview">'
+  html += '<h3>Предпросмотр задания</h3>'
+  html += '<table><tbody>'
+  
+  answers.forEach(answer => {
+    if (answer.variants.length > 0 && answer.variants[0].trim()) {
+      html += `<tr><td>${answer.number}</td><td>${answer.variants[0]}</td></tr>`
+    }
+  })
+  
+  html += '</tbody></table>'
+  html += '</div>'
+  
+  return html
+}
+
+const exportJSON = (): void => {
+  if (!store.activeTab) return
+  
+  const data = {
+    version: 1,
+    type: store.levelType,
+    timestamp: new Date().toISOString(),
+    tab: store.activeTab.name,
+    answers: store.activeTab.answers
+  }
+  
+  const blob = new globalThis.Blob([JSON.stringify(data, null, 2)], {
+    type: 'application/json'
+  })
+  
+  downloadFile(blob, `${store.levelType}-${store.activeTab.name}.json`)
+}
+
+const exportCSV = (): void => {
+  if (!store.activeTab) return
+  
+  let csv = 'tab,number,variants,sector,bonus,bonusTime,closedText,displayText\n'
+  
+  store.activeTab.answers.forEach(answer => {
+    csv += [
+      store.activeTab!.name,
+      answer.number,
+      answer.variants.join(';'),
+      answer.sector,
+      answer.bonus,
+      `${answer.bonusTime.hours}:${answer.bonusTime.minutes}:${answer.bonusTime.seconds}${answer.bonusTime.negative ? ':negative' : ''}`,
+      answer.closedText || '',
+      answer.displayText || ''
+    ].join(',') + '\n'
+  })
+  
+  const blob = new globalThis.Blob([csv], { type: 'text/csv' })
+  downloadFile(blob, `${store.levelType}-${store.activeTab.name}.csv`)
+}
+
+const importFile = async (file: globalThis.File): Promise<void> => {
+  try {
+    const content = await file.text()
+    
+    if (file.name.endsWith('.json')) {
+      await importJSON(content)
+    } else if (file.name.endsWith('.csv')) {
+      await importCSV(content) 
+    } else {
+      throw new Error('Неподдерживаемый формат файла')
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Ошибка импорта'
+    globalThis.alert(`Ошибка импорта: ${message}`)
+  }
+}
+
+const importJSON = async (content: string): Promise<void> => {
+  const data = JSON.parse(content)
+  
+  if (data.answers && Array.isArray(data.answers)) {
+    if (!store.activeTab) return
+    
+    // Простая замена данных активного таба
+    store.activeTab.answers = data.answers
+    globalThis.alert(`Импортировано ${data.answers.length} записей`)
+  } else {
+    throw new Error('Неверная структура JSON файла')
+  }
+}
+
+const importCSV = async (content: string): Promise<void> => {
+  const lines = content.trim().split('\n')
+  if (lines.length < 2) {
+    throw new Error('CSV файл пуст или содержит только заголовки')
+  }
+  
+  // Пропускаем заголовок
+  const dataLines = lines.slice(1)
+  const answers: Answer[] = []
+  
+  dataLines.forEach((line, index) => {
+    const cols = line.split(',')
+    if (cols.length >= 3) {
+      const variants = cols[2] ? cols[2].split(';') : ['']
+      const bonusTimeParts = cols[5] ? cols[5].split(':') : ['0', '0', '0']
+      
+      answers.push({
+        number: parseInt(cols[1]) || (index + 1),
+        variants,
+        sector: cols[3] === 'true',
+        bonus: cols[4] === 'true',
+        bonusTime: {
+          hours: parseInt(bonusTimeParts[0]) || 0,
+          minutes: parseInt(bonusTimeParts[1]) || 0,
+          seconds: parseInt(bonusTimeParts[2]) || 0,
+          negative: bonusTimeParts[3] === 'negative'
+        },
+        closedText: cols[6] || '',
+        displayText: cols[7] || ''
+      })
+    }
+  })
+  
+  if (!store.activeTab) return
+  
+  store.activeTab.answers = answers
+  globalThis.alert(`Импортировано ${answers.length} записей`)
+}
+
+const downloadFile = (blob: globalThis.Blob, filename: string): void => {
+  const url = globalThis.URL.createObjectURL(blob)
+  const a = globalThis.document.createElement('a')
+  a.href = url
+  a.download = filename
+  globalThis.document.body.appendChild(a)
+  a.click()
+  globalThis.document.body.removeChild(a)
+  globalThis.URL.revokeObjectURL(url)
+}
+</script>
+
+<style scoped>
+.functional-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .functional-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .functional-buttons .p-button {
+    width: 100%;
+  }
+}
+</style>

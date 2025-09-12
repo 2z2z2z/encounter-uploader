@@ -4,8 +4,9 @@
       @click="handleBackNavigation"
       icon="pi pi-arrow-left"
       label="Назад"
+      severity="secondary"
       text
-      class="p-button-secondary navigation-back-button"
+      class="h-10 px-4"
       :aria-label="backButtonAriaLabel"
     />
   </div>
@@ -49,32 +50,11 @@ const handleBackNavigation = () => {
   gap: 0.75rem;
 }
 
-.navigation-back-button {
-  min-width: 120px;
-  padding: 0.75rem 1rem;
-}
 
 /* Адаптивность для мобильных устройств */
 @media (max-width: 768px) {
-  .navigation-back-button {
-    min-width: auto;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
-  }
-  
   .navigation-buttons {
     gap: 0.5rem;
   }
-}
-
-/* Состояния для улучшенного UX */
-.navigation-back-button:hover {
-  transform: translateX(-2px);
-  transition: transform 0.2s ease;
-}
-
-.navigation-back-button:focus {
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
-  outline: none;
 }
 </style>
