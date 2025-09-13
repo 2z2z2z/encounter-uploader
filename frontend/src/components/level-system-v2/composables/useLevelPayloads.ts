@@ -4,7 +4,8 @@
 
 import { useLevelV2Store } from '../store'
 import { buildSectorPayload } from '../payloads/SectorPayload'
-import type { SectorPayloadData, Answer } from '../types'
+import { buildBonusPayload } from '../payloads/BonusPayload'
+import type { SectorPayloadData, BonusPayloadData, Answer } from '../types'
 
 export function useLevelPayloads() {
 	const store = useLevelV2Store()
@@ -34,6 +35,29 @@ export function useLevelPayloads() {
 		return buildSectorPayload(data)
 	}
 	
+	/**
+	 * Создает пейлоад для бонуса
+	 * 
+	 * @param bonus - Данные бонуса (Answer)
+	 * @param levelMapping - Маппинг уровней для выбора (лейбл → checkbox имя)
+	 * @returns URLSearchParams для отправки
+	 */
+	function createBonusPayload(bonus: Answer, levelMapping?: Record<string, string>): globalThis.URLSearchParams {
+		if (!store.domain || !store.gameId || !store.levelId) {
+			throw new Error('Не установлены данные игры (domain, gameId, levelId)')
+		}
+		
+		const data: BonusPayloadData = {
+			domain: store.domain,
+			gameId: store.gameId,
+			levelId: store.levelId,
+			bonus,
+			levelMapping
+		}
+		
+		return buildBonusPayload(data)
+	}
+	
 	// Функции для пейлоадов
 	async function uploadTask() {
 		// Реализация в Шаге 23
@@ -52,6 +76,7 @@ export function useLevelPayloads() {
 	
 	return {
 		createSectorPayload,
+		createBonusPayload,
 		uploadTask,
 		uploadSectors,
 		uploadBonuses
