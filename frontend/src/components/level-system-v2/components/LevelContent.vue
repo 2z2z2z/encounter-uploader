@@ -106,40 +106,23 @@ const tableData = computed<Answer[]>(() => {
 /**
  * Видимые поля на основе конфига типа уровня
  * 
- * ВРЕМЕННО: пока конфиги не заполнены (шаги 26, 29), показываем разные поля 
- * для демонстрации на основе типа уровня
+ * ✅ Правильно: поля определяются ТОЛЬКО через config.fields
+ * ❌ ЗАПРЕЩЕНО: Хардкод store.levelType === 'olymp' или 'type100500'
  */
 const visibleFields = computed<FieldDefinition[]>(() => {
   const config = getLevelTypeConfig(store.levelType)
   
-  // Если конфиг заполнен и содержит поля - используем их
+  // ✅ Правильно: используем поля из конфига типа уровня
   if (config?.fields && config.fields.length > 0) {
     return fieldDefinitions.filter(field => 
       config.fields.includes(field.id)
     )
   }
   
-  // ВРЕМЕННАЯ ЛОГИКА: показываем разные наборы полей для демонстрации
-  // Убрать после реализации шагов 26 и 29
-  if (store.levelType === 'olymp') {
-    // Поля Олимпийки согласно документации
-    const olympFields = [
-      'answer', 'sector', 'bonus', 'bonusTime', 'closedText', 'displayText'
-    ]
-    return fieldDefinitions.filter(field => olympFields.includes(field.id))
-  }
-  
-  if (store.levelType === 'type100500') {
-    // Поля 100500 согласно документации
-    const type100500Fields = [
-      'answer', 'sector', 'bonus', 'bonusLevels', 'bonusTime',
-      'delay', 'limit', 'sectorName', 'bonusName', 'bonusTask', 'hint'
-    ]
-    return fieldDefinitions.filter(field => type100500Fields.includes(field.id))
-  }
-  
-  // Fallback: показываем все поля
-  return fieldDefinitions.slice()
+  // Fallback: если конфиг не найден, показываем базовые поля
+  return fieldDefinitions.filter(field => 
+    ['answer', 'sector', 'bonus'].includes(field.id)
+  )
 })
 
 /**

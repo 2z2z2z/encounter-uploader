@@ -27,57 +27,24 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useLevelV2Store } from '../store'
+import { getLevelTypeConfig } from '../configs'
 import type { ControlId } from '../types'
 import { controls } from '../bases/controls'
 
 const store = useLevelV2Store()
 
 /**
- * Временная логика определения контролов до реализации полных конфигов
- * TODO: Заменить на конфиг-систему в шагах 26-29
+ * ✅ Правильно: получение конфигурации через универсальную систему БЕЗ хардкода
+ * ❌ ЗАПРЕЩЕНО: Хардкод store.levelType === 'olymp' или 'type100500'
  */
-const getControlsForType = (typeId: string): ControlId[] => {
-  // Олимпийка: 4 контрола
-  if (typeId === 'olymp') {
-    return [
-      'sectorMode',
-      'bonusTime', 
-      'closedSectorName',
-      'openSectorFill'
-    ]
-  }
-  
-  // 100500: все 11 контролов
-  if (typeId === 'type100500') {
-    return [
-      'sectorMode',
-      'bonusTime',
-      'closedSectorName', 
-      'openSectorFill',
-      'sectorNames',
-      'bonusNames',
-      'delay',
-      'limit',
-      'bonusTasks',
-      'hints',
-      'bonusLevels'
-    ]
-  }
-  
-  // По умолчанию - пустой массив
-  return []
-}
-
-// Получить название типа для отображения
-const getTypeDisplayName = (typeId: string): string => {
-  if (typeId === 'olymp') return 'Олимпийка'
-  if (typeId === 'type100500') return '100500 секторов и бонусов'
-  return 'Неизвестный тип'
-}
+const levelConfig = computed(() => {
+  return getLevelTypeConfig(store.levelType)
+})
 
 // Вычисляемые свойства
 const activeControls = computed<ControlId[]>(() => {
-  return getControlsForType(store.levelType)
+  // ✅ Правильно: получаем контролы из конфига типа уровня
+  return levelConfig.value?.controls || []
 })
 
 const activeControlsCount = computed<number>(() => {
@@ -85,7 +52,8 @@ const activeControlsCount = computed<number>(() => {
 })
 
 const typeName = computed<string>(() => {
-  return getTypeDisplayName(store.levelType)
+  // ✅ Правильно: название из конфига типа уровня
+  return levelConfig.value?.name || 'Неизвестный тип'
 })
 
 // Получить компонент контрола по ID
