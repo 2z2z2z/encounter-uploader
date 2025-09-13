@@ -36,14 +36,6 @@ const activeControls = computed<ControlId[]>(() => {
   return levelConfig.value?.controls || []
 })
 
-const activeControlsCount = computed<number>(() => {
-  return activeControls.value.length
-})
-
-const typeName = computed<string>(() => {
-  // ✅ Правильно: название из конфига типа уровня
-  return levelConfig.value?.name || 'Неизвестный тип'
-})
 
 // Получить компонент контрола по ID
 const getControlComponent = (controlId: ControlId) => {
