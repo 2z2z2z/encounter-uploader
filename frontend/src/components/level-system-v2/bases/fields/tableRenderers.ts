@@ -11,7 +11,6 @@ import Button from 'primevue/button'
 import Textarea from 'primevue/textarea'
 import type { Answer } from '../../types/fields'
 import { useLevelV2Store } from '../../store'
-// TODO: Импорт LevelsModal когда будет готова интеграция
 
 // Тип для функции рендеринга поля в DataTable
 export type FieldRenderer = (data: { data: Answer, index: number }) => VNode
@@ -76,7 +75,6 @@ export const renderSector: FieldRenderer = ({ data }) => {
   
   const markCustom = (): void => {
     // При ручном изменении сектора переключаемся в режим "все"
-    // TODO: Уточнить правильную логику для sectorMode при ручных изменениях
     store.config.sectorMode = 'all'
   }
 
@@ -188,7 +186,6 @@ export const renderOpenSector: FieldRenderer = ({ data }) => {
  * Рендер поля BonusLevels - выбор уровней для бонуса
  */
 export const renderBonusLevels: FieldRenderer = ({ data }) => {
-  // TODO: Интеграция с LevelsModal после реализации слота LevelContent
   const openLevelsModal = (): void => {
     console.log('Открытие модального окна выбора уровней для:', data)
     // Здесь будет логика открытия LevelsModal

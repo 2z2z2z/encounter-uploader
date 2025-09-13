@@ -1,11 +1,8 @@
 /**
  * Конфигурация типа уровня "Олимпийка"
- * Шаг 21: Временная реализация для ActionButtons (будет доработана в Шаге 26)
  */
 
 import type { LevelTypeConfig } from '../types'
-
-// Заглушка конфига Олимпийки
 export const olympConfig: LevelTypeConfig = {
 	id: 'olymp',
 	category: 'olymp',

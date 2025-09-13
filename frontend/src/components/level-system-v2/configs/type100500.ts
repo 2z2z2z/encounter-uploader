@@ -1,11 +1,8 @@
 /**
  * Конфигурация типа уровня "100500"
- * Шаг 21: Временная реализация для ActionButtons (будет доработана в Шаге 29)
  */
 
 import type { LevelTypeConfig } from '../types'
-
-// Заглушка конфига 100500
 export const type100500Config: LevelTypeConfig = {
 	id: 'type100500',
 	category: 'type100500',

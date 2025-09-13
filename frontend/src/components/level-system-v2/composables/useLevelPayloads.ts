@@ -132,7 +132,6 @@ export function useLevelPayloads() {
 	 */
 	async function uploadSectors(_combineSectors = false): Promise<void> {
 		try {
-			// TODO: Реализовать БМП функционал для объединения секторов
 			// _combineSectors параметр зарезервирован для будущей реализации БМП
 			
 			// Получение конфига типа уровня
