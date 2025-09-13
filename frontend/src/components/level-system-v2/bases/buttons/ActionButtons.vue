@@ -49,11 +49,13 @@ import Checkbox from 'primevue/checkbox'
 import { useConfirm } from 'primevue/useconfirm'
 import { useLevelV2Store } from '../../store'
 import { getLevelTypeConfig } from '../../configs'
+import { useLevelPayloads } from '../../composables/useLevelPayloads'
 import type { ButtonId } from '../../types'
 
-// Store и конфигурация
+// Store, конфигурация и композаблы
 const store = useLevelV2Store()
 const confirm = useConfirm()
+const { uploadTask, uploadSectors, uploadBonuses } = useLevelPayloads()
 
 // ✅ Правильно: получение конфига через универсальную функцию
 const levelConfig = computed(() => {
@@ -72,7 +74,7 @@ const combineSectors = ref(false)
 // Опция БМП проверяется прямо в template через button.options?.combineSectors
 
 /**
- * Универсальный хэндлер загрузки (заглушки для Шагов 23-25)
+ * Универсальный хэндлер загрузки (интеграция с useLevelPayloads)
  */
 const handleUpload = async (buttonId: ButtonId): Promise<void> => {
   try {
@@ -80,20 +82,30 @@ const handleUpload = async (buttonId: ButtonId): Promise<void> => {
     const confirmed = await showUploadConfirmation(buttonId)
     if (!confirmed) return
 
-    // Заглушка с уведомлением (будет заменена в Шагах 23-25)
-    const action = getActionLabel(buttonId)
-    globalThis.alert(`🚧 Функция "${action}" будет реализована в Шагах 23-25`)
-    
-    console.log(`[ActionButtons] ${buttonId} triggered`, {
-      levelType: store.levelType,
-      combineSectors: buttonId === 'uploadSectors' ? combineSectors.value : undefined,
-      activeTabAnswers: store.activeTab?.answers?.length || 0
-    })
+    // Вызов соответствующей функции загрузки
+    switch (buttonId) {
+      case 'uploadTask':
+        await uploadTask()
+        break
+        
+      case 'uploadSectors':
+        // Передаем параметр БМП для секторов
+        await uploadSectors(combineSectors.value)
+        break
+        
+      case 'uploadBonuses':
+        await uploadBonuses()
+        break
+        
+      default:
+        console.warn(`[ActionButtons] Неизвестный buttonId: ${buttonId}`)
+        break
+    }
 
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err)
-    console.error(`[ActionButtons] Error in ${buttonId}:`, message)
-    globalThis.alert(`Ошибка при ${getActionLabel(buttonId)}: ${message}`)
+    // Ошибки уже обрабатываются в функциях загрузки
+    // Здесь просто логируем для отладки
+    console.error(`[ActionButtons] Error in ${buttonId}:`, err)
   }
 }
 

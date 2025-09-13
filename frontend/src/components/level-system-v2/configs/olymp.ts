@@ -15,10 +15,10 @@ export const olympConfig: LevelTypeConfig = {
 	
 	// Подтипы Олимпийки с разной размерностью
 	subtypes: [
-		{ id: 'olymp15', name: '15 секторов', dimension: 15 },
-		{ id: 'olymp31', name: '31 сектор', dimension: 31 },
-		{ id: 'olymp63', name: '63 сектора', dimension: 63 },
-		{ id: 'olymp127', name: '127 секторов', dimension: 127 }
+		{ id: '15', name: '15 секторов', dimension: 15 },
+		{ id: '31', name: '31 сектор', dimension: 31 },
+		{ id: '63', name: '63 сектора', dimension: 63 },
+		{ id: '127', name: '127 секторов', dimension: 127 }
 	],
 	
 	// Значения по умолчанию для Олимпийки

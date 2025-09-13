@@ -7,7 +7,6 @@
 
 import type { LevelTypeConfig, TaskPayloadConfig } from '../types'
 import { getContentGenerator } from './content/generators'
-import { getSubtypeConfig } from '../configs'
 
 /**
  * Базовые параметры для создания пейлоада
@@ -94,12 +93,8 @@ export const createTaskPayload = (
 		throw new Error('Активный таб не найден')
 	}
 	
-	// Получение размерности для типов с подтипами (универсально)
-	let dimension: number | undefined
-	if (storeInstance.subtypeId) {
-		const subtypeConfig = getSubtypeConfig(config.id, storeInstance.subtypeId)
-		dimension = subtypeConfig?.dimension
-	}
+	// Получение размерности напрямую из store (уже вычислена правильно)
+	const dimension = storeInstance.dimension > 0 ? storeInstance.dimension : undefined
 	
 	// Формирование контекста для генератора
 	const context = {
