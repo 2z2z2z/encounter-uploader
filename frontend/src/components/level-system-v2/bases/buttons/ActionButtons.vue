@@ -1,34 +1,32 @@
 <template>
-  <div class="action-buttons">
+  <div class="action-buttons flex flex-wrap gap-2">
     <!-- Динамические экшн-кнопки на основе конфига (БЕЗ хардкода типов!) -->
     <template v-for="button in actionButtons" :key="button.id">
-      <div class="button-group">
-        <!-- Сама кнопка -->
-        <Button
-          :label="button.label"
-          :icon="button.icon"
-          :severity="button.variant || 'secondary'"
-          class="h-10 px-4"
-          @click="handleUpload(button.id)"
+      <!-- Сама кнопка -->
+      <Button
+        :label="button.label"
+        :severity="button.variant || 'primary'"
+        class="h-10 px-4 text-nowrap max-xs:w-full"
+        @click="handleUpload(button.id)"
+      />
+      
+      <!-- Опция БМП только для кнопки uploadSectors с соответствующей настройкой -->
+      <div 
+        v-if="button.id === 'uploadSectors' && button.options?.combineSectors" 
+        class="flex items-center"
+      >
+        <Checkbox
+          v-model="combineSectors"
+          :id="`combine-sectors-${button.id}`"
+          :binary="true"
+          size="large"
         />
-        
-        <!-- Опция БМП только для кнопки uploadSectors с соответствующей настройкой -->
-        <div 
-          v-if="button.id === 'uploadSectors' && button.options?.combineSectors" 
-          class="mt-2"
+        <label 
+          :for="`combine-sectors-${button.id}`" 
+          class="ml-2 text-sm cursor-pointer"
         >
-          <Checkbox
-            v-model="combineSectors"
-            :id="`combine-sectors-${button.id}`"
-            :binary="true"
-          />
-          <label 
-            :for="`combine-sectors-${button.id}`" 
-            class="ml-2 text-sm cursor-pointer"
-          >
-            Объединить сектора (БМП)
-          </label>
-        </div>
+          Объединить сектора (БМП)
+        </label>
       </div>
     </template>
   </div>
@@ -106,10 +104,11 @@ const showUploadConfirmation = (buttonId: ButtonId): Promise<boolean> => {
   return new Promise<boolean>((resolve) => {
     const action = getActionLabel(buttonId)
     confirm.require({
-      message: `⚠️ ВАЖНО: Во время заливки НЕ переключайтесь на другие вкладки браузера и не сворачивайте его.\n\nПродолжить ${action.toLowerCase()}?`,
+      message: `Во время заливки НЕ переключайтесь на другие вкладки браузера и не сворачивайте его.\n\nПродолжить ${action.toLowerCase()}?`,
       header: `Подтверждение: ${action}`,
       icon: 'pi pi-exclamation-triangle',
       rejectLabel: 'Отмена',
+      rejectClass: 'p-button-outlined',
       acceptLabel: 'Продолжить',
       accept: () => resolve(true),
       reject: () => resolve(false)
@@ -125,29 +124,3 @@ const getActionLabel = (buttonId: ButtonId): string => {
   return button?.label || buttonId
 }
 </script>
-
-<style scoped>
-.action-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  align-items: flex-start;
-}
-
-.button-group {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-/* Responsive - на мобильных устройствах кнопки по центру */
-@media (max-width: 768px) {
-  .action-buttons {
-    justify-content: center;
-  }
-  
-  .button-group {
-    align-items: center;
-  }
-}
-</style>

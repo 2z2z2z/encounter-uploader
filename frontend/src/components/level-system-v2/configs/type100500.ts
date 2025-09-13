@@ -33,13 +33,12 @@ export const type100500Config: LevelTypeConfig = {
 			{ 
 				id: 'uploadSectors', 
 				label: 'Залить секторы', 
-				icon: 'pi pi-upload', 
-				variant: 'secondary',
+				variant: 'primary',
 				options: { 
 					combineSectors: true  // Опция БМП включена!
 				}
 			},
-			{ id: 'uploadBonuses', label: 'Залить бонусы', icon: 'pi pi-upload', variant: 'secondary' }
+			{ id: 'uploadBonuses', label: 'Залить бонусы', variant: 'primary' }
 		]
 	},
 	

@@ -1,5 +1,5 @@
 <template>
-  <div class="flex-1 flex gap-3">
+  <div class="flex-1 flex gap-3 max-xs:flex-wrap">
     <FloatLabel variant="off">
       <div class="flex items-center gap-2 flex-nowrap">
         <InputNumber

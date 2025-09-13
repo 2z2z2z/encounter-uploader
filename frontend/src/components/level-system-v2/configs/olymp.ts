@@ -39,9 +39,9 @@ export const olympConfig: LevelTypeConfig = {
 		navigation: ['back'],
 		functional: ['clear', 'export', 'import', 'preview'],
 		action: [
-			{ id: 'uploadTask', label: 'Залить задание', icon: 'pi pi-upload', variant: 'secondary' },
-			{ id: 'uploadSectors', label: 'Залить секторы', icon: 'pi pi-upload', variant: 'secondary' },
-			{ id: 'uploadBonuses', label: 'Залить бонусы', icon: 'pi pi-upload', variant: 'secondary' }
+			{ id: 'uploadTask', label: 'Залить задание', variant: 'primary' },
+			{ id: 'uploadSectors', label: 'Залить секторы', variant: 'primary' },
+			{ id: 'uploadBonuses', label: 'Залить бонусы', variant: 'primary' }
 		]
 	},
 	

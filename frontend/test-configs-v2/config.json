@@ -1,0 +1,27 @@
+{
+  "olymp15": {
+    "typeId": "olymp",
+    "subtype": "15",
+    "configFile": "olymp15.json"
+  },
+  "olymp31": {
+    "typeId": "olymp", 
+    "subtype": "31",
+    "configFile": "olymp31.json"
+  },
+  "olymp63": {
+    "typeId": "olymp",
+    "subtype": "63", 
+    "configFile": "olymp63.json"
+  },
+  "olymp127": {
+    "typeId": "olymp",
+    "subtype": "127",
+    "configFile": "olymp127.json"
+  },
+  "type100500": {
+    "typeId": "type100500",
+    "subtype": null,
+    "configFile": "type100500.json"
+  }
+}

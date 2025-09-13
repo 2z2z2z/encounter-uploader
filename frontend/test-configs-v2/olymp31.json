@@ -1,0 +1,332 @@
+{
+  "version": 1,
+  "type": "olymp",
+  "timestamp": "2025-01-15T12:00:00.000Z",
+  "exportFormat": "complete",
+  "tabs": [
+    {
+      "name": "default",
+      "answers": [
+        {
+          "id": "answer-31-1",
+          "number": 1,
+          "variants": ["1", "1_2"],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": { "hours": 1, "minutes": 2, "seconds": 3, "negative": true },
+          "closedText": "Закрытый сектор 1",
+          "displayText": "1"
+        },
+        {
+          "id": "answer-31-2",
+          "number": 2,
+          "variants": ["2"],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": { "hours": 1, "minutes": 2, "seconds": 3, "negative": false },
+          "closedText": "Закрытый сектор 2",
+          "displayText": "2"
+        },
+        {
+          "id": "answer-31-3",
+          "number": 3,
+          "variants": ["3"],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": { "hours": 1, "minutes": 2, "seconds": 3, "negative": false },
+          "closedText": "Закрытый сектор 3",
+          "displayText": "3"
+        },
+        {
+          "id": "answer-31-4",
+          "number": 4,
+          "variants": ["4"],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": { "hours": 1, "minutes": 2, "seconds": 3, "negative": false },
+          "closedText": "Закрытый сектор 4",
+          "displayText": "4"
+        },
+        {
+          "id": "answer-31-5",
+          "number": 5,
+          "variants": ["5"],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": { "hours": 1, "minutes": 2, "seconds": 3, "negative": false },
+          "closedText": "Закрытый сектор 5",
+          "displayText": "5"
+        },
+        {
+          "id": "answer-31-6",
+          "number": 6,
+          "variants": ["6"],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": { "hours": 0, "minutes": 1, "seconds": 30, "negative": false },
+          "closedText": "Закрытый сектор 6",
+          "displayText": "6"
+        },
+        {
+          "id": "answer-31-7",
+          "number": 7,
+          "variants": ["7"],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": { "hours": 0, "minutes": 1, "seconds": 30, "negative": false },
+          "closedText": "Закрытый сектор 7",
+          "displayText": "7"
+        },
+        {
+          "id": "answer-31-8",
+          "number": 8,
+          "variants": ["8"],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": { "hours": 0, "minutes": 1, "seconds": 30, "negative": false },
+          "closedText": "Закрытый сектор 8",
+          "displayText": "8"
+        },
+        {
+          "id": "answer-31-9",
+          "number": 9,
+          "variants": ["9"],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": { "hours": 0, "minutes": 1, "seconds": 30, "negative": false },
+          "closedText": "Закрытый сектор 9",
+          "displayText": "9"
+        },
+        {
+          "id": "answer-31-10",
+          "number": 10,
+          "variants": ["10"],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": { "hours": 0, "minutes": 1, "seconds": 30, "negative": false },
+          "closedText": "Закрытый сектор 10",
+          "displayText": "10"
+        },
+        {
+          "id": "answer-31-11",
+          "number": 11,
+          "variants": ["11"],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": { "hours": 0, "minutes": 1, "seconds": 30, "negative": false },
+          "closedText": "Закрытый сектор 11",
+          "displayText": "11"
+        },
+        {
+          "id": "answer-31-12",
+          "number": 12,
+          "variants": ["12"],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": { "hours": 0, "minutes": 1, "seconds": 30, "negative": false },
+          "closedText": "Закрытый сектор 12",
+          "displayText": "12"
+        },
+        {
+          "id": "answer-31-13",
+          "number": 13,
+          "variants": ["13"],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": { "hours": 0, "minutes": 1, "seconds": 30, "negative": false },
+          "closedText": "Закрытый сектор 13",
+          "displayText": "13"
+        },
+        {
+          "id": "answer-31-14",
+          "number": 14,
+          "variants": ["14"],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": { "hours": 0, "minutes": 1, "seconds": 30, "negative": false },
+          "closedText": "Закрытый сектор 14",
+          "displayText": "14"
+        },
+        {
+          "id": "answer-31-15",
+          "number": 15,
+          "variants": ["15"],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": { "hours": 0, "minutes": 1, "seconds": 30, "negative": false },
+          "closedText": "Закрытый сектор 15",
+          "displayText": "15"
+        },
+        {
+          "id": "answer-31-16",
+          "number": 16,
+          "variants": ["16"],
+          "sector": false,
+          "bonus": true,
+          "bonusTime": { "hours": 0, "minutes": 1, "seconds": 0, "negative": false },
+          "closedText": "Закрытый сектор 16",
+          "displayText": "16"
+        },
+        {
+          "id": "answer-31-17",
+          "number": 17,
+          "variants": ["17"],
+          "sector": false,
+          "bonus": true,
+          "bonusTime": { "hours": 0, "minutes": 1, "seconds": 0, "negative": false },
+          "closedText": "Закрытый сектор 17",
+          "displayText": "17"
+        },
+        {
+          "id": "answer-31-18",
+          "number": 18,
+          "variants": ["18"],
+          "sector": false,
+          "bonus": true,
+          "bonusTime": { "hours": 0, "minutes": 1, "seconds": 0, "negative": false },
+          "closedText": "Закрытый сектор 18",
+          "displayText": "18"
+        },
+        {
+          "id": "answer-31-19",
+          "number": 19,
+          "variants": ["19"],
+          "sector": false,
+          "bonus": true,
+          "bonusTime": { "hours": 0, "minutes": 1, "seconds": 0, "negative": false },
+          "closedText": "Закрытый сектор 19",
+          "displayText": "19"
+        },
+        {
+          "id": "answer-31-20",
+          "number": 20,
+          "variants": ["20"],
+          "sector": false,
+          "bonus": true,
+          "bonusTime": { "hours": 0, "minutes": 1, "seconds": 0, "negative": false },
+          "closedText": "Закрытый сектор 20",
+          "displayText": "20"
+        },
+        {
+          "id": "answer-31-21",
+          "number": 21,
+          "variants": ["21"],
+          "sector": false,
+          "bonus": true,
+          "bonusTime": { "hours": 0, "minutes": 1, "seconds": 0, "negative": false },
+          "closedText": "Закрытый сектор 21",
+          "displayText": "21"
+        },
+        {
+          "id": "answer-31-22",
+          "number": 22,
+          "variants": ["22"],
+          "sector": false,
+          "bonus": true,
+          "bonusTime": { "hours": 0, "minutes": 1, "seconds": 0, "negative": false },
+          "closedText": "Закрытый сектор 22",
+          "displayText": "22"
+        },
+        {
+          "id": "answer-31-23",
+          "number": 23,
+          "variants": ["23"],
+          "sector": false,
+          "bonus": true,
+          "bonusTime": { "hours": 0, "minutes": 1, "seconds": 0, "negative": false },
+          "closedText": "Закрытый сектор 23",
+          "displayText": "23"
+        },
+        {
+          "id": "answer-31-24",
+          "number": 24,
+          "variants": ["24"],
+          "sector": false,
+          "bonus": true,
+          "bonusTime": { "hours": 0, "minutes": 1, "seconds": 0, "negative": false },
+          "closedText": "Закрытый сектор 24",
+          "displayText": "24"
+        },
+        {
+          "id": "answer-31-25",
+          "number": 25,
+          "variants": ["25"],
+          "sector": false,
+          "bonus": true,
+          "bonusTime": { "hours": 0, "minutes": 1, "seconds": 0, "negative": false },
+          "closedText": "Закрытый сектор 25",
+          "displayText": "25"
+        },
+        {
+          "id": "answer-31-26",
+          "number": 26,
+          "variants": ["26"],
+          "sector": false,
+          "bonus": true,
+          "bonusTime": { "hours": 0, "minutes": 1, "seconds": 0, "negative": false },
+          "closedText": "Закрытый сектор 26",
+          "displayText": "26"
+        },
+        {
+          "id": "answer-31-27",
+          "number": 27,
+          "variants": ["27"],
+          "sector": false,
+          "bonus": true,
+          "bonusTime": { "hours": 0, "minutes": 1, "seconds": 0, "negative": false },
+          "closedText": "Закрытый сектор 27",
+          "displayText": "27"
+        },
+        {
+          "id": "answer-31-28",
+          "number": 28,
+          "variants": ["28"],
+          "sector": false,
+          "bonus": true,
+          "bonusTime": { "hours": 0, "minutes": 1, "seconds": 0, "negative": false },
+          "closedText": "Закрытый сектор 28",
+          "displayText": "28"
+        },
+        {
+          "id": "answer-31-29",
+          "number": 29,
+          "variants": ["29"],
+          "sector": false,
+          "bonus": true,
+          "bonusTime": { "hours": 0, "minutes": 1, "seconds": 0, "negative": false },
+          "closedText": "Закрытый сектор 29",
+          "displayText": "29"
+        },
+        {
+          "id": "answer-31-30",
+          "number": 30,
+          "variants": ["30"],
+          "sector": false,
+          "bonus": true,
+          "bonusTime": { "hours": 0, "minutes": 1, "seconds": 0, "negative": false },
+          "closedText": "Закрытый сектор 30",
+          "displayText": "30"
+        },
+        {
+          "id": "answer-31-31",
+          "number": 31,
+          "variants": ["31"],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": { "hours": 2, "minutes": 0, "seconds": 0, "negative": false },
+          "closedText": "Закрытый сектор 31",
+          "displayText": "31"
+        }
+      ]
+    }
+  ],
+  "config": {
+    "sectorMode": "initialAndFinal",
+    "bonusTime": {
+      "hours": 0,
+      "minutes": 0,
+      "seconds": 0,
+      "negative": false
+    }
+  }
+}

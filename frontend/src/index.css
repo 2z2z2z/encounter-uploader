@@ -8,6 +8,10 @@
   font-stretch: 75% 125%;
 }
 
+@theme {
+  --breakpoint-xs: 28.75rem; /* 459px / 16 = 28.75rem */
+}
+
 :host,
 html {
   font-feature-settings: "cv02","cv03","cv04","cv11";

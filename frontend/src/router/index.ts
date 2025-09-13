@@ -3,6 +3,7 @@ import LoginForm from '../components/LoginForm.vue'
 import SettingsForm from '../components/SettingsForm.vue'
 import UploadForm from '../components/UploadForm.vue'
 import TestUploadPage from '../components/TestUploadPage.vue'
+import TestUploadPageV2 from '../components/level-system-v2/TestUploadPageV2.vue'
 import LevelUploadPage from '../components/level-system-v2/components/LevelUploadPage.vue'
 
 const routes = [
@@ -12,8 +13,10 @@ const routes = [
   { path: '/upload', component: UploadForm },
   // Существующие роуты для старой архитектуры
   { path: '/test/:levelType', component: TestUploadPage },
-  // Новые роуты для level-system-v2 (Шаг 4)
-  { path: '/v2/test/:levelType', component: LevelUploadPage },
+  // Новые роуты для level-system-v2 (чистые, без тестовых данных)
+  { path: '/v2/:typeId/:subtype?', component: LevelUploadPage },
+  // Роуты level-system-v2 с тестовыми данными
+  { path: '/v2/test/:levelType', component: TestUploadPageV2 },
 ]
 
 export default createRouter({

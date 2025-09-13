@@ -1,5 +1,5 @@
 <template>
-  <div class="functional-buttons">
+  <div class="functional-buttons flex flex-wrap gap-2">
     <!-- Добавить коды - только для типов с ручным добавлением -->
     <Button
       v-if="showAddCodesButton"
@@ -8,7 +8,7 @@
       severity="secondary"
       :disabled="isTabLimitExceeded"
       @click="handleAddCodes"
-      class="h-10 px-4"
+      class="h-10 px-4 text-nowrap max-xs:w-full"
     />
     
     <!-- Очистить -->
@@ -18,7 +18,7 @@
       severity="secondary"
       :disabled="isTabEmpty"
       @click="handleClear"
-      class="h-10 px-4"
+      class="h-10 px-4 text-nowrap max-xs:w-full"
     />
     
     <!-- Экспорт -->
@@ -28,7 +28,7 @@
       severity="secondary"
       :disabled="isTabEmpty"
       @click="handleExport"
-      class="h-10 px-4"
+      class="h-10 px-4 text-nowrap max-xs:w-full"
     />
     
     <!-- Импорт -->
@@ -37,7 +37,7 @@
       icon="pi pi-upload"
       severity="secondary"
       @click="handleImport"
-      class="h-10 px-4"
+      class="h-10 px-4 max-xs:w-full"
     />
     
     <!-- Предпросмотр - только для Task -->
@@ -48,7 +48,7 @@
       severity="secondary"
       :disabled="isTabEmpty"
       @click="handlePreview"
-      class="h-10 px-4"
+      class="h-10 px-4 max-xs:w-full"
     />
     
     <!-- Модальные окна -->
@@ -348,24 +348,3 @@ const downloadFile = (blob: globalThis.Blob, filename: string): void => {
   globalThis.URL.revokeObjectURL(url)
 }
 </script>
-
-<style scoped>
-.functional-buttons {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-}
-
-@media (max-width: 768px) {
-  .functional-buttons {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .functional-buttons .p-button {
-    width: 100%;
-  }
-}
-</style>

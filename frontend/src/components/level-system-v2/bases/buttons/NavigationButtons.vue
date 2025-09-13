@@ -1,12 +1,12 @@
 <template>
-  <div class="navigation-buttons">
+  <div class="navigation-buttons flex flex-wrap gap-2">
     <Button
       @click="handleBackNavigation"
       icon="pi pi-arrow-left"
       label="Назад"
       severity="secondary"
       text
-      class="h-10 px-4"
+      class="h-10 px-4 text-nowrap max-xs:w-full"
       :aria-label="backButtonAriaLabel"
     />
   </div>
@@ -38,23 +38,3 @@ const handleBackNavigation = () => {
   }
 }
 </script>
-
-<style scoped>
-/**
- * Стилизация навигационных кнопок
- * Без @apply для совместимости с TailwindCSS v4
- */
-.navigation-buttons {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-
-/* Адаптивность для мобильных устройств */
-@media (max-width: 768px) {
-  .navigation-buttons {
-    gap: 0.5rem;
-  }
-}
-</style>

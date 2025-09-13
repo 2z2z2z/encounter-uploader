@@ -1,25 +1,14 @@
 <template>
-  <div class="level-control-panel">
-    <!-- Заголовок панели -->
-    <div class="control-panel-header">
-      <h3 class="text-lg font-semibold text-gray-800">Панель управления</h3>
-      <div class="text-sm text-gray-600">
-        {{ activeControlsCount }} контролов для {{ typeName }}
-      </div>
-    </div>
-
-    <!-- Контролы -->
-    <div class="controls-grid">
-      <div
-        v-for="controlId in activeControls"
-        :key="controlId"
-        class="control-item"
-      >
-        <component
-          :is="getControlComponent(controlId)"
-          v-if="getControlComponent(controlId)"
-        />
-      </div>
+  <div class="flex flex-wrap justify-between items-end gap-x-8 gap-y-10 mt-8 mb-6 rounded-2xl bg-violet-50 py-10 px-5">
+    <div
+      v-for="controlId in activeControls"
+      :key="controlId"
+      class="flex-1 text-nowrap"
+    >
+      <component
+        :is="getControlComponent(controlId)"
+        v-if="getControlComponent(controlId)"
+      />
     </div>
   </div>
 </template>
@@ -67,13 +56,6 @@ const getControlComponent = (controlId: ControlId) => {
  * Стилизация контрол-панели через обычные CSS свойства
  * Без @apply для совместимости с TailwindCSS v4
  */
-.level-control-panel {
-  background-color: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-}
 
 .control-panel-header {
   margin-bottom: 1.5rem;
@@ -81,47 +63,10 @@ const getControlComponent = (controlId: ControlId) => {
   border-bottom: 1px solid #f3f4f6;
 }
 
-.control-panel-header h3 {
-  margin-bottom: 0.25rem;
-}
-
-.controls-grid {
-  display: grid;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-  gap: 1.5rem;
-}
-
-.control-item {
-  min-height: 4rem;
-}
-
-/* Адаптивность для планшетов и выше */
-@media (min-width: 768px) {
-  .controls-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 1024px) {
-  .controls-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 1280px) {
-  .controls-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
 /* Мобильная адаптация */
 @media (max-width: 768px) {
   .level-control-panel {
     padding: 1rem;
-  }
-  
-  .controls-grid {
-    gap: 1rem;
   }
   
   .control-panel-header {
@@ -135,5 +80,3 @@ const getControlComponent = (controlId: ControlId) => {
   }
 }
 </style>
-
-

@@ -1,0 +1,491 @@
+{
+  "version": 1,
+  "type": "olymp",
+  "timestamp": "2025-09-13T08:08:26.469Z",
+  "tab": "default",
+  "answers": [
+    {
+      "id": "answer-test-1",
+      "number": 1,
+      "variants": [
+        "1",
+        "1_2"
+      ],
+      "sector": true,
+      "bonus": true,
+      "bonusTime": {
+        "hours": 1,
+        "minutes": 2,
+        "seconds": 3,
+        "negative": true
+      },
+      "closedText": "Закрытый сектор 1",
+      "displayText": "1",
+      "bonusLevels": [],
+      "delay": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "limit": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "sectorName": "",
+      "bonusName": "",
+      "bonusTask": "",
+      "hint": ""
+    },
+    {
+      "id": "answer-test-2",
+      "number": 2,
+      "variants": [
+        "2",
+        "2_2",
+        "2_3"
+      ],
+      "sector": true,
+      "bonus": true,
+      "bonusTime": {
+        "hours": 1,
+        "minutes": 2,
+        "seconds": 3,
+        "negative": true
+      },
+      "closedText": "Закрытый сектор 2",
+      "displayText": "2",
+      "bonusLevels": [],
+      "delay": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "limit": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "sectorName": "",
+      "bonusName": "",
+      "bonusTask": "",
+      "hint": ""
+    },
+    {
+      "id": "answer-test-3",
+      "number": 3,
+      "variants": [
+        "3"
+      ],
+      "sector": true,
+      "bonus": true,
+      "bonusTime": {
+        "hours": 1,
+        "minutes": 2,
+        "seconds": 3,
+        "negative": true
+      },
+      "closedText": "Закрытый сектор 3",
+      "displayText": "3",
+      "bonusLevels": [],
+      "delay": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "limit": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "sectorName": "",
+      "bonusName": "",
+      "bonusTask": "",
+      "hint": ""
+    },
+    {
+      "id": "answer-test-4",
+      "number": 4,
+      "variants": [
+        "4"
+      ],
+      "sector": true,
+      "bonus": true,
+      "bonusTime": {
+        "hours": 1,
+        "minutes": 2,
+        "seconds": 3,
+        "negative": false
+      },
+      "closedText": "Закрытый сектор 4",
+      "displayText": "4",
+      "bonusLevels": [],
+      "delay": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "limit": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "sectorName": "",
+      "bonusName": "",
+      "bonusTask": "",
+      "hint": ""
+    },
+    {
+      "id": "answer-test-5",
+      "number": 5,
+      "variants": [
+        "5"
+      ],
+      "sector": true,
+      "bonus": true,
+      "bonusTime": {
+        "hours": 1,
+        "minutes": 2,
+        "seconds": 3,
+        "negative": false
+      },
+      "closedText": "Закрытый сектор 5",
+      "displayText": "5",
+      "bonusLevels": [],
+      "delay": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "limit": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "sectorName": "",
+      "bonusName": "",
+      "bonusTask": "",
+      "hint": ""
+    },
+    {
+      "id": "answer-test-6",
+      "number": 6,
+      "variants": [
+        "6"
+      ],
+      "sector": true,
+      "bonus": true,
+      "bonusTime": {
+        "hours": 1,
+        "minutes": 2,
+        "seconds": 3,
+        "negative": false
+      },
+      "closedText": "Закрытый сектор 6",
+      "displayText": "6",
+      "bonusLevels": [],
+      "delay": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "limit": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "sectorName": "",
+      "bonusName": "",
+      "bonusTask": "",
+      "hint": ""
+    },
+    {
+      "id": "answer-test-7",
+      "number": 7,
+      "variants": [
+        "7"
+      ],
+      "sector": true,
+      "bonus": true,
+      "bonusTime": {
+        "hours": 1,
+        "minutes": 2,
+        "seconds": 3,
+        "negative": false
+      },
+      "closedText": "Закрытый сектор 7",
+      "displayText": "7",
+      "bonusLevels": [],
+      "delay": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "limit": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "sectorName": "",
+      "bonusName": "",
+      "bonusTask": "",
+      "hint": ""
+    },
+    {
+      "id": "answer-test-8",
+      "number": 8,
+      "variants": [
+        "8"
+      ],
+      "sector": true,
+      "bonus": true,
+      "bonusTime": {
+        "hours": 1,
+        "minutes": 2,
+        "seconds": 3,
+        "negative": false
+      },
+      "closedText": "Закрытый сектор 8",
+      "displayText": "8",
+      "bonusLevels": [],
+      "delay": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "limit": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "sectorName": "",
+      "bonusName": "",
+      "bonusTask": "",
+      "hint": ""
+    },
+    {
+      "id": "answer-test-9",
+      "number": 9,
+      "variants": [
+        "9"
+      ],
+      "sector": false,
+      "bonus": true,
+      "bonusTime": {
+        "hours": 1,
+        "minutes": 2,
+        "seconds": 3,
+        "negative": false
+      },
+      "closedText": "Закрытый сектор 9",
+      "displayText": "9",
+      "bonusLevels": [],
+      "delay": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "limit": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "sectorName": "",
+      "bonusName": "",
+      "bonusTask": "",
+      "hint": ""
+    },
+    {
+      "id": "answer-test-10",
+      "number": 10,
+      "variants": [
+        "10"
+      ],
+      "sector": false,
+      "bonus": true,
+      "bonusTime": {
+        "hours": 1,
+        "minutes": 2,
+        "seconds": 3,
+        "negative": false
+      },
+      "closedText": "Закрытый сектор 10",
+      "displayText": "10",
+      "bonusLevels": [],
+      "delay": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "limit": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "sectorName": "",
+      "bonusName": "",
+      "bonusTask": "",
+      "hint": ""
+    },
+    {
+      "id": "answer-test-11",
+      "number": 11,
+      "variants": [
+        "11"
+      ],
+      "sector": false,
+      "bonus": true,
+      "bonusTime": {
+        "hours": 1,
+        "minutes": 2,
+        "seconds": 3,
+        "negative": false
+      },
+      "closedText": "Закрытый сектор 11",
+      "displayText": "11",
+      "bonusLevels": [],
+      "delay": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "limit": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "sectorName": "",
+      "bonusName": "",
+      "bonusTask": "",
+      "hint": ""
+    },
+    {
+      "id": "answer-test-12",
+      "number": 12,
+      "variants": [
+        "12"
+      ],
+      "sector": false,
+      "bonus": true,
+      "bonusTime": {
+        "hours": 1,
+        "minutes": 2,
+        "seconds": 3,
+        "negative": false
+      },
+      "closedText": "Закрытый сектор 12",
+      "displayText": "12",
+      "bonusLevels": [],
+      "delay": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "limit": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "sectorName": "",
+      "bonusName": "",
+      "bonusTask": "",
+      "hint": ""
+    },
+    {
+      "id": "answer-test-13",
+      "number": 13,
+      "variants": [
+        "13"
+      ],
+      "sector": false,
+      "bonus": true,
+      "bonusTime": {
+        "hours": 1,
+        "minutes": 2,
+        "seconds": 3,
+        "negative": false
+      },
+      "closedText": "Закрытый сектор 13",
+      "displayText": "13",
+      "bonusLevels": [],
+      "delay": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "limit": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "sectorName": "",
+      "bonusName": "",
+      "bonusTask": "",
+      "hint": ""
+    },
+    {
+      "id": "answer-test-14",
+      "number": 14,
+      "variants": [
+        "14"
+      ],
+      "sector": false,
+      "bonus": true,
+      "bonusTime": {
+        "hours": 1,
+        "minutes": 2,
+        "seconds": 3,
+        "negative": false
+      },
+      "closedText": "Закрытый сектор 14",
+      "displayText": "14",
+      "bonusLevels": [],
+      "delay": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "limit": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "sectorName": "",
+      "bonusName": "",
+      "bonusTask": "",
+      "hint": ""
+    },
+    {
+      "id": "answer-test-15",
+      "number": 15,
+      "variants": [
+        "15"
+      ],
+      "sector": true,
+      "bonus": true,
+      "bonusTime": {
+        "hours": 1,
+        "minutes": 2,
+        "seconds": 3,
+        "negative": false
+      },
+      "closedText": "Закрытый сектор 15",
+      "displayText": "15",
+      "bonusLevels": [],
+      "delay": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "limit": {
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0
+      },
+      "sectorName": "",
+      "bonusName": "",
+      "bonusTask": "",
+      "hint": ""
+    }
+  ]
+}

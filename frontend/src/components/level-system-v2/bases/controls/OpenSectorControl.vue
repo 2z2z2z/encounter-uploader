@@ -3,6 +3,7 @@
     @click="fillOpenSectors" 
     label="Заполнить открытые сектора"
     icon="pi pi-copy"
+    class="max-xs:w-full"
   />
 </template>
 

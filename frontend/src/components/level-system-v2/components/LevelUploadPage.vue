@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-surface-50 p-4">
+  <div class="min-h-screen flex items-start justify-center bg-surface-50 p-4">
     <div class="w-full max-w-[1920px]">
       <Card>
         <template #content>
@@ -10,9 +10,7 @@
           <LevelTabs />
 
           <!-- Слот 3: LevelControlPanel - контрол-панель -->
-          <div class="flex flex-wrap justify-between items-end gap-x-8 gap-y-10 mt-8 mb-6 rounded-2xl bg-violet-50 py-10 px-5">
-            <LevelControlPanel />
-          </div>
+          <LevelControlPanel />
 
           <!-- Слот 4: LevelContent - таблица с данными -->
           <LevelContent />

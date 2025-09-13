@@ -1,0 +1,247 @@
+{
+  "version": 1,
+  "type": "olymp",
+  "timestamp": "2025-01-15T12:00:00.000Z",
+  "exportFormat": "complete",
+  "tabs": [
+    {
+      "name": "default",
+      "answers": [
+        {
+          "id": "answer-test-1",
+          "number": 1,
+          "variants": ["1", "1_2"],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": {
+            "hours": 1,
+            "minutes": 2,
+            "seconds": 3,
+            "negative": true
+          },
+          "closedText": "Закрытый сектор 1",
+          "displayText": "1"
+        },
+        {
+          "id": "answer-test-2",
+          "number": 2,
+          "variants": ["2", "2_2", "2_3"],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": {
+            "hours": 1,
+            "minutes": 2,
+            "seconds": 3,
+            "negative": true
+          },
+          "closedText": "Закрытый сектор 2",
+          "displayText": "2"
+        },
+        {
+          "id": "answer-test-3",
+          "number": 3,
+          "variants": ["3"],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": {
+            "hours": 1,
+            "minutes": 2,
+            "seconds": 3,
+            "negative": true
+          },
+          "closedText": "Закрытый сектор 3",
+          "displayText": "3"
+        },
+        {
+          "id": "answer-test-4",
+          "number": 4,
+          "variants": ["4"],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": {
+            "hours": 1,
+            "minutes": 2,
+            "seconds": 3,
+            "negative": false
+          },
+          "closedText": "Закрытый сектор 4",
+          "displayText": "4"
+        },
+        {
+          "id": "answer-test-5",
+          "number": 5,
+          "variants": ["5"],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": {
+            "hours": 1,
+            "minutes": 2,
+            "seconds": 3,
+            "negative": false
+          },
+          "closedText": "Закрытый сектор 5",
+          "displayText": "5"
+        },
+        {
+          "id": "answer-test-6",
+          "number": 6,
+          "variants": ["6"],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": {
+            "hours": 1,
+            "minutes": 2,
+            "seconds": 3,
+            "negative": false
+          },
+          "closedText": "Закрытый сектор 6",
+          "displayText": "6"
+        },
+        {
+          "id": "answer-test-7",
+          "number": 7,
+          "variants": ["7"],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": {
+            "hours": 1,
+            "minutes": 2,
+            "seconds": 3,
+            "negative": false
+          },
+          "closedText": "Закрытый сектор 7",
+          "displayText": "7"
+        },
+        {
+          "id": "answer-test-8",
+          "number": 8,
+          "variants": ["8"],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": {
+            "hours": 1,
+            "minutes": 2,
+            "seconds": 3,
+            "negative": false
+          },
+          "closedText": "Закрытый сектор 8",
+          "displayText": "8"
+        },
+        {
+          "id": "answer-test-9",
+          "number": 9,
+          "variants": ["9"],
+          "sector": false,
+          "bonus": true,
+          "bonusTime": {
+            "hours": 1,
+            "minutes": 2,
+            "seconds": 3,
+            "negative": false
+          },
+          "closedText": "Закрытый сектор 9",
+          "displayText": "9"
+        },
+        {
+          "id": "answer-test-10",
+          "number": 10,
+          "variants": ["10"],
+          "sector": false,
+          "bonus": true,
+          "bonusTime": {
+            "hours": 1,
+            "minutes": 2,
+            "seconds": 3,
+            "negative": false
+          },
+          "closedText": "Закрытый сектор 10",
+          "displayText": "10"
+        },
+        {
+          "id": "answer-test-11",
+          "number": 11,
+          "variants": ["11"],
+          "sector": false,
+          "bonus": true,
+          "bonusTime": {
+            "hours": 1,
+            "minutes": 2,
+            "seconds": 3,
+            "negative": false
+          },
+          "closedText": "Закрытый сектор 11",
+          "displayText": "11"
+        },
+        {
+          "id": "answer-test-12",
+          "number": 12,
+          "variants": ["12"],
+          "sector": false,
+          "bonus": true,
+          "bonusTime": {
+            "hours": 1,
+            "minutes": 2,
+            "seconds": 3,
+            "negative": false
+          },
+          "closedText": "Закрытый сектор 12",
+          "displayText": "12"
+        },
+        {
+          "id": "answer-test-13",
+          "number": 13,
+          "variants": ["13"],
+          "sector": false,
+          "bonus": true,
+          "bonusTime": {
+            "hours": 1,
+            "minutes": 2,
+            "seconds": 3,
+            "negative": false
+          },
+          "closedText": "Закрытый сектор 13",
+          "displayText": "13"
+        },
+        {
+          "id": "answer-test-14",
+          "number": 14,
+          "variants": ["14"],
+          "sector": false,
+          "bonus": true,
+          "bonusTime": {
+            "hours": 1,
+            "minutes": 2,
+            "seconds": 3,
+            "negative": false
+          },
+          "closedText": "Закрытый сектор 14",
+          "displayText": "14"
+        },
+        {
+          "id": "answer-test-15",
+          "number": 15,
+          "variants": ["15"],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": {
+            "hours": 1,
+            "minutes": 2,
+            "seconds": 3,
+            "negative": false
+          },
+          "closedText": "Закрытый сектор 15",
+          "displayText": "15"
+        }
+      ]
+    }
+  ],
+  "config": {
+    "sectorMode": "initialAndFinal",
+    "bonusTime": {
+      "hours": 0,
+      "minutes": 0,
+      "seconds": 0,
+      "negative": false
+    }
+  }
+}
