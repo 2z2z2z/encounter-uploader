@@ -105,14 +105,10 @@ const tableData = computed<Answer[]>(() => {
 
 /**
  * Видимые поля на основе конфига типа уровня
- * 
- * ✅ Правильно: поля определяются ТОЛЬКО через config.fields
- * ❌ ЗАПРЕЩЕНО: Хардкод store.levelType === 'olymp' или 'type100500'
  */
 const visibleFields = computed<FieldDefinition[]>(() => {
   const config = getLevelTypeConfig(store.levelType)
   
-  // ✅ Правильно: используем поля из конфига типа уровня
   if (config?.fields && config.fields.length > 0) {
     return fieldDefinitions.filter(field => 
       config.fields.includes(field.id)

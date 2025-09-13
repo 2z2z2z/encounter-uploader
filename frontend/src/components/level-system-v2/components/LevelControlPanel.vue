@@ -22,17 +22,11 @@ import { controls } from '../bases/controls'
 
 const store = useLevelV2Store()
 
-/**
- * ✅ Правильно: получение конфигурации через универсальную систему БЕЗ хардкода
- * ❌ ЗАПРЕЩЕНО: Хардкод store.levelType === 'olymp' или 'type100500'
- */
 const levelConfig = computed(() => {
   return getLevelTypeConfig(store.levelType)
 })
 
-// Вычисляемые свойства
 const activeControls = computed<ControlId[]>(() => {
-  // ✅ Правильно: получаем контролы из конфига типа уровня
   return levelConfig.value?.controls || []
 })
 

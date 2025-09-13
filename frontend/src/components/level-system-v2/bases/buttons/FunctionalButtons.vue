@@ -87,29 +87,23 @@ import type { Answer } from '../../types'
 
 const store = useLevelV2Store()
 
-// Модальные окна
 const exportModalVisible = ref(false)
 const importModalVisible = ref(false)
 const previewModalVisible = ref(false)
 const codesModalVisible = ref(false)
 const previewContent = ref('')
 
-// ✅ Правильно: получение конфигурации через универсальную систему БЕЗ хардкода
 const levelConfig = computed(() => {
   return getLevelTypeConfig(store.levelType)
 })
 
-// Видимость кнопок на основе конфига
 const showAddCodesButton = computed(() => {
   return levelConfig.value?.manualCodeAddition === true
 })
 
 const showPreviewButton = computed(() => {
-  // ✅ Правильно: предпросмотр только для типов с 'preview' в functional кнопках
   return levelConfig.value?.buttons?.functional?.includes('preview') === true
 })
-
-// Состояние активного таба
 const isTabEmpty = computed(() => {
   return !store.activeTab || store.activeTab.answers.length === 0
 })

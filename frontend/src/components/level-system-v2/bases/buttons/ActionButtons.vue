@@ -36,10 +36,7 @@
 /**
  * Компонент экшн-кнопок (правая часть футера)
  * 
- * ✅ ПРАВИЛЬНО: Работает через getLevelTypeConfig() БЕЗ хардкода типов
- * ❌ ЗАПРЕЩЕНО: Хардкод store.levelType === 'olymp' или 'type100500'
- * 
- * Кнопки и их видимость определяются ТОЛЬКО через config.buttons.action
+ * Кнопки и их видимость определяются через config.buttons.action
  * Опция БМП настраивается через buttonConfig.options.combineSectors
  */
 
@@ -52,44 +49,35 @@ import { getLevelTypeConfig } from '../../configs'
 import { useLevelPayloads } from '../../composables/useLevelPayloads'
 import type { ButtonId } from '../../types'
 
-// Store, конфигурация и композаблы
 const store = useLevelV2Store()
 const confirm = useConfirm()
 const { uploadTask, uploadSectors, uploadBonuses } = useLevelPayloads()
 
-// ✅ Правильно: получение конфига через универсальную функцию
 const levelConfig = computed(() => {
   return getLevelTypeConfig(store.levelType)
 })
 
-// ✅ Правильно: кнопки определяются ТОЛЬКО через конфиг
 const actionButtons = computed(() => {
   return levelConfig.value?.buttons?.action || []
 })
 
-// Состояние чекбокса БМП (реактивная переменная)
+// Состояние чекбокса БМП
 const combineSectors = ref(false)
-
-// Удалена неиспользуемая переменная showCombineSectors
-// Опция БМП проверяется прямо в template через button.options?.combineSectors
 
 /**
  * Универсальный хэндлер загрузки (интеграция с useLevelPayloads)
  */
 const handleUpload = async (buttonId: ButtonId): Promise<void> => {
   try {
-    // Подтверждающий диалог
     const confirmed = await showUploadConfirmation(buttonId)
     if (!confirmed) return
 
-    // Вызов соответствующей функции загрузки
     switch (buttonId) {
       case 'uploadTask':
         await uploadTask()
         break
         
       case 'uploadSectors':
-        // Передаем параметр БМП для секторов
         await uploadSectors(combineSectors.value)
         break
         
@@ -103,8 +91,6 @@ const handleUpload = async (buttonId: ButtonId): Promise<void> => {
     }
 
   } catch (err: unknown) {
-    // Ошибки уже обрабатываются в функциях загрузки
-    // Здесь просто логируем для отладки
     console.error(`[ActionButtons] Error in ${buttonId}:`, err)
   }
 }
