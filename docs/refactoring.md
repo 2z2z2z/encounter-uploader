@@ -66,11 +66,11 @@
 
 ## 4. JSDoc документация
 
-### ☐ 4.1 Документирование сложных функций
-- ☐ JSDoc для генераторов пейлоадов (`payloads/content/generators/`)
-- ☐ JSDoc для store actions (`store/index.ts`)
-- ☐ JSDoc для утилитарных функций (`configs/index.ts`)
-- ☐ JSDoc для композаблов (`composables/`)
+### ✅ 4.1 Документирование сложных функций
+- ✅ JSDoc для генераторов пейлоадов (`payloads/content/generators/`)
+- ✅ JSDoc для store actions (`store/index.ts`)
+- ✅ JSDoc для утилитарных функций (`configs/index.ts`)
+- ✅ JSDoc для композаблов (`composables/`)
 
 ### ☐ 4.2 Документирование публичных API
 - ☐ Интерфейсы и типы в `types/`
