@@ -65,6 +65,9 @@
     <PreviewModal
       v-model="previewModalVisible"
       :content="previewContent"
+      :alternative-content="previewAlternativeContent"
+      :show-mode-toggle="previewSupportsToggle"
+      initial-mode="closed"
     />
     
     <CodesModal
@@ -79,8 +82,9 @@ import { ref, computed } from 'vue'
 import Button from 'primevue/button'
 import { useLevelV2Store } from '../../store'
 import { getLevelTypeConfig } from '../../configs'
+import { usePreviewModes } from '../../composables/usePreviewModes'
 import ExportModal from '@/components/common/modals/ExportModal.vue'
-import ImportModal from '@/components/common/modals/ImportModal.vue' 
+import ImportModal from '@/components/common/modals/ImportModal.vue'
 import PreviewModal from '@/components/common/modals/PreviewModal.vue'
 import CodesModal from '@/components/common/modals/CodesModal.vue'
 import type { Answer } from '../../types'
@@ -92,6 +96,8 @@ const importModalVisible = ref(false)
 const previewModalVisible = ref(false)
 const codesModalVisible = ref(false)
 const previewContent = ref('')
+const previewAlternativeContent = ref('')
+const previewSupportsToggle = ref(false)
 
 const levelConfig = computed(() => {
   return getLevelTypeConfig(store.levelType)
@@ -133,10 +139,47 @@ const handleImport = (): void => {
 }
 
 const handlePreview = (): void => {
-  // Генерируем Task payload для предпросмотра
-  if (store.activeTab) {
-    previewContent.value = generateTaskPreview(store.activeTab.answers)
+  // Генерируем предпросмотр через универсальный композабл usePreviewModes
+  if (!store.activeTab || !levelConfig.value) {
+    globalThis.alert('Нет активного таба или конфигурации типа уровня')
+    return
+  }
+
+  try {
+    // Инициализируем композабл для режимов предпросмотра
+    const { generateClosedContent, generateOpenContent, supportsToggle } = usePreviewModes(store, levelConfig.value)
+
+    // Проверяем поддержку предпросмотра
+    if (!supportsToggle() && !levelConfig.value.payloads.task) {
+      globalThis.alert('Этот тип уровня не поддерживает предпросмотр задания')
+      return
+    }
+
+    // Генерируем закрытый контент (основной)
+    const closedContent = generateClosedContent()
+    if (!closedContent) {
+      globalThis.alert('Не удалось сгенерировать предпросмотр задания')
+      return
+    }
+
+    // Устанавливаем основной контент
+    previewContent.value = closedContent
+
+    // Генерируем открытый контент (альтернативный) если поддерживается
+    if (supportsToggle()) {
+      const openContent = generateOpenContent()
+      previewAlternativeContent.value = openContent || closedContent
+      previewSupportsToggle.value = true
+    } else {
+      previewSupportsToggle.value = false
+    }
+
+    // Показываем модальное окно
     previewModalVisible.value = true
+
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error)
+    globalThis.alert(`Ошибка генерации предпросмотра: ${message}`)
   }
 }
 
@@ -202,23 +245,6 @@ const getAllExistingCodes = (): Set<string> => {
   return codes
 }
 
-const generateTaskPreview = (answers: Answer[]): string => {
-  // Генерируем HTML предпросмотр Task payload
-  let html = '<div class="task-preview">'
-  html += '<h3>Предпросмотр задания</h3>'
-  html += '<table><tbody>'
-  
-  answers.forEach(answer => {
-    if (answer.variants.length > 0 && answer.variants[0].trim()) {
-      html += `<tr><td>${answer.number}</td><td>${answer.variants[0]}</td></tr>`
-    }
-  })
-  
-  html += '</tbody></table>'
-  html += '</div>'
-  
-  return html
-}
 
 const exportJSON = (): void => {
   if (!store.activeTab) return

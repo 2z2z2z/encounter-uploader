@@ -1,42 +1,50 @@
 <template>
-  <BaseModal
-    v-model="visible"
+  <Dialog
+    v-model:visible="visible"
     header="Предпросмотр"
-    width="80vw"
+    :style="{ width: '90vw', maxWidth: '1200px' }"
     :maximizable="true"
+    :breakpoints="{ '1199px': '95vw', '575px': '98vw' }"
+    modal
   >
     <div class="preview-container">
-      <div v-if="showModeToggle" class="preview-controls mb-4">
-        <BaseButton
-          :variant="mode === 'closed' ? 'primary' : 'secondary'"
-          @click="mode = 'closed'"
-          class="mr-2"
-        >
-          Закрытая
-        </BaseButton>
-        <BaseButton
-          :variant="mode === 'open' ? 'primary' : 'secondary'"
-          @click="mode = 'open'"
-        >
-          Открытая
-        </BaseButton>
-      </div>
-      
-      <div class="preview-content" v-html="currentContent"></div>
+      <!-- Показываем табы только если есть альтернативный контент -->
+      <Tabs v-if="showModeToggle" v-model:value="mode" class="mb-4">
+        <TabList>
+          <Tab value="closed">Закрытая</Tab>
+          <Tab value="open">Открытая</Tab>
+        </TabList>
+        <TabPanels>
+          <TabPanel value="closed">
+            <div class="preview-content" v-html="props.content"></div>
+          </TabPanel>
+          <TabPanel value="open">
+            <div class="preview-content" v-html="currentContent"></div>
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
+
+      <!-- Показываем только основной контент если переключение отключено -->
+      <div v-else class="preview-content" v-html="props.content"></div>
     </div>
-    
+
     <template #footer>
-      <BaseButton variant="secondary" @click="visible = false">
-        Закрыть
-      </BaseButton>
+      <div class="flex justify-end">
+        <Button label="Закрыть" severity="secondary" @click="visible = false" />
+      </div>
     </template>
-  </BaseModal>
+  </Dialog>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import BaseModal from '@/components/ui/BaseModal.vue'
-import BaseButton from '@/components/ui/BaseButton.vue'
+import Dialog from 'primevue/dialog'
+import Button from 'primevue/button'
+import Tabs from 'primevue/tabs'
+import TabList from 'primevue/tablist'
+import Tab from 'primevue/tab'
+import TabPanels from 'primevue/tabpanels'
+import TabPanel from 'primevue/tabpanel'
 
 interface Props {
   modelValue: boolean
