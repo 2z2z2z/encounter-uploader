@@ -279,8 +279,12 @@ export function useLevelPayloads() {
 				const legacyAnswer = {
 					number: bonus.number,
 					variants: bonus.variants,
-					inBonus: bonus.bonus, // мапинг поля
-					bonusTime: bonus.bonusTime,
+					inSector: bonus.sector,
+					inBonus: bonus.bonus,
+					bonusTime: {
+						...bonus.bonusTime,
+						negative: bonus.bonusTime.negative || false
+					},
 					closedText: bonus.closedText,
 					displayText: bonus.displayText
 				}

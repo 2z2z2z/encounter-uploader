@@ -341,7 +341,7 @@ export const renderBonusTask: FieldRenderer = ({ data }) => {
     placeholder: 'Текст бонусного задания',
     autoResize: true,
     rows: 1,
-    class: 'w-full'
+    class: 'w-full textarea-collapsible'
   })
 }
 
@@ -357,7 +357,7 @@ export const renderHint: FieldRenderer = ({ data }) => {
     placeholder: 'Текст подсказки',
     autoResize: true,
     rows: 1,
-    class: 'w-full'
+    class: 'w-full textarea-collapsible'
   })
 }
 

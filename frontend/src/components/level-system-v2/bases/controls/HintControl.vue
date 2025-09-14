@@ -1,11 +1,14 @@
 <template>
   <div class="flex-1 min-w-[240px]">
     <FloatLabel variant="off">
-      <InputText
+      <Textarea
         id="hint"
         v-model="localHint"
         placeholder="Подсказка"
+        auto-resize
+        rows="1"
         fluid
+        class="textarea-collapsible-lg"
       />
       <label for="hint">Подсказка</label>
     </FloatLabel>
@@ -14,7 +17,7 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
-import InputText from 'primevue/inputtext'
+import Textarea from 'primevue/textarea'
 import FloatLabel from 'primevue/floatlabel'
 import { useLevelV2Store } from '../../store'
 

@@ -28,8 +28,8 @@ import Select from 'primevue/select'
 import { computed, ref } from 'vue'
 
 interface Props {
-  modelValue: any
-  options: any[]
+  modelValue: unknown
+  options: unknown[]
   label?: string
   placeholder?: string
   optionLabel?: string
@@ -44,18 +44,22 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  label: '',
+  placeholder: '',
   optionLabel: 'label',
   optionValue: 'value',
   disabled: false,
   required: false,
   showClear: false,
   filter: false,
+  error: '',
+  help: '',
   class: ''
 })
 
-const emit = defineEmits<{
-  'update:modelValue': [value: any]
-  'change': [event: any]
+defineEmits<{
+  'update:modelValue': [value: unknown]
+  'change': [event: Event]
 }>()
 
 const selectId = ref(`select-${Math.random().toString(36).substr(2, 9)}`)

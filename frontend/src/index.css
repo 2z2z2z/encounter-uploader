@@ -51,4 +51,33 @@ html {
   body {
     background-color: var(--p-surface-50);
   }
+
+  /* Расширяющиеся textarea поля как в старой архитектуре */
+  .p-textarea.textarea-collapsible,
+  .p-textarea.textarea-collapsible-lg {
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    resize: vertical !important;
+    transition: all 0.15s !important;
+    overflow: hidden !important;
+  }
+
+  .p-textarea.textarea-collapsible {
+    height: 2rem !important;
+    min-height: 2rem !important;
+  }
+
+  .p-textarea.textarea-collapsible-lg {
+    height: 2.358rem !important;
+    min-height: 2.358rem !important;
+  }
+
+  .p-textarea.textarea-collapsible:focus,
+  .p-textarea.textarea-collapsible-lg:focus {
+    white-space: pre-wrap !important;
+    height: 6rem !important;
+    min-height: 6rem !important;
+    overflow: auto !important;
+    transition: all 0.15s !important;
+  }
 }
