@@ -132,82 +132,160 @@ export function useLevelPayloads() {
 	 */
 	async function uploadSectors(combineSectors = false): Promise<void> {
 		try {
-			// combineSectors параметр зарезервирован для будущей реализации БМП
-			console.log('БМП режим:', combineSectors)
-			
 			// Получение конфига типа уровня
 			const config = getLevelTypeConfig(store.levelType)
 			if (!config) {
 				throw new Error(`Конфиг для типа ${store.levelType} не найден`)
 			}
-			
+
 			// Проверка поддержки загрузки секторов
 			if (!config.payloads.sector) {
 				throw new Error(`Тип ${store.levelType} не поддерживает загрузку секторов`)
 			}
-			
+
 			// Проверка данных игры
 			if (!store.domain || !store.gameId || !store.levelId) {
 				throw new Error('Не установлены данные игры (domain, gameId, levelId)')
 			}
-			
-			// Сбор данных секторов в зависимости от типа (мульти-табы или одиночный)
-			let allSectors: Answer[] = []
-			
-			if (config.isMultiBlocks) {
-				// Для типов с мульти-табами собираем из всех табов
-				for (const tab of store.tabs) {
-					const tabSectors = tab.answers.filter(answer => answer.sector)
-					allSectors.push(...tabSectors)
-				}
-			} else {
-				// Для одиночных типов берем только из активного таба
-				const activeTab = store.tabs[store.activeTabIndex]
-				if (activeTab) {
-					allSectors = activeTab.answers.filter(answer => answer.sector)
-				}
-			}
-			
-			if (allSectors.length === 0) {
-				notify.info('Нет отмеченных секторов', 'Отметьте секторы для загрузки')
-				return
-			}
-			
+
 			// Обновление авторизации перед массовой загрузкой
 			await authStore.authenticate(store.domain)
-			
-			// Инициализация прогресса
-			progress.start('sector', allSectors.length)
-			
-			// Отправка секторов по одному
-			for (let idx = 0; idx < allSectors.length; idx++) {
-				const sector = allSectors[idx]
-				
-				// Проверяем паузу перед каждым сектором
-				await progress.waitForResume()
-				
-				progress.updateTitle(`Сектор ${sector.number}`)
-				
-				// Отправка сектора (используем старую функцию sendSector)
-				await sendSector(
-					store.domain,
-					store.gameId,
-					store.levelId,
-					sector.variants,
-					sector.closedText,
-					sector.sectorName || ''
-				)
-				
-				progress.updateSuccess(`Сектор ${sector.number} отправлен`)
-				
-				// Каждые 25 секторов обновляем авторизацию
-				if ((idx + 1) % 25 === 0) {
-					await authStore.authenticate(store.domain)
+
+			if (combineSectors && config.isMultiBlocks) {
+				// Режим БМП: объединение секторов из разных табов
+
+				// Валидация для режима БМП (как в старой архитектуре)
+				if (store.tabs.length <= 1) {
+					notify.warn('Для объединения необходимо больше одного блока')
+					return
 				}
+
+				const firstTabAnswers = store.tabs[0].answers
+				if (!store.tabs.every(tab => tab.answers.length === firstTabAnswers.length)) {
+					notify.warn('Количество ответов во всех блоках должно совпадать')
+					return
+				}
+
+				// Группируем ответы по индексу (номеру) из разных табов
+				const total = firstTabAnswers.length
+				const answerGroups: Answer[][] = []
+
+				for (let i = 0; i < total; i++) {
+					answerGroups.push(store.tabs.map(tab => tab.answers[i]))
+				}
+
+				progress.start('sector', total)
+
+				for (let idx = 0; idx < answerGroups.length; idx++) {
+					const answers = answerGroups[idx]
+
+					// Проверяем паузу перед каждой группой секторов
+					await progress.waitForResume()
+
+					// Пропускаем если не все ответы в группе отмечены как сектор
+					if (!answers.every(answer => answer.sector)) {
+						progress.updateTitle('Пропуск')
+						progress.updateSuccess('Пропущен')
+						continue
+					}
+
+					// Объединяем варианты ответов из всех табов
+					const combinedVariants: string[] = []
+					for (const answer of answers) {
+						const variants = Array.isArray(answer.variants) ? answer.variants : []
+						combinedVariants.push(...variants.filter(v => v && v.trim()))
+					}
+
+					// Если нет вариантов, добавляем пустой
+					if (combinedVariants.length === 0) {
+						combinedVariants.push('')
+					}
+
+					const firstAnswer = answers[0]
+					progress.updateTitle(`Сектор ${firstAnswer.number}`)
+
+					// Отправка объединенного сектора
+					await sendSector(
+						store.domain,
+						store.gameId,
+						store.levelId,
+						combinedVariants,
+						'', // closedText не используется в БМП режиме
+						firstAnswer.sectorName || ''
+					)
+
+					progress.updateSuccess(`Сектор ${firstAnswer.number} отправлен`)
+
+					// Каждые 25 секторов обновляем авторизацию
+					if ((idx + 1) % 25 === 0) {
+						await authStore.authenticate(store.domain)
+					}
+				}
+
+				progress.finish()
+
+				// Подсчет отправленных секторов для уведомления
+				const sectorsCount = store.tabs[0]?.answers?.filter(answer => answer.sector).length || 0
+				notify.success('Все сектора отправлены', `Успешно отправлено: ${sectorsCount} секторов (БМП режим)`)
+
+			} else {
+				// Обычный режим: каждый сектор отдельно
+
+				// Сбор данных секторов в зависимости от типа (мульти-табы или одиночный)
+				let allSectors: Answer[] = []
+
+				if (config.isMultiBlocks) {
+					// Для типов с мульти-табами собираем из всех табов
+					for (const tab of store.tabs) {
+						const tabSectors = tab.answers.filter(answer => answer.sector)
+						allSectors.push(...tabSectors)
+					}
+				} else {
+					// Для одиночных типов берем только из активного таба
+					const activeTab = store.tabs[store.activeTabIndex]
+					if (activeTab) {
+						allSectors = activeTab.answers.filter(answer => answer.sector)
+					}
+				}
+
+				if (allSectors.length === 0) {
+					notify.info('Нет отмеченных секторов', 'Отметьте секторы для загрузки')
+					return
+				}
+
+				// Инициализация прогресса
+				progress.start('sector', allSectors.length)
+
+				// Отправка секторов по одному
+				for (let idx = 0; idx < allSectors.length; idx++) {
+					const sector = allSectors[idx]
+
+					// Проверяем паузу перед каждым сектором
+					await progress.waitForResume()
+
+					progress.updateTitle(`Сектор ${sector.number}`)
+
+					// Отправка сектора
+					await sendSector(
+						store.domain,
+						store.gameId,
+						store.levelId,
+						sector.variants.filter(v => v && v.trim()).length > 0 ? sector.variants : [''],
+						sector.closedText || '',
+						sector.sectorName || ''
+					)
+
+					progress.updateSuccess(`Сектор ${sector.number} отправлен`)
+
+					// Каждые 25 секторов обновляем авторизацию
+					if ((idx + 1) % 25 === 0) {
+						await authStore.authenticate(store.domain)
+					}
+				}
+
+				progress.finish()
+				notify.success('Секторы загружены', `Успешно загружено ${allSectors.length} секторов`)
 			}
-			
-			progress.finish()
-			notify.success('Секторы загружены', `Успешно загружено ${allSectors.length} секторов`)
 			
 		} catch (error: unknown) {
 			const message = error instanceof Error ? error.message : String(error)
