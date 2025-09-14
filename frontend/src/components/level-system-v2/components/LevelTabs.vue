@@ -1,23 +1,33 @@
 <template>
   <div v-if="shouldShowTabs" class="level-tabs-container">
-    <TabView 
-      :active-index="store.activeTabIndex" 
-      @tab-change="handleTabChange"
+    <Tabs
+      :value="store.activeTabIndex"
+      @update:value="handleTabChange"
       class="level-tabs"
     >
-      <TabPanel 
-        v-for="(tab, index) in store.tabs" 
-        :key="tab.id"
-        :header="tab.name"
-        :value="index"
-        :disabled="false"
-      >
-        <div class="tab-content">
-          <!-- Содержимое таба рендерится родительским компонентом -->
-          <slot :tab="tab" :tab-index="index" />
-        </div>
-      </TabPanel>
-    </TabView>
+      <TabList>
+        <Tab
+          v-for="(tab, index) in store.tabs"
+          :key="tab.id"
+          :value="index"
+          :disabled="false"
+        >
+          {{ tab.name }}
+        </Tab>
+      </TabList>
+      <TabPanels>
+        <TabPanel
+          v-for="(tab, index) in store.tabs"
+          :key="tab.id"
+          :value="index"
+        >
+          <div class="tab-content">
+            <!-- Содержимое таба рендерится родительским компонентом -->
+            <slot :tab="tab" :tab-index="index" />
+          </div>
+        </TabPanel>
+      </TabPanels>
+    </Tabs>
 
     <!-- Управление табами для типов с множественными блоками -->
     <div v-if="canManageTabs" class="tab-controls">
@@ -55,7 +65,10 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import TabView from 'primevue/tabview'
+import Tabs from 'primevue/tabs'
+import TabList from 'primevue/tablist'
+import Tab from 'primevue/tab'
+import TabPanels from 'primevue/tabpanels'
 import TabPanel from 'primevue/tabpanel'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
@@ -104,8 +117,8 @@ watch(() => store.activeTab?.name, (newName) => {
 /**
  * Обработка переключения между табами
  */
-const handleTabChange = (event: { index: number }) => {
-  store.setActiveTab(event.index)
+const handleTabChange = (value: number) => {
+  store.setActiveTab(value)
 }
 
 /**

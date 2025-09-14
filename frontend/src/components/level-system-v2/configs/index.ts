@@ -71,7 +71,24 @@ export function parseRouteParams(routeParam: string): {
 			}
 		}
 	}
-	
+
+	// Наконец, проверяем составные роуты (например olymp15 → olymp + 15)
+	for (const config of levelTypeConfigs.values()) {
+		if (config.subtypes) {
+			for (const subtype of config.subtypes) {
+				const compositeRoute = config.id + subtype.id
+				if (compositeRoute === routeParam) {
+					return {
+						typeId: config.id,
+						subtypeId: subtype.id,
+						config,
+						subtypeConfig: subtype
+					}
+				}
+			}
+		}
+	}
+
 	return { typeId: undefined }
 }
 
