@@ -59,7 +59,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 defineEmits<{
   'update:modelValue': [value: unknown]
-  'change': [event: Event]
+  'change': [event: globalThis.Event]
 }>()
 
 const selectId = ref(`select-${Math.random().toString(36).substr(2, 9)}`)
