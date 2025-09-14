@@ -130,9 +130,10 @@ export function useLevelPayloads() {
 	 * 
 	 * @param combineSectors - Режим БМП (объединение секторов)
 	 */
-	async function uploadSectors(_combineSectors = false): Promise<void> {
+	async function uploadSectors(combineSectors = false): Promise<void> {
 		try {
-			// _combineSectors параметр зарезервирован для будущей реализации БМП
+			// combineSectors параметр зарезервирован для будущей реализации БМП
+			console.log('БМП режим:', combineSectors)
 			
 			// Получение конфига типа уровня
 			const config = getLevelTypeConfig(store.levelType)

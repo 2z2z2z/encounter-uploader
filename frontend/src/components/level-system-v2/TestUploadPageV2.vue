@@ -96,6 +96,7 @@ import Button from 'primevue/button'
 import { useTestConfigV2 } from '@/composables/useTestConfigV2'
 import { useLevelV2Store } from './store'
 import LevelUploadPage from './components/LevelUploadPage.vue'
+import type { TabData, Answer } from './types'
 
 const route = useRoute()
 const { isLoading, error, loadTestConfigV2, getTestTypeInfo } = useTestConfigV2()
@@ -157,10 +158,10 @@ const initializeTestDataV2 = async (): Promise<void> => {
     Object.assign(levelV2Store.config, testData.config)
     
     // Загружаем табы и ответы из JSON
-    levelV2Store.tabs = testData.tabs.map((tab: any) => ({
+    levelV2Store.tabs = testData.tabs.map((tab: TabData) => ({
       ...tab,
       // Гарантируем наличие всех полей
-      answers: tab.answers.map((answer: any) => ({
+      answers: tab.answers.map((answer: Answer) => ({
         ...answer,
         // Добавляем отсутствующие поля со значениями по умолчанию
         bonusLevels: answer.bonusLevels || [],
