@@ -156,36 +156,28 @@ const selectionMode = ref<'all' | 'selected'>('all')
 const selectedLevels = ref<string[]>([])
 
 function setSelectedLevels(values: string[]): void {
-  const unique = new Set<string>()
   const base = baseLevel.value
+  const unique = new Set<string>(
+    values.map(v => String(v || '').trim()).filter(Boolean)
+  )
+
   if (base) {
     unique.add(base)
   }
-  values.forEach(value => {
-    const normalized = String(value || '').trim()
-    if (normalized) {
-      unique.add(normalized)
-    }
-  })
+
   selectedLevels.value = Array.from(unique)
 }
 
 function syncSelectionFromProps(): void {
   const initial = props.initialSelection
-  if (!initial) {
+
+  if (!initial || initial.allLevels) {
     selectionMode.value = 'all'
     setSelectedLevels([])
-    return
+  } else {
+    selectionMode.value = 'selected'
+    setSelectedLevels(initial.targetLevels || [])
   }
-
-  if (initial.allLevels) {
-    selectionMode.value = 'all'
-    setSelectedLevels([])
-    return
-  }
-
-  selectionMode.value = 'selected'
-  setSelectedLevels(initial.targetLevels || [])
 }
 
 async function loadAvailableLevels(force = false): Promise<void> {
@@ -220,18 +212,12 @@ function deselectAll(): void {
 }
 
 function handleApply(): void {
-  const base = baseLevel.value
-  const uniqueSelected = Array.from(new Set(selectedLevels.value.map(String)))
-  const targetLevels = selectionMode.value === 'selected'
-    ? uniqueSelected.filter(level => !base || level !== base)
-    : undefined
+  const isAllLevels = selectionMode.value === 'all'
+  const targetLevels = isAllLevels
+    ? undefined
+    : selectedLevels.value.filter(level => level !== baseLevel.value)
 
-  const selection: LevelsSelection = {
-    allLevels: selectionMode.value === 'all',
-    targetLevels: selectionMode.value === 'all' ? undefined : targetLevels
-  }
-
-  emit('apply', selection)
+  emit('apply', { allLevels: isAllLevels, targetLevels })
   visible.value = false
 }
 
@@ -239,14 +225,7 @@ function handleCancel(): void {
   visible.value = false
 }
 
-watch(() => props.initialSelection, () => {
-  syncSelectionFromProps()
-}, { deep: true })
-
-watch(() => props.currentLevel, () => {
-  syncSelectionFromProps()
-})
-
+// Синхронизация состояния только при открытии модального окна
 watch(() => visible.value, (isVisible) => {
   if (isVisible) {
     syncSelectionFromProps()

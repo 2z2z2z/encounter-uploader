@@ -105,11 +105,11 @@ import { fieldDefinitions } from '../bases/fields/fieldDefinitions'
 import { fieldRenderers, type FieldRenderer } from '../bases/fields/tableRenderers'
 import { getLevelTypeConfig } from '../configs'
 import type { FieldDefinition, Answer } from '../types'
-
-interface LevelsSelection {
-  allLevels: boolean
-  targetLevels: string[]
-}
+import {
+  buildInitialSelection,
+  applyLevelsToAnswer,
+  type LevelsSelection
+} from '../composables/useBonusLevelsSelection'
 
 const store = useLevelV2Store()
 const bonusLevelsStore = useBonusLevelsStore()
@@ -175,13 +175,9 @@ const currentLevel = computed(() => String(store.levelId || '').trim())
 
 const openLevelsModalForAnswer = (answer: Answer): void => {
   rowAnswerId.value = answer.id
-  if (!Array.isArray(answer.bonusLevels) || answer.bonusLevels.length === 0) {
-    rowModalSelection.allLevels = true
-    rowModalSelection.targetLevels = []
-  } else {
-    rowModalSelection.allLevels = false
-    rowModalSelection.targetLevels = [...answer.bonusLevels]
-  }
+  const selection = buildInitialSelection([answer])
+  rowModalSelection.allLevels = selection.allLevels
+  rowModalSelection.targetLevels = [...(selection.targetLevels || [])]
   isRowModalOpen.value = true
   void bonusLevelsStore.loadLevels({
     domain: store.domain,
@@ -190,7 +186,7 @@ const openLevelsModalForAnswer = (answer: Answer): void => {
   }).catch(() => undefined)
 }
 
-const applyRowLevels = (selection: { allLevels: boolean; targetLevels?: string[] }): void => {
+const applyRowLevels = (selection: LevelsSelection): void => {
   const answers = store.activeTab?.answers
   if (!answers) {
     isRowModalOpen.value = false
@@ -203,24 +199,8 @@ const applyRowLevels = (selection: { allLevels: boolean; targetLevels?: string[]
     return
   }
 
-  if (selection.allLevels) {
-    const previous = Array.isArray(target.bonusLevels) ? target.bonusLevels : []
-    if (!Array.isArray(target.bonusLevels) || previous.length > 0) {
-      target.bonusLevels = []
-      store.markDirty()
-    }
-    isRowModalOpen.value = false
-    rowAnswerId.value = ''
-    return
-  }
-
-  const normalized = Array.from(new Set(selection.targetLevels || [])).map(String)
-  const previous = Array.isArray(target.bonusLevels) ? target.bonusLevels : []
-  const sameLength = previous.length === normalized.length
-  const sameValues = sameLength && previous.every((value, index) => value === normalized[index])
-
-  if (!sameValues) {
-    target.bonusLevels = normalized
+  const hasChanges = applyLevelsToAnswer(selection, target)
+  if (hasChanges) {
     store.markDirty()
   }
 
