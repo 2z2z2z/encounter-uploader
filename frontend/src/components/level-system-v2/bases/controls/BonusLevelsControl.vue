@@ -41,7 +41,7 @@ const modalSelection = reactive<LevelsSelection>({
 
 
 const openLevelsModal = (): void => {
-  const selection = buildInitialSelection(store.activeTab?.answers)
+  const selection = buildInitialSelection(store.activeTab?.answers, store.levelId)
   modalSelection.allLevels = selection.allLevels
   modalSelection.targetLevels = [...(selection.targetLevels || [])]
   isModalOpen.value = true

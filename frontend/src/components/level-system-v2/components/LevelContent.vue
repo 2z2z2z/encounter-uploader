@@ -26,20 +26,17 @@
       >
         <template #body="slotProps">
           <template v-if="field.id === 'bonusLevels'">
-            <div class="flex items-center gap-2">
-              <Button
-                type="button"
-                icon="pi pi-list"
-                size="small"
-                variant="outlined"
-                severity="secondary"
-                label="Выбрать"
-                @click="openLevelsModalForAnswer(slotProps.data)"
-              />
-              <span class="text-sm text-gray-600">
-                {{ formatAnswerLevels(slotProps.data) }}
-              </span>
-            </div>
+            <Button
+              type="button"
+              icon="pi pi-list"
+              size="small"
+              variant="outlined"
+              severity="secondary"
+              :label="getButtonLabel(slotProps.data)"
+              :badge="getBadgeValue(slotProps.data)"
+              :badge-severity="getBadgeSeverity(slotProps.data)"
+              @click="openLevelsModalForAnswer(slotProps.data)"
+            />
           </template>
           <component 
             v-else-if="getFieldRenderer(field.id)"
@@ -175,7 +172,7 @@ const currentLevel = computed(() => String(store.levelId || '').trim())
 
 const openLevelsModalForAnswer = (answer: Answer): void => {
   rowAnswerId.value = answer.id
-  const selection = buildInitialSelection([answer])
+  const selection = buildInitialSelection([answer], store.levelId)
   rowModalSelection.allLevels = selection.allLevels
   rowModalSelection.targetLevels = [...(selection.targetLevels || [])]
   isRowModalOpen.value = true
@@ -206,6 +203,25 @@ const applyRowLevels = (selection: LevelsSelection): void => {
 
   isRowModalOpen.value = false
   rowAnswerId.value = ''
+}
+
+const getButtonLabel = (answer: Answer): string => {
+  return Array.isArray(answer.bonusLevels) && answer.bonusLevels.length > 0
+    ? 'Выбранные'
+    : 'Все уровни'
+}
+
+const getBadgeValue = (answer: Answer): string | undefined => {
+  if (!Array.isArray(answer.bonusLevels) || answer.bonusLevels.length === 0) {
+    return undefined
+  }
+  return answer.bonusLevels.length.toString()
+}
+
+const getBadgeSeverity = (answer: Answer): string | undefined => {
+  return Array.isArray(answer.bonusLevels) && answer.bonusLevels.length > 0
+    ? 'contrast'
+    : undefined
 }
 
 const formatAnswerLevels = (answer: Answer): string => {

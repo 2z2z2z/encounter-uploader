@@ -81,8 +81,8 @@ export const buildBonusPayload: PayloadBuilder<BonusPayloadData> = (data) => {
 	params.append('rbAllLevels', isAllLevels ? '0' : '1')
 	
 	if (!isAllLevels && Array.isArray(bonus.bonusLevels)) {
-		// Добавляем текущий уровень и выбранные уровни
-		const selected = new Set<string>([String(data.levelId), ...bonus.bonusLevels.map(String)])
+		// Используем только выбранные пользователем уровни (текущий уровень уже включен если выбран)
+		const selected = new Set<string>(bonus.bonusLevels.map(String))
 		for (const lbl of selected) {
 			const chk = levelMapping[lbl]
 			if (chk) {

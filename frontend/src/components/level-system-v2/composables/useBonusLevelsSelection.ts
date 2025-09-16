@@ -7,19 +7,32 @@ export interface LevelsSelection {
 
 /**
  * Создает начальное состояние выбора уровней на основе первого ответа
+ * @param answers - массив ответов для анализа
+ * @param currentLevel - текущий уровень для выбора по умолчанию
  */
-export function buildInitialSelection(answers: Answer[] | undefined): LevelsSelection {
+export function buildInitialSelection(
+  answers: Answer[] | undefined,
+  currentLevel?: string
+): LevelsSelection {
   if (!answers || answers.length === 0) {
-    return { allLevels: true, targetLevels: [] }
+    // По умолчанию выбираем текущий уровень вместо "все уровни"
+    return {
+      allLevels: false,
+      targetLevels: currentLevel ? [currentLevel] : []
+    }
   }
 
   const first = answers[0]
   const currentLevels = Array.isArray(first.bonusLevels) ? [...first.bonusLevels] : []
   const allLevels = currentLevels.length === 0
 
+  // Всегда возвращаем режим "выбранные уровни"
+  // Если у первого ответа "все уровни", то выбираем текущий уровень по умолчанию
   return {
-    allLevels,
-    targetLevels: allLevels ? [] : currentLevels
+    allLevels: false,
+    targetLevels: allLevels
+      ? (currentLevel ? [currentLevel] : [])
+      : currentLevels
   }
 }
 

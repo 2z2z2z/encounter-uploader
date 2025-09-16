@@ -148,7 +148,7 @@ export const useLevelV2Store = defineStore('level-v2', () => {
 			bonusTime: { hours: 0, minutes: 0, seconds: 0, negative: false },
 			closedText: '',
 			displayText: '',
-			bonusLevels: [],
+			bonusLevels: levelId.value ? [String(levelId.value)] : [],
 			delay: { hours: 0, minutes: 0, seconds: 0 },
 			limit: { hours: 0, minutes: 0, seconds: 0 },
 			sectorName: '',

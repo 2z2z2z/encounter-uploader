@@ -2,7 +2,8 @@
   <BaseModal
     v-model="visible"
     header="Выбор уровней для бонуса"
-    width="50vw"
+    width="35vw"
+    :breakpoints="{ '1199px': '50vw', '575px': '90vw' }"
   >
     <div class="levels-container">
       <div class="mb-4">
@@ -31,11 +32,11 @@
         <Message v-if="loading" severity="info" :closable="false">
           Загружаем список уровней...
         </Message>
-        
-        <Message v-else-if="errorMessage" severity="error" :closable="false">
-          {{ errorMessage }}
+
+        <Message v-else-if="loadingErrorMessage" severity="error" :closable="false">
+          {{ loadingErrorMessage }}
         </Message>
-        
+
         <Message
           v-else-if="!availableLevels.length"
           severity="warn"
@@ -43,28 +44,23 @@
         >
           Список уровней пуст.
         </Message>
-        
-        <div v-else class="grid grid-cols-4 gap-2">
+
+        <div v-else class="grid grid-cols-6 gap-3">
           <div v-for="level in availableLevels" :key="level.value" class="flex items-center">
             <Checkbox
               v-model="selectedLevels"
               :input-id="`level-${level.value}`"
               :value="level.value"
-              :disabled="level.value === baseLevel"
             />
-            <label 
-              :for="`level-${level.value}`" 
+            <label
+              :for="`level-${level.value}`"
               class="ml-2 cursor-pointer"
-              :class="{ 'font-bold': level.value === baseLevel }"
             >
               {{ level.label }}
-              <span v-if="level.value === baseLevel" class="text-sm text-gray-500">
-                (текущий)
-              </span>
             </label>
           </div>
         </div>
-        
+
         <div class="mt-4 flex gap-2">
           <BaseButton variant="secondary" size="small" @click="selectAll" :disabled="!availableLevels.length">
             Выбрать все
@@ -76,6 +72,11 @@
             Обновить
           </BaseButton>
         </div>
+
+        <!-- Ошибка валидации отображается под списком уровней -->
+        <Message v-if="validationError" severity="error" :closable="false" class="mt-4">
+          {{ validationError }}
+        </Message>
       </div>
     </div>
     
@@ -144,8 +145,9 @@ const availableLevels = computed<LevelOption[]>(() => {
 })
 
 const loading = computed(() => bonusLevelsStore.isLoading)
-const manualError = ref('')
-const errorMessage = computed(() => manualError.value || bonusLevelsStore.error)
+const loadingError = ref('')
+const validationError = ref('')
+const loadingErrorMessage = computed(() => loadingError.value || bonusLevelsStore.error)
 
 const visible = computed({
   get: () => props.modelValue,
@@ -181,9 +183,9 @@ function syncSelectionFromProps(): void {
 }
 
 async function loadAvailableLevels(force = false): Promise<void> {
-  manualError.value = ''
+  loadingError.value = ''
   if (!levelStore.domain || !levelStore.gameId || !levelStore.levelId) {
-    manualError.value = 'Укажите домен, игру и уровень, чтобы получить список уровней.'
+    loadingError.value = 'Укажите домен, игру и уровень, чтобы получить список уровней.'
     bonusLevelsStore.reset()
     return
   }
@@ -215,7 +217,13 @@ function handleApply(): void {
   const isAllLevels = selectionMode.value === 'all'
   const targetLevels = isAllLevels
     ? undefined
-    : selectedLevels.value.filter(level => level !== baseLevel.value)
+    : selectedLevels.value
+
+  // Валидация: если выбран режим "На выбранные уровни", должен быть отмечен хотя бы один уровень
+  if (!isAllLevels && (!targetLevels || targetLevels.length === 0)) {
+    validationError.value = 'Выберите хотя бы один уровень или переключитесь на режим "На все уровни"'
+    return
+  }
 
   emit('apply', { allLevels: isAllLevels, targetLevels })
   visible.value = false
@@ -232,17 +240,26 @@ watch(() => visible.value, (isVisible) => {
     void loadAvailableLevels()
   }
 })
+
+// Очистка ошибок при изменении режима или выбора уровней
+watch(selectionMode, () => {
+  validationError.value = ''
+})
+
+watch(selectedLevels, () => {
+  validationError.value = ''
+})
 </script>
 
 <style scoped>
 .levels-container {
-  padding: 1rem;
-  min-height: 300px;
+  padding: 0.75rem;
+  min-height: 250px;
 }
 
 .levels-grid {
-  padding: 1rem;
+  padding: 0.75rem;
   background: #f8f9fa;
-  border-radius: 0.25rem;
+  border-radius: 0.375rem;
 }
 </style>
