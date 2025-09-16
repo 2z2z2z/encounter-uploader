@@ -34,10 +34,14 @@ interface Props {
 }
 
 withDefaults(defineProps<Props>(), {
+  label: '',
+  placeholder: '',
   disabled: false,
   required: false,
   rows: 10,
-  autoResize: true
+  autoResize: true,
+  error: '',
+  help: ''
 })
 
 const emit = defineEmits<{

@@ -117,8 +117,9 @@ watch(() => store.activeTab?.name, (newName) => {
 /**
  * Обработка переключения между табами
  */
-const handleTabChange = (value: number) => {
-  store.setActiveTab(value)
+const handleTabChange = (value: string | number) => {
+  const index = typeof value === 'string' ? parseInt(value, 10) : value
+  store.setActiveTab(index)
 }
 
 /**

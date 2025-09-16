@@ -37,6 +37,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  header: '',
   width: '50vw',
   closable: true,
   draggable: false,

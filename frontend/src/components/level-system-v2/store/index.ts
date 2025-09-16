@@ -125,14 +125,14 @@ export const useLevelV2Store = defineStore('level-v2', () => {
 	 * Генерирует уникальный ID для таба
 	 */
 	function generateTabId(): string {
-		return `tab-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+		return `tab-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
 	}
 	
 	/**
 	 * Генерирует уникальный ID для ответа
 	 */
 	function generateAnswerId(): string {
-		return `answer-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+		return `answer-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
 	}
 	
 	/**

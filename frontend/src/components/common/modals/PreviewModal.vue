@@ -55,6 +55,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  alternativeContent: '',
   showModeToggle: false,
   initialMode: 'closed'
 })

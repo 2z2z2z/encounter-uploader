@@ -20,7 +20,7 @@ import ProgressSpinner from 'primevue/progressspinner'
 import ProgressBar from 'primevue/progressbar'
 
 interface Props {
-  visible: boolean
+  visible?: boolean
   text?: string
   progress?: number | null
   showProgress?: boolean
@@ -29,6 +29,7 @@ interface Props {
 
 withDefaults(defineProps<Props>(), {
   visible: false,
+  text: '',
   showProgress: false,
   spinnerSize: '50px',
   progress: null

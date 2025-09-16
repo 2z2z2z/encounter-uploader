@@ -72,9 +72,12 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  label: '',
   disabled: false,
   required: false,
-  showNegative: false
+  showNegative: false,
+  error: '',
+  help: ''
 })
 
 const emit = defineEmits<{

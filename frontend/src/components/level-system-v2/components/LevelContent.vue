@@ -169,7 +169,7 @@ const rowModalSelection = reactive<LevelsSelection>({
   targetLevels: []
 })
 
-const currentLevel = computed(() => String(store.levelId || '').trim())
+const _currentLevel = computed(() => String(store.levelId || '').trim())
 
 const openLevelsModalForAnswer = (answer: Answer): void => {
   rowAnswerId.value = answer.id

@@ -38,9 +38,13 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  label: '',
+  placeholder: '',
   type: 'text',
   disabled: false,
   required: false,
+  error: '',
+  help: '',
   class: ''
 })
 
@@ -50,7 +54,7 @@ const emit = defineEmits<{
   'focus': [event: globalThis.FocusEvent]
 }>()
 
-const inputId = ref(`input-${Math.random().toString(36).substr(2, 9)}`)
+const inputId = ref(`input-${Math.random().toString(36).slice(2, 11)}`)
 
 const inputClass = computed(() => {
   const classes = ['w-full', props.class]
