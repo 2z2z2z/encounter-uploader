@@ -25,9 +25,25 @@
         :style="{ minWidth: getColumnWidth(field.id) }"
       >
         <template #body="slotProps">
+          <template v-if="field.id === 'bonusLevels'">
+            <div class="flex items-center gap-2">
+              <Button
+                type="button"
+                icon="pi pi-list"
+                size="small"
+                variant="outlined"
+                severity="secondary"
+                label="Выбрать"
+                @click="openLevelsModalForAnswer(slotProps.data)"
+              />
+              <span class="text-sm text-gray-600">
+                {{ formatAnswerLevels(slotProps.data) }}
+              </span>
+            </div>
+          </template>
           <component 
+            v-else-if="getFieldRenderer(field.id)"
             :is="getFieldRenderer(field.id)"
-            v-if="getFieldRenderer(field.id)"
             :data="slotProps.data"
             :index="slotProps.index"
           />
@@ -65,47 +81,43 @@
         Данные будут отображены после настройки типа уровня
       </p>
     </div>
+
+    <LevelsModal
+      :model-value="isRowModalOpen"
+      :current-level="store.levelId"
+      :initial-selection="rowModalSelection"
+      @update:model-value="isRowModalOpen = $event"
+      @apply="applyRowLevels"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, type VNode } from 'vue'
+import { computed, reactive, ref, watch, type VNode } from 'vue'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
 
 import { useLevelV2Store } from '../store'
+import { useBonusLevelsStore } from '../store/bonusLevels'
+import LevelsModal from '@/components/common/modals/LevelsModal.vue'
 import { fieldDefinitions } from '../bases/fields/fieldDefinitions'
 import { fieldRenderers, type FieldRenderer } from '../bases/fields/tableRenderers'
 import { getLevelTypeConfig } from '../configs'
 import type { FieldDefinition, Answer } from '../types'
 
-/**
- * Компонент таблицы контента для отображения данных уровня
- * 
- * Особенности:
- * - Динамические колонки на основе конфига типа уровня
- * - Техническая колонка номера строки (всегда первая)
- * - Техническая колонка удаления (только при ручном добавлении)
- * - Отключены выбор строк и reordering
- * - Данные только из активного таба
- */
+interface LevelsSelection {
+  allLevels: boolean
+  targetLevels: string[]
+}
 
-// ===== Store =====
 const store = useLevelV2Store()
+const bonusLevelsStore = useBonusLevelsStore()
 
-// ===== Вычисляемые свойства =====
-
-/**
- * Данные активного таба для таблицы
- */
 const tableData = computed<Answer[]>(() => {
   return store.activeTab?.answers || []
 })
 
-/**
- * Видимые поля на основе конфига типа уровня
- */
 const visibleFields = computed<FieldDefinition[]>(() => {
   const config = getLevelTypeConfig(store.levelType)
   
@@ -115,35 +127,21 @@ const visibleFields = computed<FieldDefinition[]>(() => {
     )
   }
   
-  // Fallback: если конфиг не найден, показываем базовые поля
   return fieldDefinitions.filter(field => 
     ['answer', 'sector', 'bonus'].includes(field.id)
   )
 })
 
-/**
- * Показывать ли колонку удаления строки
- * На основе флага ручного добавления кодов
- */
 const showDeleteColumn = computed<boolean>(() => {
   const config = getLevelTypeConfig(store.levelType)
   return config?.manualCodeAddition === true
 })
 
-// ===== Методы =====
-
-/**
- * Получить функцию рендеринга для поля
- */
 const getFieldRenderer = (fieldId: string): FieldRenderer | VNode | undefined => {
   return fieldRenderers[fieldId]
 }
 
-/**
- * Получить ширину колонки для поля
- */
 const getColumnWidth = (fieldId: string): string => {
-  // Разные ширины для разных типов полей
   switch (fieldId) {
     case 'answer': return '250px'
     case 'sector':
@@ -158,20 +156,106 @@ const getColumnWidth = (fieldId: string): string => {
   }
 }
 
-/**
- * Удаление строки (только для типов с ручным добавлением)
- */
 const deleteRow = (index: number): void => {
   if (!store.activeTab) return
-  
-  // Проверяем что действительно разрешено удаление
   const config = getLevelTypeConfig(store.levelType)
   if (config?.manualCodeAddition !== true) return
-  
-  // Удаляем строку из активного таба
   store.activeTab.answers.splice(index, 1)
-  // store.markDirty() - будет добавлено после реализации метода в store
+  store.markDirty()
 }
+
+const isRowModalOpen = ref(false)
+const rowAnswerId = ref<string>('')
+const rowModalSelection = reactive<LevelsSelection>({
+  allLevels: true,
+  targetLevels: []
+})
+
+const currentLevel = computed(() => String(store.levelId || '').trim())
+
+const openLevelsModalForAnswer = (answer: Answer): void => {
+  rowAnswerId.value = answer.id
+  if (!Array.isArray(answer.bonusLevels) || answer.bonusLevels.length === 0) {
+    rowModalSelection.allLevels = true
+    rowModalSelection.targetLevels = []
+  } else {
+    rowModalSelection.allLevels = false
+    rowModalSelection.targetLevels = [...answer.bonusLevels]
+  }
+  isRowModalOpen.value = true
+  void bonusLevelsStore.loadLevels({
+    domain: store.domain,
+    gameId: store.gameId,
+    levelId: store.levelId
+  }).catch(() => undefined)
+}
+
+const applyRowLevels = (selection: { allLevels: boolean; targetLevels?: string[] }): void => {
+  const answers = store.activeTab?.answers
+  if (!answers) {
+    isRowModalOpen.value = false
+    return
+  }
+
+  const target = answers.find(item => item.id === rowAnswerId.value)
+  if (!target) {
+    isRowModalOpen.value = false
+    return
+  }
+
+  if (selection.allLevels) {
+    const previous = Array.isArray(target.bonusLevels) ? target.bonusLevels : []
+    if (!Array.isArray(target.bonusLevels) || previous.length > 0) {
+      target.bonusLevels = []
+      store.markDirty()
+    }
+    isRowModalOpen.value = false
+    rowAnswerId.value = ''
+    return
+  }
+
+  const normalized = Array.from(new Set(selection.targetLevels || [])).map(String)
+  const previous = Array.isArray(target.bonusLevels) ? target.bonusLevels : []
+  const sameLength = previous.length === normalized.length
+  const sameValues = sameLength && previous.every((value, index) => value === normalized[index])
+
+  if (!sameValues) {
+    target.bonusLevels = normalized
+    store.markDirty()
+  }
+
+  isRowModalOpen.value = false
+  rowAnswerId.value = ''
+}
+
+const formatAnswerLevels = (answer: Answer): string => {
+  if (!Array.isArray(answer.bonusLevels) || answer.bonusLevels.length === 0) {
+    return 'Все уровни'
+  }
+
+  const base = currentLevel.value
+  const unique = new Set<string>()
+  if (base) {
+    unique.add(base)
+  }
+  answer.bonusLevels.forEach(level => {
+    const normalized = String(level || '').trim()
+    if (normalized) {
+      unique.add(normalized)
+    }
+  })
+  const values = Array.from(unique)
+  if (values.length <= 5) {
+    return `Выбрано: ${values.join(', ')}`
+  }
+  return `Выбрано: ${values.slice(0, 5).join(', ')} …`
+}
+
+watch(isRowModalOpen, (open) => {
+  if (!open) {
+    rowAnswerId.value = ''
+  }
+})
 </script>
 
 <style scoped>
@@ -183,3 +267,4 @@ const deleteRow = (index: number): void => {
   width: 100%;
 }
 </style>
+

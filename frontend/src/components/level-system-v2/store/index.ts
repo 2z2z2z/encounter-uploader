@@ -336,6 +336,13 @@ export const useLevelV2Store = defineStore('level-v2', () => {
 		})
 		isDirty.value = true
 	}
+
+	/**
+	 * Помечает состояние как изменённое
+	 */
+	function markDirty(): void {
+		isDirty.value = true
+	}
 	
 	// ===== Массовые операции =====
 	
@@ -618,8 +625,8 @@ export const useLevelV2Store = defineStore('level-v2', () => {
 		updateAnswer,
 		clearActiveTab,
 		clearAllTabs,
-		
-		// Массовые операции
+		markDirty,
+
 		applyToAllInActiveTab,
 		setDimension,
 		

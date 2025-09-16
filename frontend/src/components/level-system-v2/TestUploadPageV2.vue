@@ -94,12 +94,14 @@ import Card from 'primevue/card'
 import Message from 'primevue/message'
 import Button from 'primevue/button'
 import { useTestConfigV2 } from '@/composables/useTestConfigV2'
+import { useAuthStore } from '@/store/auth'
 import { useLevelV2Store } from './store'
 import LevelUploadPage from './components/LevelUploadPage.vue'
 import type { TabData, Answer } from './types'
 
 const route = useRoute()
 const { isLoading, error, loadTestConfigV2, getTestTypeInfo } = useTestConfigV2()
+const authStore = useAuthStore()
 const levelV2Store = useLevelV2Store()
 
 // Отладочная информация
@@ -145,6 +147,11 @@ const initializeTestDataV2 = async (): Promise<void> => {
     // Получаем credentials из переменных окружения (НЕ localStorage)
     const typeInfo = getTestTypeInfo(levelType)
     const { typeId, subtype, credentials } = typeInfo
+
+    // Настраиваем AuthStore для работы с API
+    authStore.setCredentials(credentials.login, credentials.password)
+    authStore.loggedIn = true
+    authStore.username = credentials.login
 
     // Инициализируем useLevelV2Store  
     levelV2Store.initializeLevelType(typeId as 'olymp' | 'type100500', subtype || undefined, false)

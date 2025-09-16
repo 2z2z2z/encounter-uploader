@@ -1,39 +1,47 @@
 <template>
   <BaseModal
     v-model="visible"
-    header="Выбор уровней для бонусов"
+    header="Выбор уровней для бонуса"
     width="50vw"
   >
     <div class="levels-container">
       <div class="mb-4">
         <RadioButton 
           v-model="selectionMode" 
-          input-id="all" 
+          input-id="levels-all"
           value="all"
         />
-        <label for="all" class="ml-2 cursor-pointer">
-          На всех уровнях
+        <label for="levels-all" class="ml-2 cursor-pointer">
+          На все уровни
         </label>
       </div>
       
       <div class="mb-4">
         <RadioButton 
           v-model="selectionMode" 
-          input-id="selected" 
+          input-id="levels-selected"
           value="selected"
         />
-        <label for="selected" class="ml-2 cursor-pointer">
-          На выбранных уровнях
+        <label for="levels-selected" class="ml-2 cursor-pointer">
+          На выбранные уровни
         </label>
       </div>
       
       <div v-if="selectionMode === 'selected'" class="levels-grid">
-        <Message v-if="loading" severity="info">
-          Загрузка списка уровней...
+        <Message v-if="loading" severity="info" :closable="false">
+          Загружаем список уровней...
         </Message>
         
-        <Message v-else-if="error" severity="error">
-          {{ error }}
+        <Message v-else-if="errorMessage" severity="error" :closable="false">
+          {{ errorMessage }}
+        </Message>
+        
+        <Message
+          v-else-if="!availableLevels.length"
+          severity="warn"
+          :closable="false"
+        >
+          Список уровней пуст.
         </Message>
         
         <div v-else class="grid grid-cols-4 gap-2">
@@ -42,15 +50,15 @@
               v-model="selectedLevels"
               :input-id="`level-${level.value}`"
               :value="level.value"
-              :disabled="level.value === currentLevel"
+              :disabled="level.value === baseLevel"
             />
             <label 
               :for="`level-${level.value}`" 
               class="ml-2 cursor-pointer"
-              :class="{ 'font-bold': level.value === currentLevel }"
+              :class="{ 'font-bold': level.value === baseLevel }"
             >
               {{ level.label }}
-              <span v-if="level.value === currentLevel" class="text-sm text-gray-500">
+              <span v-if="level.value === baseLevel" class="text-sm text-gray-500">
                 (текущий)
               </span>
             </label>
@@ -58,11 +66,14 @@
         </div>
         
         <div class="mt-4 flex gap-2">
-          <BaseButton variant="secondary" size="small" @click="selectAll">
+          <BaseButton variant="secondary" size="small" @click="selectAll" :disabled="!availableLevels.length">
             Выбрать все
           </BaseButton>
-          <BaseButton variant="secondary" size="small" @click="deselectAll">
-            Снять все
+          <BaseButton variant="secondary" size="small" @click="deselectAll" :disabled="!availableLevels.length">
+            Очистить
+          </BaseButton>
+          <BaseButton variant="secondary" size="small" @click="refreshLevels">
+            Обновить
           </BaseButton>
         </div>
       </div>
@@ -83,25 +94,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { computed, ref, watch } from 'vue'
 import RadioButton from 'primevue/radiobutton'
 import Checkbox from 'primevue/checkbox'
 import Message from 'primevue/message'
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
+import { useLevelV2Store } from '@/components/level-system-v2/store'
+import { useBonusLevelsStore } from '@/components/level-system-v2/store/bonusLevels'
 
 interface LevelOption {
   label: string
   value: string
 }
 
+interface LevelsSelection {
+  allLevels: boolean
+  targetLevels?: string[]
+}
+
 interface Props {
   modelValue: boolean
   currentLevel: string
-  initialSelection?: {
-    allLevels: boolean
-    targetLevels?: string[]
-  }
+  initialSelection?: LevelsSelection
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -113,8 +128,24 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
-  'apply': [selection: { allLevels: boolean; targetLevels?: string[] }]
+  apply: [selection: LevelsSelection]
 }>()
+
+const levelStore = useLevelV2Store()
+const bonusLevelsStore = useBonusLevelsStore()
+
+const baseLevel = computed(() => String(props.currentLevel || '').trim())
+
+const availableLevels = computed<LevelOption[]>(() => {
+  return bonusLevelsStore.options.map(option => ({
+    label: option.label,
+    value: option.label
+  }))
+})
+
+const loading = computed(() => bonusLevelsStore.isLoading)
+const manualError = ref('')
+const errorMessage = computed(() => manualError.value || bonusLevelsStore.error)
 
 const visible = computed({
   get: () => props.modelValue,
@@ -123,78 +154,105 @@ const visible = computed({
 
 const selectionMode = ref<'all' | 'selected'>('all')
 const selectedLevels = ref<string[]>([])
-const availableLevels = ref<LevelOption[]>([])
-const loading = ref(false)
-const error = ref('')
 
-onMounted(() => {
-  loadAvailableLevels()
-  
-  // Установка начальных значений
-  if (props.initialSelection) {
-    selectionMode.value = props.initialSelection.allLevels ? 'all' : 'selected'
-    if (props.initialSelection.targetLevels) {
-      selectedLevels.value = [...props.initialSelection.targetLevels]
-    }
+function setSelectedLevels(values: string[]): void {
+  const unique = new Set<string>()
+  const base = baseLevel.value
+  if (base) {
+    unique.add(base)
   }
-})
-
-watch(() => props.initialSelection, (newVal) => {
-  if (newVal) {
-    selectionMode.value = newVal.allLevels ? 'all' : 'selected'
-    if (newVal.targetLevels) {
-      selectedLevels.value = [...newVal.targetLevels]
+  values.forEach(value => {
+    const normalized = String(value || '').trim()
+    if (normalized) {
+      unique.add(normalized)
     }
-  }
-}, { deep: true })
+  })
+  selectedLevels.value = Array.from(unique)
+}
 
-async function loadAvailableLevels() {
-  loading.value = true
-  error.value = ''
-  
+function syncSelectionFromProps(): void {
+  const initial = props.initialSelection
+  if (!initial) {
+    selectionMode.value = 'all'
+    setSelectedLevels([])
+    return
+  }
+
+  if (initial.allLevels) {
+    selectionMode.value = 'all'
+    setSelectedLevels([])
+    return
+  }
+
+  selectionMode.value = 'selected'
+  setSelectedLevels(initial.targetLevels || [])
+}
+
+async function loadAvailableLevels(force = false): Promise<void> {
+  manualError.value = ''
+  if (!levelStore.domain || !levelStore.gameId || !levelStore.levelId) {
+    manualError.value = 'Укажите домен, игру и уровень, чтобы получить список уровней.'
+    bonusLevelsStore.reset()
+    return
+  }
+
   try {
-    // Здесь будет вызов API для получения списка уровней
-    // Пока используем заглушку
-    await new Promise(resolve => globalThis.setTimeout(resolve, 500))
-    
-    // Генерируем тестовые уровни
-    availableLevels.value = Array.from({ length: 20 }, (_, i) => ({
-      label: `Уровень ${i + 1}`,
-      value: String(i + 1)
-    }))
-    
-    // Автоматически выбираем текущий уровень
-    if (!selectedLevels.value.includes(props.currentLevel)) {
-      selectedLevels.value.push(props.currentLevel)
-    }
-  } catch (_err) {
-    error.value = 'Не удалось загрузить список уровней'
-  } finally {
-    loading.value = false
+    await bonusLevelsStore.loadLevels({
+      domain: levelStore.domain,
+      gameId: levelStore.gameId,
+      levelId: levelStore.levelId
+    }, force)
+  } catch {
+    // Ошибка уже сохранена в сторе, дополнительная обработка не требуется
   }
 }
 
-function selectAll() {
-  selectedLevels.value = availableLevels.value.map(l => l.value)
+function refreshLevels(): void {
+  void loadAvailableLevels(true)
 }
 
-function deselectAll() {
-  selectedLevels.value = [props.currentLevel] // Оставляем только текущий
+function selectAll(): void {
+  setSelectedLevels(availableLevels.value.map(level => level.value))
 }
 
-function handleApply() {
-  const selection = {
+function deselectAll(): void {
+  setSelectedLevels([])
+}
+
+function handleApply(): void {
+  const base = baseLevel.value
+  const uniqueSelected = Array.from(new Set(selectedLevels.value.map(String)))
+  const targetLevels = selectionMode.value === 'selected'
+    ? uniqueSelected.filter(level => !base || level !== base)
+    : undefined
+
+  const selection: LevelsSelection = {
     allLevels: selectionMode.value === 'all',
-    targetLevels: selectionMode.value === 'selected' ? selectedLevels.value : undefined
+    targetLevels: selectionMode.value === 'all' ? undefined : targetLevels
   }
-  
+
   emit('apply', selection)
   visible.value = false
 }
 
-function handleCancel() {
+function handleCancel(): void {
   visible.value = false
 }
+
+watch(() => props.initialSelection, () => {
+  syncSelectionFromProps()
+}, { deep: true })
+
+watch(() => props.currentLevel, () => {
+  syncSelectionFromProps()
+})
+
+watch(() => visible.value, (isVisible) => {
+  if (isVisible) {
+    syncSelectionFromProps()
+    void loadAvailableLevels()
+  }
+})
 </script>
 
 <style scoped>

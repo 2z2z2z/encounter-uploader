@@ -355,6 +355,8 @@ export function useLevelPayloads() {
 				progress.updateTitle(`Бонус ${bonus.number}`)
 				
 				// Конвертируем структуру данных для старой функции sendBonuses
+				const normalizedLevels = Array.isArray(bonus.bonusLevels) ? bonus.bonusLevels.map(String) : []
+				const allLevels = !Array.isArray(bonus.bonusLevels) || normalizedLevels.length === 0
 				const legacyAnswer = {
 					number: bonus.number,
 					variants: bonus.variants,
@@ -365,7 +367,9 @@ export function useLevelPayloads() {
 						negative: bonus.bonusTime.negative || false
 					},
 					closedText: bonus.closedText,
-					displayText: bonus.displayText
+					displayText: bonus.displayText,
+					allLevels,
+					targetLevels: allLevels ? [] : normalizedLevels
 				}
 				
 				// Отправка бонуса (используем старую функцию sendBonuses)
