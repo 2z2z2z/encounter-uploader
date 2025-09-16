@@ -158,14 +158,9 @@ const selectionMode = ref<'all' | 'selected'>('all')
 const selectedLevels = ref<string[]>([])
 
 function setSelectedLevels(values: string[]): void {
-  const base = baseLevel.value
   const unique = new Set<string>(
     values.map(v => String(v || '').trim()).filter(Boolean)
   )
-
-  if (base) {
-    unique.add(base)
-  }
 
   selectedLevels.value = Array.from(unique)
 }

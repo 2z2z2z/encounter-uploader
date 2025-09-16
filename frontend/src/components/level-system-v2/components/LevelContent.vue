@@ -35,6 +35,7 @@
               :label="getButtonLabel(slotProps.data)"
               :badge="getBadgeValue(slotProps.data)"
               :badge-severity="getBadgeSeverity(slotProps.data)"
+              v-tooltip.top="formatAnswerLevels(slotProps.data)"
               @click="openLevelsModalForAnswer(slotProps.data)"
             />
           </template>
@@ -229,11 +230,8 @@ const formatAnswerLevels = (answer: Answer): string => {
     return 'Все уровни'
   }
 
-  const base = currentLevel.value
+  // Показываем только реально выбранные пользователем уровни
   const unique = new Set<string>()
-  if (base) {
-    unique.add(base)
-  }
   answer.bonusLevels.forEach(level => {
     const normalized = String(level || '').trim()
     if (normalized) {

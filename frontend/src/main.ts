@@ -11,6 +11,7 @@ import Aura from '@primeuix/themes/aura'
 import ToastService from 'primevue/toastservice'
 import ConfirmationService from 'primevue/confirmationservice'
 import DialogService from 'primevue/dialogservice'
+import Tooltip from 'primevue/tooltip'
 
 // PrimeVue styles
 import 'primeicons/primeicons.css'
@@ -102,6 +103,9 @@ app.use(PrimeVue, {
 app.use(ToastService)
 app.use(ConfirmationService)
 app.use(DialogService)
+
+// Add PrimeVue directives
+app.directive('tooltip', Tooltip)
 
 // Add other plugins
 app.use(pinia)

@@ -26,13 +26,18 @@ export function buildInitialSelection(
   const currentLevels = Array.isArray(first.bonusLevels) ? [...first.bonusLevels] : []
   const allLevels = currentLevels.length === 0
 
-  // Всегда возвращаем режим "выбранные уровни"
-  // Если у первого ответа "все уровни", то выбираем текущий уровень по умолчанию
+  if (allLevels) {
+    // Если в строке выбраны "все уровни", то и в модале должно быть "все уровни"
+    return {
+      allLevels: true,
+      targetLevels: undefined
+    }
+  }
+
+  // Если в строке выбраны конкретные уровни, показываем их
   return {
     allLevels: false,
-    targetLevels: allLevels
-      ? (currentLevel ? [currentLevel] : [])
-      : currentLevels
+    targetLevels: currentLevels
   }
 }
 
