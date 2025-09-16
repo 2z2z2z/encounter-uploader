@@ -240,9 +240,9 @@ const formatAnswerLevels = (answer: Answer): string => {
   })
   const values = Array.from(unique)
   if (values.length <= 5) {
-    return `Выбрано: ${values.join(', ')}`
+    return `Уровни: ${values.join(', ')}`
   }
-  return `Выбрано: ${values.slice(0, 5).join(', ')} …`
+  return `Уровни: ${values.slice(0, 5).join(', ')} …`
 }
 
 watch(isRowModalOpen, (open) => {
