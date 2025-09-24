@@ -1,65 +1,67 @@
 <template>
-  <div v-if="shouldShowTabs" class="level-tabs-container">
+  <div v-if="shouldShowTabs" class="mb-4">
     <Tabs
       :value="store.activeTabIndex"
       @update:value="handleTabChange"
       class="level-tabs"
     >
-      <TabList>
-        <Tab
-          v-for="(tab, index) in store.tabs"
-          :key="tab.id"
-          :value="index"
-          :disabled="false"
-        >
-          {{ tab.name }}
-        </Tab>
-      </TabList>
+      <div class="flex items-center gap-3 pb-0 flex-wrap">
+        <TabList class="flex-1">
+          <Tab
+            v-for="(tab, index) in store.tabs"
+            :key="tab.id"
+            :value="index"
+            :disabled="false"
+          >
+            {{ tab.name }}
+          </Tab>
+        </TabList>
+
+        <div v-if="canManageTabs" class="flex items-center gap-2 pb-2 max-xs:w-full max-xs:justify-end">
+          <Button
+            icon="pi pi-plus"
+            size="small"
+            text
+            rounded
+            @click="addTab"
+            :disabled="!canAddTab"
+            v-tooltip.top="'Добавить таб'"
+          />
+          <Button
+            icon="pi pi-minus"
+            size="small"
+            text
+            rounded
+            severity="danger"
+            @click="removeCurrentTab"
+            :disabled="!canRemoveTab"
+            v-tooltip.top="'Удалить таб'"
+          />
+          <InputText
+            v-if="store.tabs.length > 0"
+            v-model="currentTabName"
+            @blur="updateTabName"
+            @keyup.enter="updateTabName"
+            placeholder="Название таба"
+            maxlength="20"
+            size="small"
+            class="w-32"
+          />
+        </div>
+      </div>
+
       <TabPanels>
         <TabPanel
           v-for="(tab, index) in store.tabs"
           :key="tab.id"
           :value="index"
         >
-          <div class="tab-content">
-            <!-- Содержимое таба рендерится родительским компонентом -->
+          <div class="pt-3">
             <slot :tab="tab" :tab-index="index" />
           </div>
         </TabPanel>
       </TabPanels>
     </Tabs>
-
-    <!-- Управление табами для типов с множественными блоками -->
-    <div v-if="canManageTabs" class="tab-controls">
-      <Button
-        icon="pi pi-plus"
-        label="Добавить таб"
-        size="small"
-        outlined
-        @click="addTab"
-        :disabled="!canAddTab"
-        class="tab-control-btn"
-      />
-      <Button
-        icon="pi pi-minus"
-        label="Удалить"
-        size="small"
-        outlined
-        severity="danger"
-        @click="removeCurrentTab"
-        :disabled="!canRemoveTab"
-        class="tab-control-btn"
-      />
-      <InputText
-        v-if="store.tabs.length > 0"
-        v-model="currentTabName"
-        @blur="updateTabName"
-        @keyup.enter="updateTabName"
-        placeholder="Название таба"
-        maxlength="20"
-        class="tab-name-input"
-      />
-    </div>
   </div>
 </template>
 
@@ -72,8 +74,11 @@ import TabPanels from 'primevue/tabpanels'
 import TabPanel from 'primevue/tabpanel'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
+import Tooltip from 'primevue/tooltip'
 import { useLevelV2Store } from '../store'
 import { getLevelTypeConfig } from '../configs'
+
+const vTooltip = Tooltip
 
 const store = useLevelV2Store()
 
@@ -129,7 +134,7 @@ const addTab = () => {
   if (!canAddTab.value) return
   
   const newTabIndex = store.tabs.length + 1
-  const tabName = `Таб ${newTabIndex}`
+  const tabName = `Блок ${newTabIndex}`
   
   store.addTab(tabName)
 }
@@ -162,44 +167,32 @@ const updateTabName = () => {
 </script>
 
 <style scoped>
-.level-tabs-container {
-  margin-bottom: 1rem;
-}
-
-.level-tabs :deep(.p-tabview-nav) {
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.level-tabs :deep(.p-tabview-header) {
+.level-tabs :deep(.p-tab) {
   padding: 0.5rem 1rem;
+  transition: all 0.2s ease;
 }
 
-.level-tabs :deep(.p-tabview-panels) {
-  padding-top: 1rem;
+.level-tabs :deep(.p-tab:hover) {
+  background-color: rgba(99, 102, 241, 0.05);
 }
 
-.tab-content {
-  min-height: 0;
+.level-tabs :deep(.p-tabpanels) {
+  padding: 0;
 }
 
-.tab-controls {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 0.5rem;
-  border-top: 1px solid #f3f4f6;
-  padding-top: 0.75rem;
-  margin-top: 0.75rem;
+.level-tabs :deep(.p-tabpanel) {
+  animation: fadeIn 0.3s ease;
 }
 
-.tab-control-btn {
-  font-size: 0.875rem;
-}
-
-.tab-name-input {
-  font-size: 0.875rem;
-  height: 2rem;
-  width: 8rem;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
 

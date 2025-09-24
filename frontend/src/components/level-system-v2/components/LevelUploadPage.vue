@@ -1,21 +1,21 @@
 <template>
   <div class="min-h-screen flex items-start justify-center bg-surface-50 p-4">
-    <div class="w-full max-w-[1920px]">
+    <div class="w-full max-w-[2000px] flex flex-col gap-4">
+      <!-- Блок с заголовком и данными вынесен за пределы Card -->
+      <LevelHeader v-if="typeId" :type-id="typeId" :subtype="subtype" />
+
       <Card>
         <template #content>
-          <!-- Слот 1: LevelHeader - шапка с названием и мета-данными -->
-          <LevelHeader v-if="typeId" :type-id="typeId" :subtype="subtype" />
-
-          <!-- Слот 2: LevelTabs - блоки/табы (новый слот) -->  
-          <LevelTabs />
-
-          <!-- Слот 3: LevelControlPanel - контрол-панель -->
+          <!-- Слот 1: LevelControlPanel - контрол-панель (перенесена выше) -->
           <LevelControlPanel />
 
-          <!-- Слот 4: LevelContent - таблица с данными -->
+          <!-- Слот 2: LevelTabs - блоки/табы -->
+          <LevelTabs />
+
+          <!-- Слот 3: LevelContent - таблица с данными -->
           <LevelContent />
 
-          <!-- Слот 5: LevelFooter - подвал с кнопками -->
+          <!-- Слот 4: LevelFooter - подвал с кнопками -->
           <LevelFooter />
         </template>
       </Card>

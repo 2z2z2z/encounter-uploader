@@ -1,14 +1,13 @@
 <template>
   <div class="level-content">
-    <DataTable 
+    <DataTable
       :value="tableData"
       responsive-layout="scroll"
       :selection-mode="undefined"
       :reorderable-columns="false"
       class="p-datatable-sm"
-      style-class="p-datatable-striped"
       scrollable
-      scroll-height="600px"
+      :scroll-height="tableScrollHeight"
     >
       <!-- Техническая колонка: Номер строки -->
       <Column header="#" frozen :style="{ width: '60px' }">
@@ -92,6 +91,7 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref, watch, type VNode } from 'vue'
+import { useWindowSize, useLocalStorage } from '@vueuse/core'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
@@ -111,6 +111,29 @@ import {
 
 const store = useLevelV2Store()
 const bonusLevelsStore = useBonusLevelsStore()
+
+const { height: windowHeight } = useWindowSize()
+const isControlPanelCollapsed = useLocalStorage('controlPanelCollapsed', false)
+
+const tableScrollHeight = computed<string>(() => {
+  const HEADER_HEIGHT = 70
+  const TABS_HEIGHT = 60
+  const CONTROL_PANEL_COLLAPSED_HEIGHT = 50
+  const CONTROL_PANEL_EXPANDED_HEIGHT = 200
+  const FOOTER_HEIGHT = 100
+  const PADDINGS = 80
+  const MIN_TABLE_HEIGHT = 300
+
+  const controlPanelHeight = isControlPanelCollapsed.value
+    ? CONTROL_PANEL_COLLAPSED_HEIGHT
+    : CONTROL_PANEL_EXPANDED_HEIGHT
+
+  const totalOffset = HEADER_HEIGHT + TABS_HEIGHT + controlPanelHeight + FOOTER_HEIGHT + PADDINGS
+
+  const calculatedHeight = windowHeight.value - totalOffset
+
+  return `${Math.max(calculatedHeight, MIN_TABLE_HEIGHT)}px`
+})
 
 const tableData = computed<Answer[]>(() => {
   return store.activeTab?.answers || []
@@ -142,14 +165,14 @@ const getFieldRenderer = (fieldId: string): FieldRenderer | VNode | undefined =>
 const getColumnWidth = (fieldId: string): string => {
   switch (fieldId) {
     case 'answer': return '250px'
-    case 'sector':
-    case 'bonus': return '80px'
+    case 'sector': return '70px'
+    case 'bonus': return '70px'
     case 'bonusTime':
-    case 'delay':
-    case 'limit': return '200px'
-    case 'bonusLevels': return '180px'
-    case 'bonusTask':
-    case 'hint': return '300px'
+    case 'delay': return '160px'
+    case 'limit': return '160px'
+    case 'bonusLevels': return '160px'
+    case 'bonusTask': return '180px'
+    case 'hint': return '180px'
     default: return '150px'
   }
 }
@@ -168,8 +191,6 @@ const rowModalSelection = reactive<LevelsSelection>({
   allLevels: true,
   targetLevels: []
 })
-
-const _currentLevel = computed(() => String(store.levelId || '').trim())
 
 const openLevelsModalForAnswer = (answer: Answer): void => {
   rowAnswerId.value = answer.id
@@ -253,12 +274,24 @@ watch(isRowModalOpen, (open) => {
 </script>
 
 <style scoped>
-/**
- * Стили для таблицы контента
- * Используем минимальные стили без @apply для совместимости с TW v4
- */
 .level-content {
   width: 100%;
+}
+
+.level-content :deep(.p-datatable-tbody > tr) {
+  transition: background-color 0.2s ease;
+}
+
+.level-content :deep(.p-datatable-tbody > tr:hover) {
+  background-color: rgba(99, 102, 241, 0.05) !important;
+}
+
+.level-content :deep(.p-datatable-thead > tr > th) {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: var(--p-surface-0);
+  font-weight: 600;
 }
 </style>
 

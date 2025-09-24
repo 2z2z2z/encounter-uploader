@@ -1,13 +1,18 @@
 <template>
-  <Card>
-    <template #title v-if="showTitle">{{ title }}</template>
-    <template #subtitle v-if="showMeta">
-      автор: <strong>{{ authStore.username }}</strong>,
-      домен: <strong>{{ levelV2Store.domain }}</strong>,
-      игра: <strong>{{ levelV2Store.gameId }}</strong>,
-      уровень: <strong>{{ levelV2Store.levelId }}</strong>
-    </template>
-  </Card>
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-4 bg-surface-50">
+    <!-- Заголовок -->
+    <div v-if="showTitle" class="text-2xl font-semibold text-surface-900">
+      {{ title }}
+    </div>
+
+    <!-- Мета-данные -->
+    <div v-if="showMeta" class="flex flex-wrap gap-x-4 gap-y-2 text-sm text-surface-600">
+      <span>автор: <strong class="text-surface-900">{{ authStore.username }}</strong></span>
+      <span>домен: <strong class="text-surface-900">{{ levelV2Store.domain }}</strong></span>
+      <span>игра: <strong class="text-surface-900">{{ levelV2Store.gameId }}</strong></span>
+      <span>уровень: <strong class="text-surface-900">{{ levelV2Store.levelId }}</strong></span>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -19,9 +24,6 @@ import { computed } from 'vue'
 import { getLevelTypeConfig, getSubtypeConfig } from '../configs'
 import { useLevelV2Store } from '../store'
 import { useAuthStore } from '../../../store/auth'
-
-// PrimeVue components
-import Card from 'primevue/card'
 
 interface Props {
   typeId: string

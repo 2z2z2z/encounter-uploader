@@ -1,26 +1,54 @@
 <template>
-  <div class="flex flex-wrap justify-between items-end gap-x-8 gap-y-10 mt-8 mb-6 rounded-2xl bg-violet-50 py-10 px-5">
-    <div
-      v-for="controlId in activeControls"
-      :key="controlId"
-      class="flex-1 text-nowrap"
-    >
-      <component
-        :is="getControlComponent(controlId)"
-        v-if="getControlComponent(controlId)"
+  <div class="rounded-xl bg-violet-50 mb-4 overflow-hidden">
+    <!-- Заголовок с кнопкой сворачивания -->
+    <div class="flex items-center justify-between px-5 py-3" :class="{ 'border-b border-violet-100': !isCollapsed }">
+      <h3 class="text-sm font-semibold text-violet-900">Панель управления</h3>
+      <Button
+        :icon="isCollapsed ? 'pi pi-chevron-down' : 'pi pi-chevron-up'"
+        text
+        rounded
+        size="small"
+        @click="toggleCollapse"
+        v-tooltip.left="isCollapsed ? 'Развернуть панель' : 'Свернуть панель'"
       />
     </div>
+
+    <!-- Контент панели с transition -->
+    <Transition name="collapse">
+      <div v-if="!isCollapsed" class="flex flex-wrap justify-between items-end gap-x-6 gap-y-8 py-6 px-5">
+        <div
+          v-for="controlId in activeControls"
+          :key="controlId"
+          class="flex-1 text-nowrap"
+        >
+          <component
+            :is="getControlComponent(controlId)"
+            v-if="getControlComponent(controlId)"
+          />
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useLocalStorage } from '@vueuse/core'
+import Button from 'primevue/button'
+import Tooltip from 'primevue/tooltip'
 import { useLevelV2Store } from '../store'
 import { getLevelTypeConfig } from '../configs'
 import type { ControlId } from '../types'
 import { controls } from '../bases/controls'
 
+const vTooltip = Tooltip
 const store = useLevelV2Store()
+
+const isCollapsed = useLocalStorage('controlPanelCollapsed', false)
+
+const toggleCollapse = (): void => {
+  isCollapsed.value = !isCollapsed.value
+}
 
 const levelConfig = computed(() => {
   return getLevelTypeConfig(store.levelType)
@@ -38,31 +66,18 @@ const getControlComponent = (controlId: ControlId) => {
 </script>
 
 <style scoped>
-/**
- * Стилизация контрол-панели через обычные CSS свойства
- * Без @apply для совместимости с TailwindCSS v4
- */
-
-.control-panel-header {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #f3f4f6;
+.collapse-enter-active,
+.collapse-leave-active {
+  transition: all 0.3s ease;
+  max-height: 500px;
+  overflow: hidden;
 }
 
-/* Мобильная адаптация */
-@media (max-width: 768px) {
-  .level-control-panel {
-    padding: 1rem;
-  }
-  
-  .control-panel-header {
-    margin-bottom: 1rem;
-    padding-bottom: 0.75rem;
-  }
-  
-  .control-panel-header h3 {
-    font-size: 1rem;
-    line-height: 1.5rem;
-  }
+.collapse-enter-from,
+.collapse-leave-to {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 </style>
