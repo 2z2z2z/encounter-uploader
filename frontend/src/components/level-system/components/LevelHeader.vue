@@ -1,0 +1,72 @@
+<template>
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-4 bg-surface-50">
+    <!-- Заголовок -->
+    <div v-if="showTitle" class="text-2xl font-semibold text-surface-900">
+      {{ title }}
+    </div>
+
+    <!-- Мета-данные -->
+    <div v-if="showMeta" class="flex flex-wrap gap-x-4 gap-y-2 text-sm text-surface-600">
+      <span>автор: <strong class="text-surface-900">{{ authStore.username }}</strong></span>
+      <span>домен: <strong class="text-surface-900">{{ levelV2Store.domain }}</strong></span>
+      <span>игра: <strong class="text-surface-900">{{ levelV2Store.gameId }}</strong></span>
+      <span>уровень: <strong class="text-surface-900">{{ levelV2Store.levelId }}</strong></span>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+/**
+ * Компонент шапки страницы загрузки (универсальная логика)
+ * Получает название из конфигов типа уровня, отображает мета-данные из store
+ */
+import { computed } from 'vue'
+import { getLevelTypeConfig, getSubtypeConfig } from '../configs'
+import { useLevelStore } from '../store'
+import { useAuthStore } from '../../../store/auth'
+
+interface Props {
+  typeId: string
+  subtype?: string
+  showTitle?: boolean
+  showMeta?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  subtype: undefined,
+  showTitle: true,
+  showMeta: true
+})
+
+// Store connections
+const levelV2Store = useLevelStore()
+const authStore = useAuthStore()
+
+// Computed properties for props
+const showTitle = computed(() => props.showTitle)
+const showMeta = computed(() => props.showMeta)
+
+// Универсальное формирование заголовка через конфиги
+const title = computed(() => {
+  const config = getLevelTypeConfig(props.typeId)
+  if (!config) {
+    return 'Неизвестный тип уровня'
+  }
+  
+  const baseTitle = config.name
+  
+  // Добавляем информацию о подтипе если он есть
+  if (props.subtype && config.subtypes) {
+    const subtypeConfig = getSubtypeConfig(props.typeId, props.subtype)
+    if (subtypeConfig) {
+      return `${baseTitle} - ${subtypeConfig.name}`
+    }
+    // Fallback если подтип не найден в конфиге
+    return `${baseTitle} (${props.subtype})`
+  }
+  
+  return baseTitle
+})
+</script>
+
+

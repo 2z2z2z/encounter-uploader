@@ -9,7 +9,7 @@
               <FloatLabel variant="on">
                 <InputText
                   id="domain"
-                  v-model="levelV2Store.domain"
+                  v-model="levelStore.domain"
                   fluid
                   class="transition-all duration-200"
                 />
@@ -21,7 +21,7 @@
               <FloatLabel variant="on">
                 <InputText
                   id="gameId"
-                  v-model="levelV2Store.gameId"
+                  v-model="levelStore.gameId"
                   fluid
                   class="transition-all duration-200"
                 />
@@ -33,7 +33,7 @@
               <FloatLabel variant="on">
                 <InputText
                   id="levelId"
-                  v-model="levelV2Store.levelId"
+                  v-model="levelStore.levelId"
                   :invalid="!!levelValidationError"
                   fluid
                   class="transition-all duration-200"
@@ -92,9 +92,9 @@
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
-import { useLevelV2Store } from './level-system-v2/store'
-import type { LevelTypeId } from './level-system-v2/types'
-import { getAllLevelTypes } from './level-system-v2/configs'
+import { useLevelStore } from './level-system/store'
+import type { LevelTypeId } from './level-system/types'
+import { getAllLevelTypes } from './level-system/configs'
 import { useAuthStore } from '../store/auth'
 import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
@@ -103,7 +103,7 @@ import Button from 'primevue/button'
 import Message from 'primevue/message'
 import FloatLabel from 'primevue/floatlabel'
 
-const levelV2Store = useLevelV2Store()
+const levelStore = useLevelStore()
 const authStore = useAuthStore()
 const router = useRouter()
 
@@ -145,10 +145,10 @@ function parseSelectionKey(value: string): { typeId: LevelTypeId; subtype?: stri
   return { typeId: value as LevelTypeId }
 }
 
-const selectedLevelType = ref(resolveSelectionKey(levelV2Store.levelType, levelV2Store.subtypeId))
+const selectedLevelType = ref(resolveSelectionKey(levelStore.levelType, levelStore.subtypeId))
 
 watch(
-  () => resolveSelectionKey(levelV2Store.levelType, levelV2Store.subtypeId || undefined),
+  () => resolveSelectionKey(levelStore.levelType, levelStore.subtypeId || undefined),
   (key) => {
     if (selectedLevelType.value !== key) {
       selectedLevelType.value = key
@@ -165,11 +165,11 @@ watch(
     }
 
     const { typeId, subtype } = parseSelectionKey(key)
-    if (typeId === levelV2Store.levelType && (subtype || '') === (levelV2Store.subtypeId || '')) {
+    if (typeId === levelStore.levelType && (subtype || '') === (levelStore.subtypeId || '')) {
       return
     }
 
-    levelV2Store.initializeLevelType(typeId, subtype, true)
+    levelStore.initializeLevelType(typeId, subtype, true)
   }
 )
 
@@ -177,7 +177,7 @@ const error = ref('')
 const levelValidationError = ref('')
 
 async function fetchGamesList() {
-  const url = `https://${levelV2Store.domain}.en.cx/home?json=1`
+  const url = `https://${levelStore.domain}.en.cx/home?json=1`
   return axios.get(url)
 }
 
@@ -186,7 +186,7 @@ function onLevelIdInput(event: globalThis.Event) {
   const raw = input.value
   const filtered = raw.replace(/[^0-9]/g, '')
   if (filtered !== raw) {
-    levelV2Store.levelId = filtered
+    levelStore.levelId = filtered
   }
   if (!filtered) {
     levelValidationError.value = 'Поле «ID уровня» должно содержать только цифры'
@@ -200,21 +200,21 @@ async function onContinue() {
 
   const inTestMode = authStore.isTestMode
   if (!inTestMode) {
-    if (!levelV2Store.domain.trim()) {
+    if (!levelStore.domain.trim()) {
       error.value = 'Пожалуйста, укажите домен.'
       return
     }
-    if (!String(levelV2Store.gameId).trim()) {
+    if (!String(levelStore.gameId).trim()) {
       error.value = 'Пожалуйста, укажите ID игры.'
       return
     }
   }
 
-  if (!String(levelV2Store.levelId).trim()) {
+  if (!String(levelStore.levelId).trim()) {
     levelValidationError.value = 'Поле «ID уровня» должно содержать только цифры'
     return
   }
-  if (!/^[0-9]+$/.test(levelV2Store.levelId)) {
+  if (!/^[0-9]+$/.test(levelStore.levelId)) {
     levelValidationError.value = 'Поле «ID уровня» принимает только цифры'
     return
   }
@@ -230,7 +230,7 @@ async function onContinue() {
       }
       const { ActiveGames = [], ComingGames = [] } = res.data
       const allGames = [...ActiveGames, ...ComingGames]
-      if (!allGames.some((g: Record<string, unknown>) => String(g.GameID) === String(levelV2Store.gameId))) {
+      if (!allGames.some((g: Record<string, unknown>) => String(g.GameID) === String(levelStore.gameId))) {
         error.value = 'Игра с указанным ID не найдена на домене.'
         return
       }
@@ -241,7 +241,7 @@ async function onContinue() {
   }
 
   if (!inTestMode) {
-    await authStore.authenticate(levelV2Store.domain)
+    await authStore.authenticate(levelStore.domain)
     if (!authStore.loggedIn) {
       error.value = `Ошибка авторизации: ${authStore.error}`
       return
@@ -249,9 +249,9 @@ async function onContinue() {
   }
 
   const { typeId, subtype } = parseSelectionKey(selectedLevelType.value)
-  levelV2Store.initializeLevelType(typeId, subtype, true)
+  levelStore.initializeLevelType(typeId, subtype, true)
 
-  const path = subtype ? `/v2/${typeId}/${subtype}` : `/v2/${typeId}`
+  const path = subtype ? `/${typeId}/${subtype}` : `/${typeId}`
   router.push(path)
 }
 </script>

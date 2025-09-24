@@ -101,8 +101,8 @@ import Checkbox from 'primevue/checkbox'
 import Message from 'primevue/message'
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
-import { useLevelV2Store } from '@/components/level-system-v2/store'
-import { useBonusLevelsStore } from '@/components/level-system-v2/store/bonusLevels'
+import { useLevelStore } from '@/components/level-system/store'
+import { useBonusLevelsStore } from '@/components/level-system/store/bonusLevels'
 
 interface LevelOption {
   label: string
@@ -132,7 +132,7 @@ const emit = defineEmits<{
   apply: [selection: LevelsSelection]
 }>()
 
-const levelStore = useLevelV2Store()
+const levelStore = useLevelStore()
 const bonusLevelsStore = useBonusLevelsStore()
 
 // const _baseLevel = computed(() => String(props.currentLevel || '').trim())
