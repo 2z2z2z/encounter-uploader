@@ -98,7 +98,7 @@ const error = ref('')
 const validationResult = ref<ValidationResult | null>(null)
 const importing = ref(false)
 
-function handleFileSelect(event: Record<string, unknown>) {
+function handleFileSelect(event: { files: globalThis.File[] }) {
   const file = event.files[0]
   if (file) {
     selectedFile.value = file

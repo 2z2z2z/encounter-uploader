@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 import { ref, computed } from 'vue'
 import { useTestUrlMode } from '../composables/useTestUrlMode'
-import { isTestUrlMode, logTestModeState } from '../utils/testMode'
+import { isTestUrlMode } from '../utils/testMode'
 
 export const useAuthStore = defineStore(
   'auth',
@@ -52,17 +52,9 @@ export const useAuthStore = defineStore(
       authenticate,
     }
   },
-  {
+  isTestUrlMode() ? {} : {
     persist: {
-      beforeRestore: () => {
-        // Проверяем тестовый URL режим перед восстановлением
-        if (isTestUrlMode()) {
-          logTestModeState('AuthStore beforeRestore - блокирована загрузка из localStorage')
-          // В тестовом режиме не восстанавливаем из localStorage
-          return false
-        }
-        return true
-      }
-    },
+      pick: ['username', 'password', 'loggedIn']
+    }
   }
 )

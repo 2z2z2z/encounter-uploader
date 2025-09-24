@@ -314,7 +314,7 @@ watch(() => progress.visible, (visible) => {
 
 // Отслеживаем завершение и показываем success toast
 watch(() => [progress.current, progress.total, progress.hasErrors, progress.successCount, progress.errorCount], ([current, total, hasErrors, successCount, errorCount]) => {
-  if (current >= total && total > 0 && progress.visible) {
+  if (typeof current === 'number' && typeof total === 'number' && current >= total && total > 0 && progress.visible) {
     // Через небольшую задержку показываем уведомление о завершении
     globalThis.setTimeout(() => {
       const typeNames = {
@@ -326,7 +326,7 @@ watch(() => [progress.current, progress.total, progress.hasErrors, progress.succ
       const typeName = typeNames[progress.type as keyof typeof typeNames] || 'Элементы'
       
       // Показываем success только если нет ошибок И есть успешные элементы
-      if (!hasErrors && successCount > 0) {
+      if (!hasErrors && typeof successCount === 'number' && successCount > 0) {
         toast.add({
           severity: 'success',
           summary: 'Заливка завершена!',
@@ -335,8 +335,8 @@ watch(() => [progress.current, progress.total, progress.hasErrors, progress.succ
         })
       } else if (hasErrors) {
         // Показываем ошибку если есть проблемы
-        const successText = successCount > 0 ? `\nУспешно: ${successCount}` : ''
-        const errorText = errorCount > 0 ? `\nОшибок: ${errorCount}` : ''
+        const successText = (typeof successCount === 'number' && successCount > 0) ? `\nУспешно: ${successCount}` : ''
+        const errorText = (typeof errorCount === 'number' && errorCount > 0) ? `\nОшибок: ${errorCount}` : ''
         
         toast.add({
           severity: 'error',
@@ -346,7 +346,7 @@ watch(() => [progress.current, progress.total, progress.hasErrors, progress.succ
         })
       }
     }, 1000)
-  } else if (progress.visible && !progress.isPaused && total > 0) {
+  } else if (progress.visible && !progress.isPaused && typeof total === 'number' && total > 0) {
     // Пересчитываем прогноз при изменении прогресса (только если не на паузе)
     calculateEstimatedEndTime()
   }

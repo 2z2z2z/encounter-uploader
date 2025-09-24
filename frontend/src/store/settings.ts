@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { isTestUrlMode, logTestModeState } from '../utils/testMode'
+import { isTestUrlMode } from '../utils/testMode'
 
 export const useSettingsStore = defineStore(
   'settings',
@@ -21,23 +21,16 @@ export const useSettingsStore = defineStore(
     }
   },
   {
-    persist: {
-      pick: [
-        'showProgressEstimatedTime',
-        'showProgressTotalTime',
-        'showProgressPauseButton',
-        'progressPosition',
-        'progressAnimations',
-      ],
-      beforeRestore: () => {
-        // Проверяем тестовый URL режим перед восстановлением
-        if (isTestUrlMode()) {
-          logTestModeState('SettingsStore beforeRestore - блокирована загрузка из localStorage')
-          // В тестовом режиме не восстанавливаем из localStorage
-          return false
-        }
-        return true
+    ...(isTestUrlMode() ? {} : {
+      persist: {
+        pick: [
+          'showProgressEstimatedTime',
+          'showProgressTotalTime',
+          'showProgressPauseButton',
+          'progressPosition',
+          'progressAnimations',
+        ]
       }
-    },
+    })
   }
 )

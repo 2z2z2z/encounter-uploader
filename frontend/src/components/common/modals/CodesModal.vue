@@ -378,7 +378,9 @@ function resetState() {
     startFrom: 1,
     count: 10,
     padding: 3,
-    format: 'numeric'
+    size: 4,
+    format: 'numeric',
+    mask: ''
   }
 }
 </script>

@@ -135,7 +135,7 @@ const emit = defineEmits<{
 const levelStore = useLevelV2Store()
 const bonusLevelsStore = useBonusLevelsStore()
 
-const _baseLevel = computed(() => String(props.currentLevel || '').trim())
+// const _baseLevel = computed(() => String(props.currentLevel || '').trim())
 
 const availableLevels = computed<LevelOption[]>(() => {
   return bonusLevelsStore.options.map(option => ({
