@@ -1,21 +1,13 @@
 <template>
   <div class="min-h-screen flex items-start justify-center bg-surface-50 p-4">
     <div class="w-full max-w-[2000px] flex flex-col gap-4">
-      <!-- Блок с заголовком и данными вынесен за пределы Card -->
-      <LevelHeader v-if="typeId" :type-id="typeId" :subtype="subtype" />
+      <LevelHeader v-if="typeId" :type-id="typeId" :subtype="resolvedSubtype" />
 
       <Card>
         <template #content>
-          <!-- Слот 1: LevelControlPanel - контрол-панель (перенесена выше) -->
           <LevelControlPanel />
-
-          <!-- Слот 2: LevelTabs - блоки/табы -->
           <LevelTabs />
-
-          <!-- Слот 3: LevelContent - таблица с данными -->
           <LevelContent />
-
-          <!-- Слот 4: LevelFooter - подвал с кнопками -->
           <LevelFooter />
         </template>
       </Card>
@@ -24,8 +16,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useLevelV2Store } from '../store'
 import { parseRouteParams } from '../configs'
 import type { LevelTypeId } from '../types'
@@ -41,55 +33,74 @@ import LevelContent from './LevelContent.vue'
 import LevelFooter from './LevelFooter.vue'
 
 const route = useRoute()
+const router = useRouter()
 const levelV2Store = useLevelV2Store()
 
-/**
- * Получаем параметр levelType из роута
- */
-const levelType = computed(() => route.params.levelType as string)
+const levelTypeParam = computed(() => route.params.levelType as string | undefined)
+const subtypeParam = computed(() => route.params.subtype as string | undefined)
 
-/**
- * Универсальный парсинг levelType через реестр конфигов
- * Работает с любыми зарегистрированными типами и подтипами
- */
-const parsedRoute = computed(() => {
-  if (!levelType.value) {
-    return { typeId: undefined }
-  }
-  return parseRouteParams(levelType.value)
+const compositeRouteKey = computed(() => {
+  if (!levelTypeParam.value) return undefined
+  return subtypeParam.value ? `${levelTypeParam.value}${subtypeParam.value}` : levelTypeParam.value
 })
 
-const typeId = computed(() => parsedRoute.value.typeId)
-const subtype = computed(() => parsedRoute.value.subtypeId)
+const parsedRoute = computed(() => {
+  if (!compositeRouteKey.value) {
+    return { typeId: undefined }
+  }
+  return parseRouteParams(compositeRouteKey.value)
+})
+
+const typeId = computed(() => parsedRoute.value.typeId ?? levelTypeParam.value)
+const inferredSubtype = computed(() => parsedRoute.value.subtypeId)
+const resolvedSubtype = computed(() => subtypeParam.value ?? inferredSubtype.value)
 const config = computed(() => parsedRoute.value.config)
 const subtypeConfig = computed(() => parsedRoute.value.subtypeConfig)
 
-/**
- * Инициализация store при монтировании компонента (универсальная логика)
- */
-onMounted(() => {
-  // Инициализируем store если удалось распарсить роут
-  if (typeId.value && config.value) {
-    // Инициализируем мета-данные для тестового режима
-    if (!levelV2Store.domain) {
-      levelV2Store.domain = 'test'
-    }
-    if (!levelV2Store.gameId) {
-      levelV2Store.gameId = 'test'
-    }
-    if (!levelV2Store.levelId) {
-      levelV2Store.levelId = '1'
-    }
-    
-    levelV2Store.initializeLevelType(
-      typeId.value as LevelTypeId,
-      subtypeConfig.value || subtype.value,
-      true // загружать из localStorage
-    )
-  } else {
-    console.error(`[LevelUploadPage] Unknown route parameter: ${levelType.value}`)
+function ensureBaseCredentials() {
+  if (!levelV2Store.domain) {
+    levelV2Store.domain = 'test'
   }
+  if (!levelV2Store.gameId) {
+    levelV2Store.gameId = 'test'
+  }
+  if (!levelV2Store.levelId) {
+    levelV2Store.levelId = '1'
+  }
+}
+
+function initializeLevel(loadFromStorage = true) {
+  if (!typeId.value || !config.value) {
+    console.error(
+      `[LevelUploadPage] Unknown route parameters: ${levelTypeParam.value ?? 'undefined'}/${subtypeParam.value ?? 'undefined'}`
+    )
+    router.replace({ name: 'settings' }).catch(() => undefined)
+    return
+  }
+
+  ensureBaseCredentials()
+
+  levelV2Store.initializeLevelType(
+    typeId.value as LevelTypeId,
+    subtypeConfig.value || resolvedSubtype.value,
+    loadFromStorage
+  )
+}
+
+onMounted(() => {
+  initializeLevel(true)
 })
+
+watch(
+  () => [typeId.value, resolvedSubtype.value],
+  ([_nextType, _nextSubtype], [_prevType, _prevSubtype]) => {
+    if (_nextType === _prevType && _nextSubtype === _prevSubtype) {
+      return
+    }
+    initializeLevel(true)
+  }
+)
 </script>
+
 
 

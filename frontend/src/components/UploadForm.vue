@@ -1,37 +1,26 @@
-<!-- src/components/UploadForm.vue -->
 <template>
-  <!-- динамический компонент в зависимости от типа -->
-  <component :is="currentComponent" v-bind="currentProps" />
+  <div class="min-h-screen flex items-center justify-center bg-surface-50">
+    <span class="text-surface-500">Перенаправление на новую страницу загрузки…</span>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useUploadStore } from '../store'
-import OlympBase from './types/OlympBase.vue'
-import { getTypeConfig } from './level-system/registry/types'
-import Type100500 from './types/Type100500/index.vue'
+import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useLevelV2Store } from './level-system-v2/store'
 
-const store = useUploadStore()
+const router = useRouter()
+const levelV2Store = useLevelV2Store()
 
-const currentComponent = computed(() => {
-  switch (store.uploadType) {
-    case 'olymp15':
-    case 'olymp31':
-    case 'olymp63':
-    case 'olymp127':
-      return OlympBase
-    case '100500':
-      return Type100500
-    default:
-      return OlympBase
-  }
-})
+function resolveLevelRoute(): string {
+  const typeId = levelV2Store.levelType || 'olymp'
+  const subtype = levelV2Store.subtypeId || (typeId === 'olymp' ? '15' : undefined)
 
-const currentProps = computed(() => {
-  const cfg = getTypeConfig(store.uploadType)
-  if (cfg && cfg.category === 'olymp' && typeof cfg.totalSectors === 'number') {
-    return { totalSectors: cfg.totalSectors }
-  }
-  return {}
+  return subtype ? `/v2/${typeId}/${subtype}` : `/v2/${typeId}`
+}
+
+onMounted(() => {
+  const path = resolveLevelRoute()
+  router.replace(path).catch(() => undefined)
 })
 </script>

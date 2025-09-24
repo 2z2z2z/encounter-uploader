@@ -14,9 +14,9 @@ import { createTaskPayload } from '../payloads/TaskPayload'
  */
 interface PreviewModeConfig {
 	/** Поля для "закрытого" режима */
-	closedFields: string[]
+	closedFields: import('../types').FieldId[]
 	/** Поля для "открытого" режима */
-	openFields: string[]
+	openFields: import('../types').FieldId[]
 	/** Включить стилизацию для открытого режима */
 	enableOpenStyling?: boolean
 }

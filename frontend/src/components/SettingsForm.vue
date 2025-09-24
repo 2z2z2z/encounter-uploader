@@ -9,7 +9,7 @@
               <FloatLabel variant="on">
                 <InputText
                   id="domain"
-                  v-model="store.domain"
+                  v-model="levelV2Store.domain"
                   fluid
                   class="transition-all duration-200"
                 />
@@ -21,7 +21,7 @@
               <FloatLabel variant="on">
                 <InputText
                   id="gameId"
-                  v-model="store.gameId"
+                  v-model="levelV2Store.gameId"
                   fluid
                   class="transition-all duration-200"
                 />
@@ -33,7 +33,7 @@
               <FloatLabel variant="on">
                 <InputText
                   id="levelId"
-                  v-model="store.levelId"
+                  v-model="levelV2Store.levelId"
                   :invalid="!!levelValidationError"
                   fluid
                   class="transition-all duration-200"
@@ -55,8 +55,8 @@
               <FloatLabel variant="on">
                 <Select
                   id="uploadType"
-                  v-model="store.uploadType"
-                  :options="uploadTypeOptions"
+                  v-model="selectedLevelType"
+                  :options="levelTypeOptions"
                   option-label="label"
                   option-value="value"
                   placeholder="Выберите тип уровня"
@@ -89,10 +89,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
-import { useUploadStore } from '../store'
+import { useLevelV2Store } from './level-system-v2/store'
+import type { LevelTypeId } from './level-system-v2/types'
+import { getAllLevelTypes } from './level-system-v2/configs'
 import { useAuthStore } from '../store/auth'
 import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
@@ -101,51 +103,93 @@ import Button from 'primevue/button'
 import Message from 'primevue/message'
 import FloatLabel from 'primevue/floatlabel'
 
-const store = useUploadStore()
+const levelV2Store = useLevelV2Store()
 const authStore = useAuthStore()
 const router = useRouter()
 
-const uploadTypeOptions = [
-  { label: 'Олимпийка (15 секторов)', value: 'olymp15' },
-  { label: 'Олимпийка (31 сектор)', value: 'olymp31' },
-  { label: 'Олимпийка (63 сектора)', value: 'olymp63' },
-  { label: 'Олимпийка (127 сектора)', value: 'olymp127' },
-  { label: '100500 секторов и бонусов', value: '100500' }
-]
+const levelTypeOptions = computed(() => {
+  return getAllLevelTypes().flatMap((config) => {
+    if (config.subtypes && config.subtypes.length > 0) {
+      return config.subtypes.map((subtype) => ({
+        label: `${config.name} (${subtype.name})`,
+        value: `${config.id}:${subtype.id}`,
+      }))
+    }
+
+    return [{
+      label: config.name,
+      value: config.id,
+    }]
+  })
+})
+
+function resolveSelectionKey(typeId: string, subtype?: string | null): string {
+  if (subtype && subtype.length > 0) {
+    return `${typeId}:${subtype}`
+  }
+  return typeId
+}
+
+function parseSelectionKey(value: string): { typeId: LevelTypeId; subtype?: string } {
+  if (value.includes(':')) {
+    const [typeId, subtype] = value.split(':')
+    return { typeId: typeId as LevelTypeId, subtype: subtype || undefined }
+  }
+  if (value.startsWith('olymp')) {
+    const subtype = value.slice('olymp'.length)
+    return { typeId: 'olymp', subtype: subtype || undefined }
+  }
+  if (value === '100500') {
+    return { typeId: 'type100500' }
+  }
+  return { typeId: value as LevelTypeId }
+}
+
+const selectedLevelType = ref(resolveSelectionKey(levelV2Store.levelType, levelV2Store.subtypeId))
 
 watch(
-  () => store.uploadType,
-  (val, oldVal) => {
-    store.setUploadType(val, oldVal)
+  () => resolveSelectionKey(levelV2Store.levelType, levelV2Store.subtypeId || undefined),
+  (key) => {
+    if (selectedLevelType.value !== key) {
+      selectedLevelType.value = key
+    }
   },
   { immediate: true }
 )
 
-// Общая ошибка проверки (домен/игра/авторизация)
-const error = ref('')
+watch(
+  selectedLevelType,
+  (key, previous) => {
+    if (!key || key === previous) {
+      return
+    }
 
-// Ошибка валидации поля "№ уровня"
+    const { typeId, subtype } = parseSelectionKey(key)
+    if (typeId === levelV2Store.levelType && (subtype || '') === (levelV2Store.subtypeId || '')) {
+      return
+    }
+
+    levelV2Store.initializeLevelType(typeId, subtype, true)
+  }
+)
+
+const error = ref('')
 const levelValidationError = ref('')
 
 async function fetchGamesList() {
-  const url = `https://${store.domain}.en.cx/home?json=1`
+  const url = `https://${levelV2Store.domain}.en.cx/home?json=1`
   return axios.get(url)
 }
 
-/**
- * onLevelIdInput — оставляет в поле только цифры и проверяет непустоту.
- */
 function onLevelIdInput(event: globalThis.Event) {
   const input = event.target as HTMLInputElement
   const raw = input.value
-  // Оставляем только цифры
   const filtered = raw.replace(/[^0-9]/g, '')
   if (filtered !== raw) {
-    store.levelId = filtered
+    levelV2Store.levelId = filtered
   }
-  // Валидация: непустое и только цифры
   if (!filtered) {
-    levelValidationError.value = 'Поле «№ уровня» обязательно и должно содержать только цифры'
+    levelValidationError.value = 'Поле «ID уровня» должно содержать только цифры'
   } else {
     levelValidationError.value = ''
   }
@@ -154,26 +198,24 @@ function onLevelIdInput(event: globalThis.Event) {
 async function onContinue() {
   error.value = ''
 
-  // В тестовом режиме (логин/пароль = test/test) пропускаем проверки домена и ID игры
   const inTestMode = authStore.isTestMode
   if (!inTestMode) {
-    // Проверяем домен и ID игры только вне тестового режима
-    if (!store.domain.trim()) {
+    if (!levelV2Store.domain.trim()) {
       error.value = 'Пожалуйста, укажите домен.'
       return
     }
-    if (!String(store.gameId).trim()) {
+    if (!String(levelV2Store.gameId).trim()) {
       error.value = 'Пожалуйста, укажите ID игры.'
       return
     }
   }
-  // Проверяем "№ уровня"
-  if (!String(store.levelId).trim()) {
-    levelValidationError.value = 'Поле «№ уровня» обязательно и должно содержать только цифры'
+
+  if (!String(levelV2Store.levelId).trim()) {
+    levelValidationError.value = 'Поле «ID уровня» должно содержать только цифры'
     return
   }
-  if (!/^[0-9]+$/.test(store.levelId)) {
-    levelValidationError.value = 'Поле «№ уровня» должно содержать только цифры'
+  if (!/^[0-9]+$/.test(levelV2Store.levelId)) {
+    levelValidationError.value = 'Поле «ID уровня» принимает только цифры'
     return
   }
   levelValidationError.value = ''
@@ -183,13 +225,13 @@ async function onContinue() {
       const res = await fetchGamesList()
       const ct = res.headers['content-type'] || ''
       if (!ct.includes('application/json')) {
-        error.value = 'Указан неверный домен.'
+        error.value = 'Ответ сервера содержит неверный формат.'
         return
       }
       const { ActiveGames = [], ComingGames = [] } = res.data
-      const all = [...ActiveGames, ...ComingGames]
-      if (!all.some((g: Record<string, unknown>) => String(g.GameID) === String(store.gameId))) {
-        error.value = 'Игра с указанным ID не найдена на этом домене.'
+      const allGames = [...ActiveGames, ...ComingGames]
+      if (!allGames.some((g: Record<string, unknown>) => String(g.GameID) === String(levelV2Store.gameId))) {
+        error.value = 'Игра с указанным ID не найдена на домене.'
         return
       }
     } catch (e: unknown) {
@@ -198,18 +240,23 @@ async function onContinue() {
     }
   }
 
-  // Авторизация: в тестовом режиме пропускаем
   if (!inTestMode) {
-    await authStore.authenticate(store.domain)
+    await authStore.authenticate(levelV2Store.domain)
     if (!authStore.loggedIn) {
       error.value = `Ошибка авторизации: ${authStore.error}`
       return
     }
   }
 
-  // Переходим к загрузке
-  router.push('/upload')
+  const { typeId, subtype } = parseSelectionKey(selectedLevelType.value)
+  levelV2Store.initializeLevelType(typeId, subtype, true)
+
+  const path = subtype ? `/v2/${typeId}/${subtype}` : `/v2/${typeId}`
+  router.push(path)
 }
 </script>
+
+
+
 
 
