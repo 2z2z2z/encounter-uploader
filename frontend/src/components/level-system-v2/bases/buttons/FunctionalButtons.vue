@@ -248,7 +248,7 @@ const getAllExistingCodes = (): Set<string> => {
 
 const exportJSON = (): void => {
   if (!store.activeTab) return
-  
+
   const data = {
     version: 1,
     type: store.levelType,
@@ -256,19 +256,22 @@ const exportJSON = (): void => {
     tab: store.activeTab.name,
     answers: store.activeTab.answers
   }
-  
+
   const blob = new globalThis.Blob([JSON.stringify(data, null, 2)], {
     type: 'application/json'
   })
-  
-  downloadFile(blob, `${store.levelType}-${store.activeTab.name}.json`)
+
+  const filename = [store.domain, store.gameId, store.levelId, store.levelType, store.subtypeId]
+    .filter(Boolean)
+    .join('_')
+  downloadFile(blob, `${filename}.json`)
 }
 
 const exportCSV = (): void => {
   if (!store.activeTab) return
-  
+
   let csv = 'tab,number,variants,sector,bonus,bonusTime,closedText,displayText\n'
-  
+
   store.activeTab.answers.forEach(answer => {
     csv += [
       store.activeTab!.name,
@@ -281,9 +284,12 @@ const exportCSV = (): void => {
       answer.displayText || ''
     ].join(',') + '\n'
   })
-  
+
   const blob = new globalThis.Blob([csv], { type: 'text/csv' })
-  downloadFile(blob, `${store.levelType}-${store.activeTab.name}.csv`)
+  const filename = [store.domain, store.gameId, store.levelId, store.levelType, store.subtypeId]
+    .filter(Boolean)
+    .join('_')
+  downloadFile(blob, `${filename}.csv`)
 }
 
 const importFile = async (file: globalThis.File): Promise<void> => {

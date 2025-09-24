@@ -68,10 +68,33 @@
               </div>
               <div>
                 <BaseSelect
+                  v-model="generationOptions.size"
+                  label="Размер"
+                  :options="sizeOptions"
+                  :disabled="generationOptions.format === 'mask'"
+                />
+              </div>
+              <div>
+                <BaseSelect
                   v-model="generationOptions.format"
                   label="Формат"
                   :options="formatOptions"
                 />
+              </div>
+            </div>
+
+            <div v-if="generationOptions.format === 'mask'" class="mt-4">
+              <BaseInput
+                v-model="generationOptions.mask"
+                label="Маска"
+                placeholder="слово(3)000яяz"
+                help="Переменные: слово - слово из словаря, (N) - количество букв, 0 - цифры, я - русские буквы, z - английские буквы"
+              />
+              <div class="text-sm text-gray-600 mt-2">
+                <strong>Примеры:</strong><br>
+                • слово(3)000яяz → рот495ыщj<br>
+                • zz0000я → ГЕ5832Б<br>
+                • слово → случайное слово
               </div>
             </div>
             
@@ -151,6 +174,7 @@ import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseInput from '@/components/ui/BaseInput.vue'
 import BaseSelect from '@/components/ui/BaseSelect.vue'
+import { getRandomWord, getRandomCyrillicLetter, getRandomLatinLetter, getRandomDigit } from '@/utils/russianWords'
 
 interface Props {
   modelValue: boolean
@@ -179,13 +203,30 @@ const generationOptions = ref({
   startFrom: 1,
   count: 10,
   padding: 3,
-  format: 'numeric'
+  size: 5,
+  format: 'numeric',
+  mask: ''
 })
+
+const sizeOptions = [
+  { label: '2', value: 2 },
+  { label: '3', value: 3 },
+  { label: '4', value: 4 },
+  { label: '5', value: 5 },
+  { label: '6', value: 6 },
+  { label: '7', value: 7 },
+  { label: '8', value: 8 },
+  { label: '9', value: 9 },
+  { label: '10', value: 10 }
+]
 
 const formatOptions = [
   { label: 'Числовой', value: 'numeric' },
   { label: 'Буквенный (A-Z)', value: 'alpha' },
-  { label: 'Буквенно-числовой', value: 'alphanumeric' }
+  { label: 'Буквенно-числовой', value: 'alphanumeric' },
+  { label: 'Буквенный (А-Я)', value: 'cyrillic' },
+  { label: 'Слова (русские)', value: 'words' },
+  { label: 'Маска', value: 'mask' }
 ]
 
 const manualCodesCount = computed(() => {
@@ -208,28 +249,94 @@ const totalCodesCount = computed(() => {
   return count
 })
 
-function generateCodes() {
-  const codes = []
-  const { prefix, suffix, startFrom, count, padding, format } = generationOptions.value
-  
-  for (let i = 0; i < count; i++) {
-    let code = ''
-    
-    if (format === 'numeric') {
-      code = String(startFrom + i).padStart(padding, '0')
-    } else if (format === 'alpha') {
-      code = String.fromCharCode(65 + (i % 26)).repeat(Math.floor(i / 26) + 1)
+function parseCodeMask(mask: string): string {
+  let result = ''
+  let i = 0
+
+  while (i < mask.length) {
+    const char = mask[i]
+
+    if (mask.substring(i).startsWith('слово')) {
+      const lengthMatch = mask.substring(i).match(/^слово\((\d+)\)/)
+      if (lengthMatch) {
+        const length = Number.parseInt(lengthMatch[1])
+        result += getRandomWord(length)
+        i += lengthMatch[0].length
+      } else {
+        result += getRandomWord()
+        i += 5
+      }
+    } else if (char === '0') {
+      result += getRandomDigit()
+      i++
+    } else if (char === 'я') {
+      result += getRandomCyrillicLetter()
+      i++
+    } else if (char === 'z') {
+      result += getRandomLatinLetter()
+      i++
     } else {
-      code = String(startFrom + i).padStart(padding, '0')
+      result += char
+      i++
     }
-    
-    codes.push(`${prefix}${code}${suffix}`)
   }
-  
-  generatedCodes.value = codes.join('\n')
+
+  return result
 }
 
-async function handleFileImport(event: any) {
+function generateRandomCode(size: number, format: string, mask?: string): string {
+  if (format === 'numeric') {
+    const min = Math.pow(10, size - 1)
+    const max = Math.pow(10, size) - 1
+    return String(Math.floor(Math.random() * (max - min + 1)) + min)
+  } else if (format === 'alpha') {
+    let code = ''
+    for (let i = 0; i < size; i++) {
+      code += getRandomLatinLetter()
+    }
+    return code
+  } else if (format === 'cyrillic') {
+    let code = ''
+    for (let i = 0; i < size; i++) {
+      code += getRandomCyrillicLetter()
+    }
+    return code
+  } else if (format === 'words') {
+    return getRandomWord(size)
+  } else if (format === 'mask' && mask) {
+    return parseCodeMask(mask)
+  } else {
+    let code = ''
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    for (let i = 0; i < size; i++) {
+      code += chars[Math.floor(Math.random() * chars.length)]
+    }
+    return code
+  }
+}
+
+function generateCodes() {
+  const { prefix, suffix, count, size, format, mask } = generationOptions.value
+  const codes = new Set<string>()
+
+  let attempts = 0
+  const maxAttempts = count * 100
+
+  while (codes.size < count && attempts < maxAttempts) {
+    const code = generateRandomCode(size, format, mask)
+    const fullCode = `${prefix}${code}${suffix}`
+    codes.add(fullCode)
+    attempts++
+  }
+
+  if (codes.size < count) {
+    globalThis.alert(`Не удалось сгенерировать ${count} уникальных кодов. Сгенерировано: ${codes.size}`)
+  }
+
+  generatedCodes.value = Array.from(codes).join('\n')
+}
+
+async function handleFileImport(event: { files: globalThis.File[] }) {
   const file = event.files[0]
   if (file) {
     const text = await file.text()

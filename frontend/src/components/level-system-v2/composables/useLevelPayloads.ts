@@ -114,8 +114,6 @@ export function useLevelPayloads() {
 			progress.updateSuccess('Задание отправлено')
 			progress.finish()
 			
-			notify.success('Задание загружено', 'Задание успешно отправлено в игру')
-			
 		} catch (error: unknown) {
 			const message = error instanceof Error ? error.message : String(error)
 			progress.reportError(`Ошибка загрузки задания: ${message}`)
@@ -224,10 +222,6 @@ export function useLevelPayloads() {
 
 				progress.finish()
 
-				// Подсчет отправленных секторов для уведомления
-				const sectorsCount = store.tabs[0]?.answers?.filter(answer => answer.sector).length || 0
-				notify.success('Все сектора отправлены', `Успешно отправлено: ${sectorsCount} секторов (БМП режим)`)
-
 			} else {
 				// Обычный режим: каждый сектор отдельно
 
@@ -284,7 +278,6 @@ export function useLevelPayloads() {
 				}
 
 				progress.finish()
-				notify.success('Секторы загружены', `Успешно загружено ${allSectors.length} секторов`)
 			}
 			
 		} catch (error: unknown) {
@@ -384,7 +377,6 @@ export function useLevelPayloads() {
 			}
 			
 			progress.finish()
-			notify.success('Бонусы загружены', `Успешно загружено ${allBonuses.length} бонусов`)
 			
 		} catch (error: unknown) {
 			const message = error instanceof Error ? error.message : String(error)
