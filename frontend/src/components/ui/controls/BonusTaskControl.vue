@@ -35,9 +35,9 @@ watch(localBonusTask, (task) => {
   const answers = store.activeTab?.answers
   if (!answers) return
 
-  // Применяем задание ко всем ответам
+  // Применяем задание ко всем ответам, заменяя '&' на номер ответа
   answers.forEach((answer: Answer) => {
-    answer.bonusTask = task || ''
+    answer.bonusTask = (task || '').replace(/&/g, String(answer.number))
   })
 })
 

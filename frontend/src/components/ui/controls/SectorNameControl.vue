@@ -32,9 +32,9 @@ watch(localSectorName, (name) => {
   const answers = store.activeTab?.answers
   if (!answers) return
 
-  // Применяем название ко всем ответам
+  // Применяем название ко всем ответам, заменяя '&' на номер ответа
   answers.forEach((answer: Answer) => {
-    answer.sectorName = name || ''
+    answer.sectorName = (name || '').replace(/&/g, String(answer.number))
   })
 })
 

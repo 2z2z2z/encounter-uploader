@@ -35,9 +35,9 @@ watch(localHint, (hint) => {
   const answers = store.activeTab?.answers
   if (!answers) return
 
-  // Применяем подсказку ко всем ответам
+  // Применяем подсказку ко всем ответам, заменяя '&' на номер ответа
   answers.forEach((answer: Answer) => {
-    answer.hint = hint || ''
+    answer.hint = (hint || '').replace(/&/g, String(answer.number))
   })
 })
 
