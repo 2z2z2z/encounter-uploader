@@ -28,8 +28,6 @@ RUN chown -R nginx:nginx /usr/share/nginx/html
 # Nginx по умолчанию слушает 80 порт
 EXPOSE 80
 
-# Запуск от пользователя nginx для безопасности
-USER nginx
 
 # Стандартная команда запуска Nginx
 CMD ["nginx", "-g", "daemon off;"]
