@@ -15,11 +15,14 @@
 
     <!-- Контент панели с transition -->
     <Transition name="collapse">
-      <div v-if="!isCollapsed" class="flex flex-wrap justify-between items-end gap-x-6 gap-y-8 py-6 px-5">
+      <div
+        v-if="!isCollapsed"
+        class="grid gap-x-6 gap-y-8 py-6 px-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+      >
         <div
           v-for="controlId in activeControls"
           :key="controlId"
-          class="flex-1 text-nowrap"
+          class="min-w-0 text-nowrap"
         >
           <component
             :is="getControlComponent(controlId)"
