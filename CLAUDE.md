@@ -1,6 +1,7 @@
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+`README.md` - project description.
 
 ## Project Overview
 
@@ -83,10 +84,6 @@ docker-compose up --build    # Start both services (frontend on :8099, server on
 - All API calls go through `/api/*` proxy routes
 - Server handles authentication headers and session management
 - Frontend uses axios with automatic retry logic for uploads
-
-## Current context for the development of a new level type architecture
-
-- `docs/new-level-types.md` - conceptual presentation of a new design of level types
 
 ## User Project rules
 
