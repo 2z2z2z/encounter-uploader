@@ -89,12 +89,22 @@ Encounter Uploader — внутренняя утилита для подгото
 - Для дополнительных проверок при загрузке используйте `useProgressStore.reportError` и ставьте процесс на паузу (`progress.pause()`), чтобы пользователь принимал решение.
 
 ## Сервис загрузки
-`frontend/src/services/uploader.ts` отвечает за:
-- Формирование параметров `URLSearchParams` через унифицированную систему пейлоадов (`services/levelPayloads/`).
-- Отправку батчей (`sendTasks`, `sendSectors`, `sendBonuses`) с задержками `SLEEP_MS` и учётом паузы.
-- Получение списка чекбоксов уровней (`fetchBonusLevels`) и преобразование `closedText` в ссылку/картинку.
-- Обработку ошибок Axios, агрегацию статуса, паузы при неудачах.
-При добавлении нового payload-канала повторяйте структуру: builder → sender → интеграция в `ActionButtons.vue` и конфиг типа.
+Модуль загрузки разделен на несколько компонентов:
+
+**Транспортный слой (`frontend/src/services/transport.ts`):**
+- Отправка данных через `sendTask`, `sendSector`, `sendBonus` с задержками `SLEEP_MS` и учётом паузы.
+- Получение списка чекбоксов уровней (`fetchBonusLevels`) и парсинг HTML форм.
+- Типизированная обработка ошибок с type guards из `services/api-types.ts`.
+
+**Создание пейлоадов (`frontend/src/services/levelPayloads/`):**
+- Унифицированная система создания `URLSearchParams` для разных типов данных.
+- Типизированные билдеры для Task, Sector, Bonus с валидацией.
+
+**Type Guards (`frontend/src/services/api-types.ts`):**
+- Безопасная типизация API ответов и валидация данных.
+- Унифицированная обработка ошибок сети и сервера.
+
+При добавлении нового payload-канала: создать builder в `levelPayloads/` → использовать через `transport.ts` → интегрировать в `ActionButtons.vue` и конфиг типа.
 
 ## Backend-прокси
 `server/index.js` — единственная точка входа.

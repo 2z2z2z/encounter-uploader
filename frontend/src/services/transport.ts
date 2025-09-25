@@ -5,8 +5,15 @@
  * Отделен от логики создания пейлоадов для четкого разделения ответственности.
  */
 
-import axios, { isAxiosError } from 'axios'
+import axios from 'axios'
 import { useProgressStore } from '../store/progress'
+import {
+  getErrorMessage,
+  getErrorStatus,
+  isHtmlString,
+  isBonusLevelsArray,
+  type BonusLevel
+} from './api-types'
 
 /**
  * Задержка между запросами (в миллисекундах).
@@ -38,28 +45,7 @@ async function checkPauseStatus(): Promise<void> {
   }
 }
 
-function getErrorMessage(error: unknown): string {
-  if (isAxiosError(error) && error.message) {
-    return error.message
-  }
-  if (error instanceof Error && error.message) {
-    return error.message
-  }
-  return String(error)
-}
-
-function getErrorStatus(error: unknown): number {
-  if (isAxiosError(error)) {
-    return error.response?.status ?? 0
-  }
-  if (typeof error === 'object' && error !== null && 'status' in error) {
-    const candidate = (error as { status?: unknown }).status
-    if (typeof candidate === 'number') {
-      return candidate
-    }
-  }
-  return 0
-}
+// Функции для работы с ошибками теперь импортированы из api-types.ts
 
 /**
  * Отправка задания (Task)
@@ -228,8 +214,19 @@ export async function fetchBonusForm(
   )}`
 
   console.log(`[fetchBonusForm] ▶ GET ${urlForm}`)
-  const formRes = await axios.get(urlForm, { withCredentials: true })
-  return formRes.data as string
+
+  try {
+    const formRes = await axios.get(urlForm, { withCredentials: true })
+
+    if (!isHtmlString(formRes.data)) {
+      throw new Error('Ответ сервера не содержит валидный HTML')
+    }
+
+    return formRes.data
+  } catch (error: unknown) {
+    console.error('[fetchBonusForm] Ошибка получения формы:', error)
+    throw new Error(`Не удалось получить форму бонусов: ${getErrorMessage(error)}`)
+  }
 }
 
 /**
@@ -239,33 +236,44 @@ export async function fetchBonusLevels(
   domain: string,
   gameId: string | number,
   levelId: string | number
-): Promise<Array<{ label: string; name: string }>> {
-  const htmlText = await fetchBonusForm(domain, gameId, levelId)
+): Promise<BonusLevel[]> {
+  try {
+    const htmlText = await fetchBonusForm(domain, gameId, levelId)
 
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(htmlText, 'text/html')
-  const inputs = Array.from(doc.querySelectorAll('input[name^="level_"]')) as HTMLInputElement[]
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(htmlText, 'text/html')
+    const inputs = Array.from(doc.querySelectorAll('input[name^="level_"]')) as HTMLInputElement[]
 
-  const result: Array<{ label: string; name: string }> = []
+    const result: BonusLevel[] = []
 
-  for (const inp of inputs) {
-    const nameAttr = inp.getAttribute('name') || ''
-    let labelText = ''
-    const wrapper = inp.closest('.levelWrapper')
-    if (wrapper) {
-      const span = wrapper.querySelector('span')
-      if (span) labelText = span.textContent?.trim() || ''
+    for (const inp of inputs) {
+      const nameAttr = inp.getAttribute('name') || ''
+      let labelText = ''
+      const wrapper = inp.closest('.levelWrapper')
+      if (wrapper) {
+        const span = wrapper.querySelector('span')
+        if (span) labelText = span.textContent?.trim() || ''
+      }
+      if (!labelText) {
+        const siblingText = inp.nextSibling?.textContent ?? ''
+        const match = (siblingText || nameAttr).toString().match(/\d+/)
+        const candidate = match ? match[0] : ''
+        labelText = candidate
+      }
+      if (labelText) {
+        result.push({ label: labelText, name: nameAttr })
+      }
     }
-    if (!labelText) {
-      const siblingText = inp.nextSibling?.textContent ?? ''
-      const match = (siblingText || nameAttr).toString().match(/\d+/)
-      const candidate = match ? match[0] : ''
-      labelText = candidate
+
+    // Валидация результата с помощью type guard
+    if (!isBonusLevelsArray(result)) {
+      console.warn('[fetchBonusLevels] Получен некорректный массив уровней')
+      return []
     }
-    if (labelText) {
-      result.push({ label: labelText, name: nameAttr })
-    }
+
+    return result
+  } catch (error: unknown) {
+    console.error('[fetchBonusLevels] Ошибка получения списка уровней:', error)
+    throw new Error(`Не удалось получить список уровней: ${getErrorMessage(error)}`)
   }
-
-  return result
 }
