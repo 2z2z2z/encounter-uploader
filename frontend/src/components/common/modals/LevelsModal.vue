@@ -101,8 +101,8 @@ import Checkbox from 'primevue/checkbox'
 import Message from 'primevue/message'
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
-import { useLevelStore } from '@/components/level-system/store'
-import { useBonusLevelsStore } from '@/components/level-system/store/bonusLevels'
+import { useLevelStore } from '@/store/levels'
+import { useBonusLevelsStore } from '@/store/bonusLevels'
 
 interface LevelOption {
   label: string

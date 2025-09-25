@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import axios from 'axios'
-import type { TabData } from '@/components/level-system/types'
+import type { TabData } from '@/entities/level/types'
 
 /**
  * Конфигурация тестового типа уровня из config.json

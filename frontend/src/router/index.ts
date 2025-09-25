@@ -1,9 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginForm from '../components/LoginForm.vue'
 import SettingsForm from '../components/SettingsForm.vue'
-import LevelUploadPage from '../components/level-system/components/LevelUploadPage.vue'
-import TestUploadPage from '../components/level-system/TestUploadPage.vue'
-import { useLevelStore } from '../components/level-system/store'
+import LevelUploadPage from '../components/levels/LevelUploadPage.vue'
+import TestUploadPage from '../components/levels/TestUploadPage.vue'
+import { useLevelStore } from '@/store/levels'
 
 const routes = [
   { path: '/', redirect: '/login' },
