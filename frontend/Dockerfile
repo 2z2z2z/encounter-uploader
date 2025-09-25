@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Копируем файлы зависимостей и устанавливаем их
 COPY package*.json ./
-RUN npm ci --only=production=false
+RUN npm ci
 
 # Копируем исходный код и собираем проект
 COPY . .
@@ -13,8 +13,8 @@ RUN npm run build
 # Этап 2: веб-сервер для статических файлов (Nginx)
 FROM nginx:alpine AS production
 
-# Создаем пользователя nginx для безопасности
-RUN addgroup -g 101 -S nginx || true
+# Устанавливаем curl для health checks
+RUN apk --no-cache add curl
 
 # Копируем собранные файлы Vue приложения
 COPY --from=builder /app/dist /usr/share/nginx/html

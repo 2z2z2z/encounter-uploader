@@ -24,9 +24,14 @@ services:
     ports:
       - "127.0.0.1:8099:80"               # фронтенд (Nginx) слушает порт 80 на хосте
     depends_on:
-      server:
-        condition: service_healthy
+      - server
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
 
 # Добавляем общую сеть для сервисов
 networks:
