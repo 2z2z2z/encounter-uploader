@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { fetchBonusLevels } from '@/services/uploader'
+import { fetchBonusLevels } from '@/services/transport'
 import { useAuthStore } from '@/store/auth'
 
 interface BonusLevelOption {

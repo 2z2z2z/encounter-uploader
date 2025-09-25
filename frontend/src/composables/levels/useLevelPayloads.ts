@@ -10,7 +10,7 @@ import { getLevelTypeConfig } from "@/entities/level/configs"
 import { useProgressStore } from '@/store/progress'
 import { useNotification } from '@/composables/useNotification'
 import { useAuthStore } from '@/store/auth'
-import { sendTask, sendSector, sendBonuses } from '@/services/uploader'
+import { sendTask, sendSector, sendBonus, fetchBonusForm } from '@/services/transport'
 import type { SectorPayloadData, BonusPayloadData, Answer, TabData } from "@/entities/level/types"
 
 export function useLevelPayloads() {
@@ -72,6 +72,74 @@ export function useLevelPayloads() {
 	const progress = useProgressStore()
 	const notify = useNotification()
 	const authStore = useAuthStore()
+
+	/**
+	 * Получает маппинг уровней для бонусов (label → checkbox name)
+	 */
+	async function getLevelMapping(
+		domain: string,
+		gameId: string | number,
+		levelId: string | number
+	): Promise<Record<string, string>> {
+		const MAX_RETRIES = 3
+		let levelLabelToName: Record<string, string> = {}
+
+		for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+			try {
+				await checkPauseStatus()
+				const htmlText = await fetchBonusForm(domain, gameId, levelId)
+
+				const parser = new DOMParser()
+				const doc = parser.parseFromString(htmlText, 'text/html')
+
+				const inputs = Array.from(
+					doc.querySelectorAll('input[name^="level_"]')
+				) as HTMLInputElement[]
+
+				for (const inp of inputs) {
+					const nameAttr = inp.getAttribute('name') || ''
+					let labelText = ''
+					const wrapper = inp.closest('.levelWrapper')
+					if (wrapper) {
+						const span = wrapper.querySelector('span')
+						if (span) labelText = span.textContent?.trim() || ''
+					}
+					if (!labelText) {
+						// Fallback: попытаемся извлечь число из соседних текстов или самого nameAttr
+						const siblingText = inp.nextSibling?.textContent ?? ''
+						const match = (siblingText || nameAttr).toString().match(/\d+/)
+						const candidate = match ? match[0] : ''
+						labelText = candidate
+					}
+					if (labelText) {
+						levelLabelToName[labelText] = nameAttr
+					}
+				}
+
+				break
+			} catch (error: unknown) {
+				const fallbackMessage = error instanceof Error ? error.message : String(error)
+				console.error(`[getLevelMapping] Ошибка получения формы (attempt ${attempt}):`, fallbackMessage)
+				if (attempt < MAX_RETRIES) {
+					console.log(`[getLevelMapping] Ждём 1200ms, затем повтор…`)
+					await new Promise(resolve => globalThis.setTimeout(resolve, 1200))
+				} else {
+					throw new Error(`Не удалось получить маппинг уровней после ${MAX_RETRIES} попыток: ${fallbackMessage}`)
+				}
+			}
+		}
+
+		return levelLabelToName
+	}
+
+	/**
+	 * Проверяет статус паузы
+	 */
+	async function checkPauseStatus(): Promise<void> {
+		if (progress.pauseRequested) {
+			await progress.waitForResume()
+		}
+	}
 	
 	/**
 	 * Загружает задание через Task пейлоад
@@ -112,8 +180,7 @@ export function useLevelPayloads() {
 			await progress.waitForResume()
 			
 			// Отправка задания
-			const inputTask = taskPayload.get('inputTask') || ''
-			await sendTask(store.domain, store.gameId, store.levelId, inputTask)
+			await sendTask(taskPayload)
 			
 			progress.updateSuccess('Задание отправлено')
 			progress.finish()
@@ -206,15 +273,13 @@ export function useLevelPayloads() {
 					const firstAnswer = answers[0]
 					progress.updateTitle(`Сектор ${firstAnswer.number}`)
 
-					// Отправка объединенного сектора
-					await sendSector(
-						store.domain,
-						store.gameId,
-						store.levelId,
-						combinedVariants,
-						'', // closedText не используется в БМП режиме
-						firstAnswer.sectorName || ''
+					// Создание и отправка объединенного сектора
+					const sectorPayload = createSectorPayload(
+						[{ ...firstAnswer, variants: combinedVariants }],
+						firstAnswer.sectorName || '',
+						true
 					)
+					await sendSector(sectorPayload)
 
 					progress.updateSuccess(`Сектор ${firstAnswer.number} отправлен`)
 
@@ -263,15 +328,13 @@ export function useLevelPayloads() {
 
 					progress.updateTitle(`Сектор ${sector.number}`)
 
-					// Отправка сектора
-					await sendSector(
-						store.domain,
-						store.gameId,
-						store.levelId,
-						sector.variants.filter(v => v && v.trim()).length > 0 ? sector.variants : [''],
-						sector.closedText || '',
-						sector.sectorName || ''
+					// Создание и отправка сектора
+					const sectorPayload = createSectorPayload(
+						[sector],
+						sector.sectorName || '',
+						false
 					)
+					await sendSector(sectorPayload)
 
 					progress.updateSuccess(`Сектор ${sector.number} отправлен`)
 
@@ -303,7 +366,6 @@ export function useLevelPayloads() {
 			if (!config) {
 				throw new Error(`Конфиг для типа ${store.levelType} не найден`)
 			}
-			const hintStrategy = config.bonusHintStrategy ?? 'none'
 			
 			// Проверка поддержки загрузки бонусов
 			if (!config.payloads.bonus) {
@@ -339,22 +401,12 @@ export function useLevelPayloads() {
 			
 			// Обновление авторизации перед массовой загрузкой
 			await authStore.authenticate(store.domain)
-			
+
+			// Получение маппинга уровней для бонусов
+			const levelMapping = await getLevelMapping(store.domain, store.gameId, store.levelId)
+
 			// Инициализация прогресса
 			progress.start('bonus', allBonuses.length)
-			
-			const normalizeSimpleTime = (value?: Answer['delay']) => {
-				if (!value) {
-					return undefined
-				}
-				const hours = value.hours ?? 0
-				const minutes = value.minutes ?? 0
-				const seconds = value.seconds ?? 0
-				if (hours === 0 && minutes === 0 && seconds === 0) {
-					return undefined
-				}
-				return { hours, minutes, seconds }
-			}
 			
 			// Отправка бонусов по одному
 			for (let idx = 0; idx < allBonuses.length; idx++) {
@@ -365,39 +417,9 @@ export function useLevelPayloads() {
 				
 				progress.updateTitle(`Бонус ${bonus.number}`)
 				
-				// Конвертируем структуру данных для старой функции sendBonuses
-				const normalizedLevels = Array.isArray(bonus.bonusLevels) ? bonus.bonusLevels.map(String) : []
-				const allLevels = !Array.isArray(bonus.bonusLevels) || normalizedLevels.length === 0
-				const variants = Array.isArray(bonus.variants) ? [...bonus.variants] : []
-				const delay = normalizeSimpleTime(bonus.delay)
-				const relativeLimit = normalizeSimpleTime(bonus.limit)
-				const bonusHint = typeof bonus.hint === 'string' && bonus.hint.trim().length > 0 ? bonus.hint : undefined
-				const bonusTime = {
-					hours: bonus.bonusTime?.hours ?? 0,
-					minutes: bonus.bonusTime?.minutes ?? 0,
-					seconds: bonus.bonusTime?.seconds ?? 0,
-					negative: Boolean(bonus.bonusTime?.negative)
-				}
-				const legacyAnswer = {
-					number: bonus.number,
-					variants,
-					inSector: bonus.sector,
-					inBonus: bonus.bonus,
-					bonusTime,
-					delay,
-					relativeLimit,
-					closedText: bonus.closedText,
-					displayText: bonus.displayText,
-					bonusName: bonus.bonusName || '',
-					bonusTask: bonus.bonusTask || '',
-					bonusHint,
-					sectorName: bonus.sectorName,
-					allLevels,
-					targetLevels: allLevels ? [] : normalizedLevels
-				}
-				
-				// Отправка бонуса (используем старую функцию sendBonuses)
-				await sendBonuses(store.domain, store.gameId, store.levelId, [legacyAnswer], { hintStrategy })
+				// Создание и отправка бонуса через новую систему
+				const bonusPayload = createBonusPayload(bonus, levelMapping)
+				await sendBonus(bonusPayload)
 				
 				progress.updateSuccess(`Бонус ${bonus.number} отправлен`)
 				

@@ -39,19 +39,7 @@ export const buildTaskPayload = (
 	return params
 }
 
-/**
- * [УСТАРЕЛО] Генерация HTML таблицы для Олимпийки
- * 
- * @deprecated Используйте систему Content Generators вместо этой функции.
- * HTML логика перенесена в olymp.task.ts генератор.
- * Эта функция оставлена для обратной совместимости.
- */
-export const generateOlympTaskHtml = (): string => {
-	throw new Error(
-		'generateOlympTaskHtml is deprecated. Use Content Generators system instead. ' +
-		'HTML generation moved to olymp.task.ts generator.'
-	)
-}
+// Устаревшие функции удалены - используйте Content Generators System
 
 /**
  * Универсальная точка входа для создания Task пейлоада (Content Generators System)

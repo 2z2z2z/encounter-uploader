@@ -1,17 +1,16 @@
 /**
  * Центральный экспорт пейлоадов
- * 
- * Шаг 23: ✅ TaskPayload реализован  
- * Шаг 24: ⏳ SectorPayload (планируется)
- * Шаг 25: ⏳ BonusPayload (планируется)
+ *
+ * Унифицированная система создания пейлоадов для Encounter API.
+ * Все пейлоады реализованы и готовы к использованию.
  */
 
-// Утилиты для пейлоадов (Шаг 23)
+// Утилиты для пейлоадов
 export * from './utils'
 
-// Экспорт пейлоадов
-export * from './TaskPayload'      // ✅ Шаг 23 - реализовано
-export * from './SectorPayload'    // ⏳ Шаг 24 - планируется
-export * from './BonusPayload'     // ⏳ Шаг 25 - планируется
+// Экспорт всех пейлоадов
+export * from './TaskPayload'      // ✅ Task пейлоады с Content Generators
+export * from './SectorPayload'    // ✅ Sector пейлоады
+export * from './BonusPayload'     // ✅ Bonus пейлоады
 
 
