@@ -2,8 +2,8 @@ FROM node:20-alpine AS production
 WORKDIR /app
 
 # Создаем пользователя для безопасности
-RUN addgroup -g 1000 -S appuser && \
-    adduser -S -u 1000 -G appuser appuser
+RUN addgroup -S appuser || true && \
+    adduser -S -G appuser appuser || true
 
 # Установка только продакшн-зависимостей
 COPY package*.json ./
