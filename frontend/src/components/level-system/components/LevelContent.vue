@@ -212,7 +212,7 @@ const applyRowLevels = (selection: LevelsSelection): void => {
     return
   }
 
-  const target = answers.find(item => item.id === rowAnswerId.value)
+  const target = answers.find((item: Answer) => item.id === rowAnswerId.value)
   if (!target) {
     isRowModalOpen.value = false
     return

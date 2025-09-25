@@ -22,6 +22,7 @@ import Select from 'primevue/select'
 import FloatLabel from 'primevue/floatlabel'
 import { useLevelStore } from '../../store'
 import type { SectorMode } from '../../types/configs'
+import type { Answer } from '../../types/fields'
 
 // Store для работы с данными
 const store = useLevelStore()
@@ -55,17 +56,17 @@ const applySectorMode = (): void => {
   
   switch (mode) {
     case 'all':
-      answers.forEach((answer) => {
+      answers.forEach((answer: Answer) => {
         answer.sector = true
       })
       break
     case 'initialAndFinal':
-      answers.forEach((answer) => {
+      answers.forEach((answer: Answer) => {
         answer.sector = answer.number <= half || answer.number === totalSectors
       })
       break
     case 'finalOnly':
-      answers.forEach((answer) => {
+      answers.forEach((answer: Answer) => {
         answer.sector = answer.number === totalSectors
       })
       break

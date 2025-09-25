@@ -8,9 +8,9 @@
     <!-- Мета-данные -->
     <div v-if="showMeta" class="flex flex-wrap gap-x-4 gap-y-2 text-sm text-surface-600">
       <span>автор: <strong class="text-surface-900">{{ authStore.username }}</strong></span>
-      <span>домен: <strong class="text-surface-900">{{ levelV2Store.domain }}</strong></span>
-      <span>игра: <strong class="text-surface-900">{{ levelV2Store.gameId }}</strong></span>
-      <span>уровень: <strong class="text-surface-900">{{ levelV2Store.levelId }}</strong></span>
+      <span>домен: <strong class="text-surface-900">{{ levelStore.domain }}</strong></span>
+      <span>игра: <strong class="text-surface-900">{{ levelStore.gameId }}</strong></span>
+      <span>уровень: <strong class="text-surface-900">{{ levelStore.levelId }}</strong></span>
     </div>
   </div>
 </template>
@@ -39,7 +39,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 // Store connections
-const levelV2Store = useLevelStore()
+const levelStore = useLevelStore()
 const authStore = useAuthStore()
 
 // Computed properties for props

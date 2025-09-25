@@ -11,7 +11,7 @@ import { useProgressStore } from '@/store/progress'
 import { useNotification } from '@/composables/useNotification'
 import { useAuthStore } from '@/store/auth'
 import { sendTask, sendSector, sendBonuses } from '@/services/uploader'
-import type { SectorPayloadData, BonusPayloadData, Answer } from '../types'
+import type { SectorPayloadData, BonusPayloadData, Answer, TabData } from '../types'
 
 export function useLevelPayloads() {
 	const store = useLevelStore()
@@ -159,7 +159,7 @@ export function useLevelPayloads() {
 				}
 
 				const firstTabAnswers = store.tabs[0].answers
-				if (!store.tabs.every(tab => tab.answers.length === firstTabAnswers.length)) {
+				if (!store.tabs.every((tab: TabData) => tab.answers.length === firstTabAnswers.length)) {
 					notify.warn('Количество ответов во всех блоках должно совпадать')
 					return
 				}
@@ -169,7 +169,7 @@ export function useLevelPayloads() {
 				const answerGroups: Answer[][] = []
 
 				for (let i = 0; i < total; i++) {
-					answerGroups.push(store.tabs.map(tab => tab.answers[i]))
+					answerGroups.push(store.tabs.map((tab: TabData) => tab.answers[i]))
 				}
 
 				progress.start('sector', total)
@@ -231,14 +231,14 @@ export function useLevelPayloads() {
 				if (config.isMultiBlocks) {
 					// Для типов с мульти-табами собираем из всех табов
 					for (const tab of store.tabs) {
-						const tabSectors = tab.answers.filter(answer => answer.sector)
+						const tabSectors = tab.answers.filter((answer: Answer) => answer.sector)
 						allSectors.push(...tabSectors)
 					}
 				} else {
 					// Для одиночных типов берем только из активного таба
 					const activeTab = store.tabs[store.activeTabIndex]
 					if (activeTab) {
-						allSectors = activeTab.answers.filter(answer => answer.sector)
+						allSectors = activeTab.answers.filter((answer: Answer) => answer.sector)
 					}
 				}
 
@@ -316,14 +316,14 @@ export function useLevelPayloads() {
 			if (config.isMultiBlocks) {
 				// Для типов с мульти-табами собираем из всех табов
 				for (const tab of store.tabs) {
-					const tabBonuses = tab.answers.filter(answer => answer.bonus)
+					const tabBonuses = tab.answers.filter((answer: Answer) => answer.bonus)
 					allBonuses.push(...tabBonuses)
 				}
 			} else {
 				// Для одиночных типов берем только из активного таба
 				const activeTab = store.tabs[store.activeTabIndex]
 				if (activeTab) {
-					allBonuses = activeTab.answers.filter(answer => answer.bonus)
+					allBonuses = activeTab.answers.filter((answer: Answer) => answer.bonus)
 				}
 			}
 			

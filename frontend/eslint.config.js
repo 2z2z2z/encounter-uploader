@@ -71,6 +71,7 @@ export default [
       'vue/html-self-closing': 'off',
       'vue/attributes-order': 'off',
       'vue/require-explicit-emits': 'off',
+      'vue/no-v-model-argument': 'off', // Vue 3 supports v-model with arguments
     },
   },
 

@@ -60,7 +60,7 @@ import InputNumber from 'primevue/inputnumber'
 import Checkbox from 'primevue/checkbox'
 import FloatLabel from 'primevue/floatlabel'
 import { useLevelStore } from '../../store'
-import type { TimeValue } from '../../types/fields'
+import type { TimeValue, Answer } from '../../types/fields'
 
 // Store для работы с данными
 const store = useLevelStore()
@@ -81,7 +81,7 @@ watch(() => ({ ...quickTime }), (timeValue) => {
   if (!answers) return
 
   // Применяем новое время ко всем ответам в активном табе
-  answers.forEach((answer) => {
+  answers.forEach((answer: Answer) => {
     answer.bonusTime = { ...timeValue }
   })
 }, { deep: true })

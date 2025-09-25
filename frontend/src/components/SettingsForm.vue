@@ -108,19 +108,23 @@ const authStore = useAuthStore()
 const router = useRouter()
 
 const levelTypeOptions = computed(() => {
-  return getAllLevelTypes().flatMap((config) => {
+  return getAllLevelTypes().reduce((options, config) => {
     if (config.subtypes && config.subtypes.length > 0) {
-      return config.subtypes.map((subtype) => ({
+      const subtypeOptions = config.subtypes.map((subtype) => ({
         label: `${config.name} (${subtype.name})`,
         value: `${config.id}:${subtype.id}`,
       }))
+      options.push(...subtypeOptions)
+      return options
     }
 
-    return [{
+    options.push({
       label: config.name,
       value: config.id,
-    }]
-  })
+    })
+
+    return options
+  }, [] as Array<{ label: string; value: string }>)
 })
 
 function resolveSelectionKey(typeId: string, subtype?: string | null): string {

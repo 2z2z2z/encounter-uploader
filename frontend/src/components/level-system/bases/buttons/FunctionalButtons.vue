@@ -87,7 +87,7 @@ import ExportModal from '@/components/common/modals/ExportModal.vue'
 import ImportModal from '@/components/common/modals/ImportModal.vue'
 import PreviewModal from '@/components/common/modals/PreviewModal.vue'
 import CodesModal from '@/components/common/modals/CodesModal.vue'
-import type { Answer } from '../../types'
+import type { Answer, TabData } from '../../types'
 
 const store = useLevelStore()
 
@@ -232,9 +232,9 @@ const onAddCodes = (codes: string[]): void => {
 const getAllExistingCodes = (): Set<string> => {
   const codes = new Set<string>()
   
-  store.tabs.forEach(tab => {
-    tab.answers.forEach(answer => {
-      answer.variants.forEach(variant => {
+  store.tabs.forEach((tab: TabData) => {
+    tab.answers.forEach((answer: Answer) => {
+      answer.variants.forEach((variant: string) => {
         if (variant.trim()) {
           codes.add(variant.trim())
         }
@@ -272,7 +272,7 @@ const exportCSV = (): void => {
 
   let csv = 'tab,number,variants,sector,bonus,bonusTime,closedText,displayText\n'
 
-  store.activeTab.answers.forEach(answer => {
+  store.activeTab.answers.forEach((answer: Answer) => {
     csv += [
       store.activeTab!.name,
       answer.number,

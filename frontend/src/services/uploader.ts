@@ -1,6 +1,6 @@
 // src/services/uploader.ts
 
-import axios from 'axios'
+import axios, { isAxiosError } from 'axios'
 import { useProgressStore } from '../store/progress'
 
 /**
@@ -27,10 +27,33 @@ async function sleep(ms: number): Promise<void> {
  */
 async function checkPauseStatus(): Promise<void> {
   const progress = useProgressStore()
-  
+
   if (progress.pauseRequested) {
     await progress.waitForResume()
   }
+}
+
+function getErrorMessage(error: unknown): string {
+  if (isAxiosError(error) && error.message) {
+    return error.message
+  }
+  if (error instanceof Error && error.message) {
+    return error.message
+  }
+  return String(error)
+}
+
+function getErrorStatus(error: unknown): number {
+  if (isAxiosError(error)) {
+    return error.response?.status ?? 0
+  }
+  if (typeof error === 'object' && error !== null && 'status' in error) {
+    const candidate = (error as { status?: unknown }).status
+    if (typeof candidate === 'number') {
+      return candidate
+    }
+  }
+  return 0
 }
 
 /**
@@ -216,10 +239,11 @@ export async function sendTask(
     console.log(`[sendTask] actual sleep: ${t1 - t0}ms`)
 
     return res.data
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[sendTask] Ошибка отправки задания:', error)
-    const status = error.response?.status || 0
-    const message = `Ошибка отправки задания: ${status ? `HTTP ${status}` : error.message || 'Неизвестная ошибка'}`
+    const status = getErrorStatus(error)
+    const fallbackMessage = getErrorMessage(error)
+    const message = `Ошибка отправки задания: ${status ? `HTTP ${status}` : fallbackMessage || 'Неизвестная ошибка'}`
     progress.reportError(message)
     progress.pause() // Ставим заливку на паузу при ошибке
     throw error
@@ -279,10 +303,11 @@ export async function sendSector(
     console.log(`[sendSector] actual sleep: ${t1 - t0}ms`)
 
     return res.data
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[sendSector] Ошибка отправки сектора:', error)
-    const status = error.response?.status || 0
-    const message = `Ошибка отправки сектора: ${status ? `HTTP ${status}` : error.message || 'Неизвестная ошибка'}`
+    const status = getErrorStatus(error)
+    const fallbackMessage = getErrorMessage(error)
+    const message = `Ошибка отправки сектора: ${status ? `HTTP ${status}` : fallbackMessage || 'Неизвестная ошибка'}`
     progress.reportError(message)
     progress.pause() // Ставим заливку на паузу при ошибке
     throw error
@@ -341,8 +366,9 @@ export async function sendBonuses(
         }
         if (!labelText) {
           // Fallback: попытаемся извлечь число из соседних текстов или самого nameAttr
-          const siblingText = inp.nextSibling && (inp.nextSibling as any).textContent
-          const candidate = (siblingText || nameAttr).toString().match(/\d+/)?.[0] || ''
+          const siblingText = inp.nextSibling?.textContent ?? ''
+          const match = (siblingText || nameAttr).toString().match(/\d+/)
+          const candidate = match ? match[0] : ''
           labelText = candidate
         }
         if (labelText) {
@@ -367,10 +393,12 @@ export async function sendBonuses(
         }
       }
       break
-    } catch (err: any) {
+    } catch (error: unknown) {
+      const fallbackMessage = getErrorMessage(error)
       console.error(
         `[sendBonuses] Ошибка GET bonus-form (attempt ${attempt}):`,
-        err.message || err
+        fallbackMessage,
+        error
       )
       if (attempt < MAX_RETRIES) {
         console.log(`[sendBonuses] Ждём ${SLEEP_MS}ms, затем повтор…`)
@@ -378,8 +406,8 @@ export async function sendBonuses(
       } else {
         console.error('[sendBonuses] Все попытки получить форму бонуса исчерпаны.')
         const progress = useProgressStore()
-        const status = err.response?.status || 0
-        const message = `Ошибка получения формы бонуса: ${status ? `HTTP ${status}` : err.message || 'Неизвестная ошибка'}`
+        const status = getErrorStatus(error)
+        const message = `Ошибка получения формы бонуса: ${status ? `HTTP ${status}` : fallbackMessage || 'Неизвестная ошибка'}`
         progress.reportError(message)
         progress.pause() // Ставим заливку на паузу при ошибке
       }
@@ -418,11 +446,12 @@ export async function sendBonuses(
         progress.reportError(`Ошибка отправки бонуса №${bonus.number}: HTTP ${res.status}`)
         progress.pause() // Ставим заливку на паузу при HTTP ошибке
       }
-    } catch (err: any) {
-      console.error('[sendBonuses] Ошибка отправки бонуса', err.message || err)
+    } catch (error: unknown) {
       const progress = useProgressStore()
-      const status = err.response?.status || 0
-      const message = `Ошибка отправки бонуса №${bonus.number}: ${status ? `HTTP ${status}` : err.message || 'Неизвестная ошибка'}`
+      const status = getErrorStatus(error)
+      const fallbackMessage = getErrorMessage(error)
+      console.error('[sendBonuses] Ошибка отправки бонуса', fallbackMessage, error)
+      const message = `Ошибка отправки бонуса №${bonus.number}: ${status ? `HTTP ${status}` : fallbackMessage || 'Неизвестная ошибка'}`
       progress.reportError(message)
       progress.pause() // Ставим заливку на паузу при ошибке
     }
@@ -463,8 +492,9 @@ export async function fetchBonusLevels(
       if (span) labelText = span.textContent?.trim() || ''
     }
     if (!labelText) {
-      const siblingText = inp.nextSibling && (inp.nextSibling as any).textContent
-      const candidate = (siblingText || nameAttr).toString().match(/\d+/)?.[0] || ''
+      const siblingText = inp.nextSibling?.textContent ?? ''
+      const match = (siblingText || nameAttr).toString().match(/\d+/)
+      const candidate = match ? match[0] : ''
       labelText = candidate
     }
     if (labelText) {

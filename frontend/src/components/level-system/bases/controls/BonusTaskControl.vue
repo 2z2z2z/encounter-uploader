@@ -20,6 +20,7 @@ import { ref, watch, onMounted } from 'vue'
 import Textarea from 'primevue/textarea'
 import FloatLabel from 'primevue/floatlabel'
 import { useLevelStore } from '../../store'
+import type { Answer } from '../../types/fields'
 
 // Store для работы с данными
 const store = useLevelStore()
@@ -35,7 +36,7 @@ watch(localBonusTask, (task) => {
   if (!answers) return
 
   // Применяем задание ко всем ответам
-  answers.forEach((answer) => {
+  answers.forEach((answer: Answer) => {
     answer.bonusTask = task || ''
   })
 })

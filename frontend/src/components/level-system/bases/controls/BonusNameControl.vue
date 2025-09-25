@@ -17,6 +17,7 @@ import { ref, watch, onMounted } from 'vue'
 import InputText from 'primevue/inputtext'
 import FloatLabel from 'primevue/floatlabel'
 import { useLevelStore } from '../../store'
+import type { Answer } from '../../types/fields'
 
 // Store для работы с данными
 const store = useLevelStore()
@@ -32,7 +33,7 @@ watch(localBonusName, (name) => {
   if (!answers) return
 
   // Применяем название ко всем ответам
-  answers.forEach((answer) => {
+  answers.forEach((answer: Answer) => {
     answer.bonusName = name || ''
   })
 })

@@ -17,6 +17,7 @@ import { ref, watch, onMounted } from 'vue'
 import InputText from 'primevue/inputtext'
 import FloatLabel from 'primevue/floatlabel'
 import { useLevelStore } from '../../store'
+import type { Answer } from '../../types/fields'
 
 // Store для работы с данными
 const store = useLevelStore()
@@ -33,7 +34,7 @@ watch(localClosedPattern, (pattern) => {
   if (!answers) return
 
   // Применяем паттерн ко всем ответам, заменяя '&' на номер ответа
-  answers.forEach((answer) => {
+  answers.forEach((answer: Answer) => {
     answer.closedText = (pattern || '').replace(/&/g, String(answer.number))
   })
 })

@@ -37,16 +37,19 @@ defineEmits<{
   click: [event: globalThis.MouseEvent]
 }>()
 
+type ButtonVariant = NonNullable<Props['variant']>
+type ButtonSeverity = 'secondary' | 'success' | 'info' | 'warn' | 'danger' | undefined
+
 const severity = computed(() => {
-  const severityMap = {
-    primary: null,
+  const severityMap: Record<ButtonVariant, ButtonSeverity> = {
+    primary: undefined,
     secondary: 'secondary',
     success: 'success',
     danger: 'danger',
     warning: 'warn',
     info: 'info'
   }
-  return severityMap[props.variant] as any
+  return severityMap[props.variant]
 })
 
 const buttonClass = computed(() => {

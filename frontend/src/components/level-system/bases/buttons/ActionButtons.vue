@@ -9,10 +9,11 @@
         class="h-10 px-4 text-nowrap max-xs:w-full"
         @click="handleUpload(button.id)"
       />
-      
+
       <!-- Опция БМП только для кнопки uploadSectors с соответствующей настройкой -->
-      <div 
-        v-if="button.id === 'uploadSectors' && button.options?.combineSectors" 
+      <div
+        v-if="button.id === 'uploadSectors' && button.options?.combineSectors"
+        :key="`${button.id}-combine`"
         class="flex items-center"
       >
         <Checkbox

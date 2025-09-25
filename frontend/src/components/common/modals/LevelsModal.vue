@@ -138,7 +138,7 @@ const bonusLevelsStore = useBonusLevelsStore()
 // const _baseLevel = computed(() => String(props.currentLevel || '').trim())
 
 const availableLevels = computed<LevelOption[]>(() => {
-  return bonusLevelsStore.options.map(option => ({
+  return bonusLevelsStore.options.map((option: { label: string }) => ({
     label: option.label,
     value: option.label
   }))

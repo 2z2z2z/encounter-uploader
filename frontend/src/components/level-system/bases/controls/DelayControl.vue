@@ -46,6 +46,7 @@ import { reactive, watch } from 'vue'
 import InputNumber from 'primevue/inputnumber'
 import FloatLabel from 'primevue/floatlabel'
 import { useLevelStore } from '../../store'
+import type { Answer } from '../../types/fields'
 
 // Store для работы с данными
 const store = useLevelStore()
@@ -65,7 +66,7 @@ watch(() => ({ ...quickTime }), (timeValue) => {
   if (!answers) return
 
   // Применяем новое время ко всем ответам в активном табе
-  answers.forEach((answer) => {
+  answers.forEach((answer: Answer) => {
     answer.delay = { ...timeValue }
   })
 }, { deep: true })

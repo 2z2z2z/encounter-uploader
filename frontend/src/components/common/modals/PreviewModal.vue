@@ -16,16 +16,16 @@
         </TabList>
         <TabPanels>
           <TabPanel value="closed">
-            <div class="preview-content" v-html="props.content"></div>
+            <SafeHtmlDisplay class="preview-content" :content="content" />
           </TabPanel>
           <TabPanel value="open">
-            <div class="preview-content" v-html="currentContent"></div>
+            <SafeHtmlDisplay class="preview-content" :content="currentContent" />
           </TabPanel>
         </TabPanels>
       </Tabs>
 
       <!-- Показываем только основной контент если переключение отключено -->
-      <div v-else class="preview-content" v-html="props.content"></div>
+      <SafeHtmlDisplay v-else class="preview-content" :content="content" />
     </div>
 
     <template #footer>
@@ -45,6 +45,7 @@ import TabList from 'primevue/tablist'
 import Tab from 'primevue/tab'
 import TabPanels from 'primevue/tabpanels'
 import TabPanel from 'primevue/tabpanel'
+import SafeHtmlDisplay from '@/components/common/SafeHtmlDisplay'
 
 interface Props {
   modelValue: boolean

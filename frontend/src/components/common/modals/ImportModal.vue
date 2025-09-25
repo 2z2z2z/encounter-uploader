@@ -108,12 +108,61 @@ function handleFileSelect(event: { files: globalThis.File[] }) {
   }
 }
 
-async function validateFile(_file: globalThis.File) {
-  // Здесь будет вызов composable для валидации
-  // Пока заглушка
-  validationResult.value = {
-    isValid: true,
-    recordCount: 10
+async function validateFile(file: globalThis.File) {
+  const allowedExtensions = (props.accept ?? '')
+    .split(',')
+    .map((ext) => ext.trim().toLowerCase())
+    .filter((ext) => ext.length > 0)
+  const normalizedName = file.name.toLowerCase()
+  const matchedExtension = allowedExtensions.find((ext) => normalizedName.endsWith(ext)) ?? null
+
+  if (allowedExtensions.length > 0 && !matchedExtension) {
+    validationResult.value = {
+      isValid: false,
+      issues: [`Файл "${file.name}" имеет неподдерживаемое расширение.`]
+    }
+    return
+  }
+
+  if (props.maxFileSize && file.size > props.maxFileSize) {
+    const fileSizeInMb = (props.maxFileSize / (1024 * 1024)).toFixed(2)
+    validationResult.value = {
+      isValid: false,
+      issues: [`Размер файла превышает допустимые ${fileSizeInMb} МБ.`]
+    }
+    return
+  }
+
+  try {
+    let recordCount: number | undefined
+
+    if (matchedExtension === '.csv') {
+      const fileContent = await file.text()
+      recordCount = fileContent
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0)
+        .length
+    } else if (matchedExtension === '.json') {
+      const fileContent = await file.text()
+      const parsed = JSON.parse(fileContent)
+      if (Array.isArray(parsed)) {
+        recordCount = parsed.length
+      } else if (parsed && typeof parsed === 'object') {
+        recordCount = Object.keys(parsed).length
+      }
+    }
+
+    validationResult.value = {
+      isValid: true,
+      recordCount
+    }
+  } catch (validationError) {
+    const message = validationError instanceof Error ? validationError.message : 'Не удалось проверить файл из-за неизвестной ошибки.'
+    validationResult.value = {
+      isValid: false,
+      issues: [message]
+    }
   }
 }
 
