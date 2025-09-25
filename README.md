@@ -6,7 +6,6 @@ Encounter Uploader — внутренняя утилита для подгото
 ## Структура
 - `frontend/` — клиент: Vite + Vue 3 + TypeScript, PrimeVue 4, TailwindCSS, Pinia, Vue Router, тестовые JSON-файлы в `test-configs/`.
 - `server/` — Node.js/Express-прокси, перенаправляет `/api/*` запросы на EN, управляет сессиями.
-- `docs/` — архитектурные материалы (`context.md`, `level-plan.md`, `new-level-types.md`).
 - `en-uploader-example.gs` — пример Google Apps Script с ожидаемым форматом пейлоадов.
 - Корень: `package.json`, `docker-compose.yml`, общая `.env` с тестовыми учётными данными.
 
@@ -33,7 +32,11 @@ Encounter Uploader — внутренняя утилита для подгото
    - Контрол-панель (массовые операции) из `@/components/ui/controls`.
    - Таблицы контента (`LevelContent.vue`) на базе PrimeVue DataTable.
    - Табы (`LevelTabs.vue`) для многоблочных типов.
-4. Загрузка (`frontend/src/services/uploader.ts`): формирование payload, отправка на `/api/admin/*`, контроль пауз/ошибок через `useProgressStore`.
+4. Загрузка (унифицированная система):
+   - Создание пейлоадов (`frontend/src/services/levelPayloads/`) через типизированные билдеры.
+   - HTTP транспорт (`frontend/src/services/transport.ts`) для отправки на `/api/admin/*`.
+   - Композабл (`frontend/src/composables/levels/useLevelPayloads.ts`) для интеграции с UI.
+   - Контроль пауз/ошибок через `useProgressStore`.
 5. Тестовый режим (`/test/:levelType` → `TestUploadPage.vue`): данные берутся из `frontend/test-configs/*.json`, авторизация и localStorage отключены.
 
 ## Архитектура фронтенда
@@ -87,7 +90,7 @@ Encounter Uploader — внутренняя утилита для подгото
 
 ## Сервис загрузки
 `frontend/src/services/uploader.ts` отвечает за:
-- Формирование параметров `URLSearchParams` для Task/Sector/Bonus (`buildTaskPayload`, `buildSectorPayload`, `buildBonusPayload`).
+- Формирование параметров `URLSearchParams` через унифицированную систему пейлоадов (`services/levelPayloads/`).
 - Отправку батчей (`sendTasks`, `sendSectors`, `sendBonuses`) с задержками `SLEEP_MS` и учётом паузы.
 - Получение списка чекбоксов уровней (`fetchBonusLevels`) и преобразование `closedText` в ссылку/картинку.
 - Обработку ошибок Axios, агрегацию статуса, паузы при неудачах.
@@ -115,7 +118,7 @@ Encounter Uploader — внутренняя утилита для подгото
 ## Контроль качества
 - Обязательно: `npm --prefix frontend run lint`, затем `npm --prefix frontend run lint:check`.
 - Проверить Vue/TypeScript диагностикой IDE (`mcp__ide__getDiagnostics` по необходимости).
-- Соблюдать принципы из `CLAUDE.md`: TypeScript strict, PrimeVue-only UI, "Always Works™" (проверить руками отклик UI, логи, ошибки).
+- Соблюдать правила и принципы из `CLAUDE.md`: TypeScript strict, PrimeVue-only UI, "Always Works™" (проверить отклик UI, логи, ошибки) и другие.
 - Фиксировать изменения в `docs/` при обновлении флоу.
 
 ## Обязанности при изменениях
