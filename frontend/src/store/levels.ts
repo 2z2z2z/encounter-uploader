@@ -173,8 +173,8 @@ export const useLevelStore = defineStore(
 			id: generateAnswerId(),
 			number,
 			variants: [''],
-			sector: false,
-			bonus: false,
+			sector: true,
+			bonus: true,
 			bonusTime: { hours: 0, minutes: 0, seconds: 0, negative: false },
 			closedText: '',
 			displayText: '',
@@ -310,6 +310,18 @@ export const useLevelStore = defineStore(
 		return addMultipleAnswers(variantsList)
 	}
 
+	function shouldPreserveAnswerStructure(): boolean {
+		const typeConfig = getLevelTypeConfig(levelType.value)
+		return typeConfig?.manualCodeAddition === false
+	}
+
+	function resetAnswerToDefaults(answer: Answer, index: number): void {
+		const existingId = answer.id
+		const defaults = createEmptyAnswer(index + 1)
+		Object.assign(answer, defaults)
+		answer.id = existingId
+	}
+
 	/**
 	 * Удаляет ответ из активного таба
 	 */
@@ -353,7 +365,14 @@ export const useLevelStore = defineStore(
 		const tab = activeTab.value
 		if (!tab) return
 
-		tab.answers = []
+		if (shouldPreserveAnswerStructure()) {
+			tab.answers.forEach((answer, index) => {
+				resetAnswerToDefaults(answer, index)
+			})
+		} else {
+			tab.answers = []
+		}
+
 		markDirty()
 	}
 
@@ -361,9 +380,18 @@ export const useLevelStore = defineStore(
 	 * Очищает все табы
 	 */
 	function clearAllTabs(): void {
-		tabs.value.forEach(tab => {
-			tab.answers = []
-		})
+		if (shouldPreserveAnswerStructure()) {
+			tabs.value.forEach(tab => {
+				tab.answers.forEach((answer, index) => {
+					resetAnswerToDefaults(answer, index)
+				})
+			})
+		} else {
+			tabs.value.forEach(tab => {
+				tab.answers = []
+			})
+		}
+
 		markDirty()
 	}
 

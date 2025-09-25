@@ -17,7 +17,7 @@
     <Transition name="collapse">
       <div
         v-if="!isCollapsed"
-        class="grid gap-x-6 gap-y-8 py-6 px-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+        class="grid gap-x-6 gap-y-8 py-6 px-5 mt-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
       >
         <div
           v-for="controlId in activeControls"
