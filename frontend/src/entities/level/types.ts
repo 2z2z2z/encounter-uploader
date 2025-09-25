@@ -100,6 +100,9 @@ export type LevelTypeId = string
 // Категория типа уровня (для совместимости, может быть убрана)
 export type LevelCategory = string
 
+// Стратегия генерации подсказки для бонусов
+export type BonusHintStrategy = 'none' | 'autoContent'
+
 // Режим закрытия уровня
 export type SectorMode = 'all' | 'initialAndFinal' | 'finalOnly' | 'custom'
 
@@ -266,6 +269,9 @@ export interface LevelTypeConfig {
 	// Пейлоады (новая структура с генераторами)
 	payloads: PayloadsConfig      // Конфигурация пейлоадов
 
+	// Поведение по умолчанию для подсказок бонусов
+	bonusHintStrategy?: BonusHintStrategy
+
 	// Значения по умолчанию
 	defaults?: {
 		sectorMode?: SectorMode
@@ -308,6 +314,7 @@ export interface SectorPayloadData extends BasePayloadData {
 export interface BonusPayloadData extends BasePayloadData {
 	bonus: Answer
 	levelMapping?: Record<string, string>  // Маппинг уровней для выбора
+	hintStrategy?: BonusHintStrategy
 }
 
 // Параметры URLSearchParams для задания

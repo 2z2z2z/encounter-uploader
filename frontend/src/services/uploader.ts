@@ -2,6 +2,7 @@
 
 import axios, { isAxiosError } from 'axios'
 import { useProgressStore } from '../store/progress'
+import type { BonusHintStrategy } from '@/entities/level/types'
 
 /**
  * Задержка между запросами (в миллисекундах).
@@ -146,7 +147,8 @@ export function buildSectorPayload(
 export function buildBonusPayload(
   base: { domain: string; gid: string | number; level: string | number },
   bonus: Answer,
-  levelLabelToName: Record<string, string>
+  levelLabelToName: Record<string, string>,
+  options: { hintStrategy?: BonusHintStrategy } = {}
 ): globalThis.URLSearchParams {
   const params = new globalThis.URLSearchParams()
   params.append('domain', base.domain)
@@ -154,19 +156,18 @@ export function buildBonusPayload(
   params.append('level', String(base.level))
   params.append('txtBonusName', bonus.bonusName || '')
   params.append('txtTask', typeof bonus.bonusTask === 'string' ? bonus.bonusTask : '')
-  if (typeof bonus.bonusHint === 'string') {
-    params.append('txtHelp', bonus.bonusHint)
+  const hintStrategy = options.hintStrategy ?? 'none'
+  const explicitHint = typeof bonus.bonusHint === 'string' ? bonus.bonusHint : ''
+
+  if (explicitHint.trim().length > 0) {
+    params.append('txtHelp', explicitHint)
+  } else if (bonus.noHint) {
+    params.append('txtHelp', '')
+  } else if (hintStrategy === 'autoContent') {
+    const autoHint = generateAutoHintScript(base.level, bonus.number, bonus.displayText, bonus.closedText)
+    params.append('txtHelp', autoHint)
   } else {
-    const hint = bonus.noHint
-      ? ''
-      : `<script type="text/javascript">document.getElementById("${base.level}_${String(
-          bonus.number
-        ).padStart(2, '0')}").innerHTML="${
-          bonus.displayText
-            ? `<p class='up'>${bonus.displayText.replace(/"/g, '\\"')}</p>`
-            : bonus.closedText.replace(/"/g, '\\"')
-        }";</script>`
-    params.append('txtHelp', hint)
+    params.append('txtHelp', '')
   }
   bonus.variants.forEach((v, idx) => params.append(`answer_-${idx + 1}`, v))
   params.append('txtHours', String(bonus.bonusTime.hours))
@@ -195,6 +196,22 @@ export function buildBonusPayload(
     }
   }
   return params
+}
+
+function generateAutoHintScript(
+  levelId: string | number,
+  bonusNumber: number,
+  displayText: string,
+  closedText: string
+): string {
+  const levelKey = String(levelId)
+  const targetId = `${levelKey}_${String(bonusNumber).padStart(2, '0')}`
+  const hasDisplay = displayText && displayText.trim().length > 0
+  const content = hasDisplay
+    ? `<p class='up'>${displayText.replace(/"/g, '\\"')}</p>`
+    : closedText.replace(/"/g, '\\"')
+
+  return `<script type="text/javascript">document.getElementById("${targetId}").innerHTML="${content}";</script>`
 }
 /**
  * 1) Отправка «Задания».
@@ -317,11 +334,16 @@ export async function sendSector(
 /**
  * 3) Отправка «Бонусов» …
  */
+interface SendBonusesOptions {
+  hintStrategy?: BonusHintStrategy
+}
+
 export async function sendBonuses(
   domain: string,
   gameid: string | number,
   level: string | number,
-  answers: Answer[]
+  answers: Answer[],
+  options: SendBonusesOptions = {}
 ) {
   const bonusesToSend = answers.filter((a) => a.inBonus)
   if (bonusesToSend.length === 0) {
@@ -425,7 +447,12 @@ export async function sendBonuses(
     await checkPauseStatus()
     
     const url = '/api/admin/bonus'
-    const params = buildBonusPayload({ domain, gid: gameid, level }, bonus, levelLabelToName)
+    const params = buildBonusPayload(
+      { domain, gid: gameid, level },
+      bonus,
+      levelLabelToName,
+      { hintStrategy: options.hintStrategy }
+    )
 
     console.log(`[sendBonuses] ▶ POST ${url}`)
     console.log(`[sendBonuses] ▶ payload →`, params.toString())

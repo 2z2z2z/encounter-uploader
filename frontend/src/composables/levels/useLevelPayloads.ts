@@ -53,16 +53,20 @@ export function useLevelPayloads() {
 			throw new Error('Не установлены данные игры (domain, gameId, levelId)')
 		}
 		
-		const data: BonusPayloadData = {
-			domain: store.domain,
-			gameId: store.gameId,
-			levelId: store.levelId,
-			bonus,
-			levelMapping
-		}
-		
-		return buildBonusPayload(data)
+	const config = getLevelTypeConfig(store.levelType)
+	const hintStrategy = config?.bonusHintStrategy ?? 'none'
+
+	const data: BonusPayloadData = {
+		domain: store.domain,
+		gameId: store.gameId,
+		levelId: store.levelId,
+		bonus,
+		levelMapping,
+		hintStrategy
 	}
+	
+	return buildBonusPayload(data)
+}
 	
 	// Дополнительные композаблы и stores
 	const progress = useProgressStore()
@@ -80,7 +84,7 @@ export function useLevelPayloads() {
 			if (!config) {
 				throw new Error(`Конфиг для типа ${store.levelType} не найден`)
 			}
-			
+
 			// Проверка поддержки Task пейлоада
 			if (!config.payloads.task || typeof config.payloads.task !== 'object') {
 				throw new Error(`Тип ${store.levelType} не поддерживает загрузку заданий`)
@@ -299,6 +303,7 @@ export function useLevelPayloads() {
 			if (!config) {
 				throw new Error(`Конфиг для типа ${store.levelType} не найден`)
 			}
+			const hintStrategy = config.bonusHintStrategy ?? 'none'
 			
 			// Проверка поддержки загрузки бонусов
 			if (!config.payloads.bonus) {
@@ -392,7 +397,7 @@ export function useLevelPayloads() {
 				}
 				
 				// Отправка бонуса (используем старую функцию sendBonuses)
-				await sendBonuses(store.domain, store.gameId, store.levelId, [legacyAnswer])
+				await sendBonuses(store.domain, store.gameId, store.levelId, [legacyAnswer], { hintStrategy })
 				
 				progress.updateSuccess(`Бонус ${bonus.number} отправлен`)
 				

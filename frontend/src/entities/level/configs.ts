@@ -160,7 +160,9 @@ export const olympConfig: LevelTypeConfig = {
 		},
 		sector: true,   // Простая поддержка Sector пейлоада (без генератора)
 		bonus: true     // Простая поддержка Bonus пейлоада (без генератора)
-	}
+	},
+
+	bonusHintStrategy: 'autoContent'
 }
 
 /**

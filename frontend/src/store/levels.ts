@@ -143,7 +143,7 @@ export const useLevelStore = defineStore(
 	/**
 	 * Создает дефолтный таб
 	 */
-	function createDefaultTab(name: string = 'default'): TabData {
+	function createDefaultTab(name: string = 'Блок 1'): TabData {
 		return {
 			id: generateTabId(),
 			name,

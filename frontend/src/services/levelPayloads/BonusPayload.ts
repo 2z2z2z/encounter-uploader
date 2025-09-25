@@ -27,20 +27,21 @@ export const buildBonusPayload: PayloadBuilder<BonusPayloadData> = (data) => {
 	params.append('txtTask', bonus.bonusTask || '')
 	
 	// Обработка подсказки (txtHelp)
-	if (typeof bonus.hint === 'string' && bonus.hint.trim()) {
-		// Если указана строковая подсказка - используем как есть
-		params.append('txtHelp', bonus.hint)
+	const explicitHint = typeof bonus.hint === 'string' ? bonus.hint : ''
+	const hintStrategy = data.hintStrategy ?? 'none'
+
+	if (explicitHint.trim().length > 0) {
+		params.append('txtHelp', explicitHint)
+	} else if (hintStrategy === 'autoContent') {
+		const autoHint = generateAutoHintScript(
+			data.levelId,
+			bonus.number,
+			bonus.displayText,
+			bonus.closedText
+		)
+		params.append('txtHelp', autoHint)
 	} else {
-		// Иначе генерируем JavaScript код для динамического отображения
-		// (адаптация логики из оригинала с учетом отсутствия флага noHint)
-		const hint = bonus.displayText
-			? `<script type="text/javascript">document.getElementById("${data.levelId}_${String(bonus.number).padStart(2, '0')}").innerHTML="${
-				`<p class='up'>${bonus.displayText.replace(/"/g, '\\"')}</p>`
-			}";</script>`
-			: `<script type="text/javascript">document.getElementById("${data.levelId}_${String(bonus.number).padStart(2, '0')}").innerHTML="${
-				bonus.closedText.replace(/"/g, '\\"')
-			}";</script>`
-		params.append('txtHelp', hint)
+		params.append('txtHelp', '')
 	}
 	
 	// Варианты ответов (специальный формат с отрицательными индексами!)
@@ -92,6 +93,23 @@ export const buildBonusPayload: PayloadBuilder<BonusPayloadData> = (data) => {
 	}
 	
 	return params
+}
+
+
+function generateAutoHintScript(
+	levelId: string | number,
+	bonusNumber: number,
+	displayText: string,
+	closedText: string
+): string {
+	const levelKey = String(levelId)
+	const targetId = `${levelKey}_${String(bonusNumber).padStart(2, '0')}`
+	const hasDisplay = displayText && displayText.trim().length > 0
+	const content = hasDisplay
+		? `<p class='up'>${displayText.replace(/"/g, '\\"')}</p>`
+		: closedText.replace(/"/g, '\\"')
+
+	return `<script type="text/javascript">document.getElementById("${targetId}").innerHTML="${content}";</script>`
 }
 
 
