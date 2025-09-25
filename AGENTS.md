@@ -1,40 +1,38 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-The repo is split into a Vue 3 frontend and an Express proxy.
-- `frontend/` holds the Vite + TypeScript application. Core code lives in `src/` (components, composables, services, store, utils) with static assets in `public/` and Tailwind setup in `index.css`.
-- `server/` contains `index.js`, an Express session-aware proxy to Encounter APIs. Treat it as the single entry point; add helpers as co-located modules when the file grows.
-- `docs/` stores product context and refactoring notes referenced during planning.
-Keep new automation, scripts, or tooling near the layer they serve; cross-cutting docs belong in `docs/`.
+- `frontend/` - Vue 3 + Vite SPA; feature code lives under `src/components`, `src/entities`, `src/services`, `src/store`, and `src/utils`, static assets in `public/`, JSON fixtures in `test-configs/`.
+- `server/` - Express proxy (`index.js`) for login and admin upload endpoints; reads port and session secret from environment variables.
+- `docs/` - design notes and level planning references; refresh entries whenever gameplay flows change.
+- `en-uploader-example.gs` - Google Apps Script sample kept in sync with payloads.
 
 ## Build, Test, and Development Commands
-Run `npm install` once at the repo root to hydrate workspaces.
-- `npm --prefix frontend run dev` starts Vite on localhost:5173 with hot reload.
-- `npm --prefix frontend run build` performs a type check via `vue-tsc` then emits production bundles to `frontend/dist`.
-- `npm --prefix frontend run lint:check` runs ESLint with the Vue + TypeScript ruleset; fix on-save issues with `lint`.
-- `npm run start:server` (root alias for `npm --prefix server start`) launches the proxy on port 3001; ensure `.env` supplies Encounter credentials.
-Pair frontend dev with the proxy to avoid CORS issues.
+- `npm install --prefix frontend` / `npm install --prefix server` - install module dependencies.
+- `npm --prefix frontend run dev` - start dev server on port 5173.
+- `npm run start:server` - launch the proxy on port 3001.
+- `npm run build:frontend` - type-check and emit the production bundle in `frontend/dist`.
+- `docker compose up --build` - run the Nginx and proxy stack at `http://127.0.0.1:8099` for E2E checks.
 
 ## Coding Style & Naming Conventions
-Use two-space indentation, trailing commas, and single quotes as seen in existing Vue files.
-Keep components in PascalCase (`LevelPreview.vue`), composables as `useX`, Pinia stores as `useXStore`, and utilities in camelCase.
-Prefer typed APIs; export shared types from `frontend/src/types`.
-ESLint and Tailwind provide formatting hints—do not introduce Prettier without discussion.
+- Prefer TypeScript; share interfaces in `src/types` and domain models in `src/entities`.
+- Vue SFCs belong in `src/components`; use PascalCase filenames and template refs, and place composables in `src/composables` with the `useX` pattern.
+- Run `npm --prefix frontend run lint` before committing; ESLint enforces Vue casing, TypeScript safety, and flags unused variables.
+- Keep two-space indentation, Tailwind utilities for layout, and scoped styles for component CSS.
 
 ## Testing Guidelines
-Automated tests are not yet in place.
-When adding them, mirror Vue Test Utils + Vitest patterns, co-locating specs beside the component (`ComponentName.spec.ts`).
-Hook new checks into `npm --prefix frontend run test` once introduced, and target smoke coverage for level upload flows.
-Until then, create manual smoke scripts under `docs/` after changes touching production paths.
+- No automated suite yet; exercise the affected flow through the dev server with the proxy running.
+- Use `frontend/test-configs/*.json` to rehearse complex uploads without live data.
+- Capture repro steps and logs in pull requests, especially when touching proxy logic.
 
 ## Commit & Pull Request Guidelines
-Follow the short, present-tense messages used in history (`levels modal fix`, `refactoring plan upd`).
-Start with a lowercase verb, <= 60 characters, and group related changes per commit.
-Pull requests need: summary of behavior changes, manual test notes, linked issues or Jira IDs, and screenshots or Looms for UI tweaks.
-Request review from both frontend and backend owners when touching shared contracts.
+- Keep commit subjects short (<=72 chars) and focused on one change (`structure reorganization`, `fix login retry logging`).
+- Pull requests should list scope, local verification commands or fixtures, and linked tickets when available.
+- Include UI screenshots for visible tweaks and proxy response logs for backend work; request reviews from owners.
 
-## Security & Configuration Tips
-Keep secrets in `.env` files excluded from Git.
-Rotate the Express `SESSION_SECRET` for staged/production deploys.
-Never log Encounter tokens; rely on proxy-side retries instead of exposing credentials in the browser.
-Document any new required env vars inside `docs/refactoring.md` and reference them in PRs.
+## Communication
+- Communicate with automation agents and reviewers in Russian; mirror user language in comments and threads.
+
+## Environment & Configuration
+- Store shared keys in the root `.env` and module overrides in `frontend/.env` or `server/.env`; never commit production secrets.
+- Configure `SESSION_SECRET`, domain hosts, and `VITE_` variables before non-local runs.
+- Update `docs/` whenever environment expectations or feature flags change.
