@@ -176,7 +176,7 @@ export const type100500Config: LevelTypeConfig = {
 	maxTabs: 10,
 	subtypes: undefined,
 	fields: ['answer', 'sector', 'bonus', 'bonusLevels', 'bonusTime', 'delay', 'limit', 'sectorName', 'bonusName', 'bonusTask', 'hint'],
-	controls: ['bonusTime', 'sectorNames', 'bonusNames', 'delay', 'limit', 'bonusTasks', 'hints', 'bonusLevels'],
+	controls: ['bonusTime', 'delay', 'limit', 'sectorNames', 'bonusNames', 'bonusTasks', 'hints', 'bonusLevels'],
 	buttons: {
 		navigation: ['back'],
 		functional: ['addCodes', 'clear', 'export', 'import'],

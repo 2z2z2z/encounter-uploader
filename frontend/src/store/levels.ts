@@ -6,6 +6,7 @@
 
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
+import { isTestUrlMode } from '../utils/testMode'
 import type {
 	LevelStoreState,
 	LevelTypeId,
@@ -39,7 +40,9 @@ interface StorageData {
 /**
  * Основной store для level-system
  */
-export const useLevelStore = defineStore('level', () => {
+export const useLevelStore = defineStore(
+	'level',
+	() => {
 	// ===== Метаданные игры =====
 	const domain = ref<string>('')
 	const gameId = ref<string>('')
@@ -69,6 +72,34 @@ export const useLevelStore = defineStore('level', () => {
 	// ===== Флаги состояния =====
 	const isLoading = ref<boolean>(false)
 	const isDirty = ref<boolean>(false)
+
+	let suppressDirtyTracking = false
+
+	function withDirtyTrackingSuppressed<T>(callback: () => T): T {
+		const previous = suppressDirtyTracking
+		suppressDirtyTracking = true
+		try {
+			return callback()
+		} finally {
+			suppressDirtyTracking = previous
+		}
+	}
+
+	watch(
+		tabs,
+		() => {
+			markDirty()
+		},
+		{ deep: true }
+	)
+
+	watch(
+		() => config.value,
+		() => {
+			markDirty()
+		},
+		{ deep: true }
+	)
 
 	// ===== Геттеры =====
 
@@ -172,7 +203,7 @@ export const useLevelStore = defineStore('level', () => {
 
 		tabs.value.push(newTab)
 		activeTabIndex.value = tabs.value.length - 1
-		isDirty.value = true
+		markDirty()
 
 		return true
 	}
@@ -194,7 +225,7 @@ export const useLevelStore = defineStore('level', () => {
 			activeTabIndex.value--
 		}
 
-		isDirty.value = true
+		markDirty()
 		return true
 	}
 
@@ -207,7 +238,7 @@ export const useLevelStore = defineStore('level', () => {
 		}
 
 		tabs.value[index].name = newName.slice(0, MAX_TAB_NAME_LENGTH)
-		isDirty.value = true
+		markDirty()
 		return true
 	}
 
@@ -237,7 +268,7 @@ export const useLevelStore = defineStore('level', () => {
 		}
 
 		tab.answers.push(newAnswer)
-		isDirty.value = true
+		markDirty()
 		return true
 	}
 
@@ -296,7 +327,7 @@ export const useLevelStore = defineStore('level', () => {
 			answer.number = i + 1
 		})
 
-		isDirty.value = true
+		markDirty()
 		return true
 	}
 
@@ -311,7 +342,7 @@ export const useLevelStore = defineStore('level', () => {
 		if (!answer) return false
 
 		Object.assign(answer, updates)
-		isDirty.value = true
+		markDirty()
 		return true
 	}
 
@@ -323,7 +354,7 @@ export const useLevelStore = defineStore('level', () => {
 		if (!tab) return
 
 		tab.answers = []
-		isDirty.value = true
+		markDirty()
 	}
 
 	/**
@@ -333,14 +364,16 @@ export const useLevelStore = defineStore('level', () => {
 		tabs.value.forEach(tab => {
 			tab.answers = []
 		})
-		isDirty.value = true
+		markDirty()
 	}
 
 	/**
 	 * Помечает состояние как изменённое
 	 */
 	function markDirty(): void {
-		isDirty.value = true
+		if (!suppressDirtyTracking) {
+			isDirty.value = true
+		}
 	}
 
 	// ===== Массовые операции =====
@@ -356,7 +389,7 @@ export const useLevelStore = defineStore('level', () => {
 			answer[field] = value
 		})
 
-		isDirty.value = true
+		markDirty()
 	}
 
 	/**
@@ -384,7 +417,7 @@ export const useLevelStore = defineStore('level', () => {
 			tab.answers = tab.answers.slice(0, newDimension)
 		}
 
-		isDirty.value = true
+		markDirty()
 	}
 
 	// ===== Управление конфигурацией =====
@@ -394,7 +427,7 @@ export const useLevelStore = defineStore('level', () => {
 	 */
 	function updateConfig(updates: Partial<LevelStoreState['config']>): void {
 		Object.assign(config.value, updates)
-		isDirty.value = true
+		markDirty()
 	}
 
 	/**
@@ -402,7 +435,7 @@ export const useLevelStore = defineStore('level', () => {
 	 */
 	function setSectorMode(mode: SectorMode): void {
 		config.value.sectorMode = mode
-		isDirty.value = true
+		markDirty()
 	}
 
 	/**
@@ -410,7 +443,7 @@ export const useLevelStore = defineStore('level', () => {
 	 */
 	function setBonusTime(time: TimeValue): void {
 		config.value.bonusTime = time
-		isDirty.value = true
+		markDirty()
 	}
 
 	// ===== LocalStorage =====
@@ -454,20 +487,23 @@ export const useLevelStore = defineStore('level', () => {
 				return false
 			}
 
-			// Восстанавливаем данные
-			tabs.value = data.tabs || [createDefaultTab()]
-			config.value = data.config || {
-				sectorMode: 'all',
-				bonusTime: { hours: 0, minutes: 0, seconds: 0, negative: false },
-				closedPattern: ''
-			}
+			withDirtyTrackingSuppressed(() => {
+				// Восстанавливаем данные
+				tabs.value = data.tabs || [createDefaultTab()]
+				config.value = data.config || {
+					sectorMode: 'all',
+					bonusTime: { hours: 0, minutes: 0, seconds: 0, negative: false },
+					closedPattern: ''
+				}
 
-			// Проверяем валидность активного таба
-			if (activeTabIndex.value >= tabs.value.length) {
-				activeTabIndex.value = 0
-			}
+				// Проверяем валидность активного таба
+				if (activeTabIndex.value >= tabs.value.length) {
+					activeTabIndex.value = 0
+				}
 
-			isDirty.value = false
+				isDirty.value = false
+			})
+
 			return true
 		} catch (err: unknown) {
 			console.error('[LevelV2Store] Failed to load from localStorage:', err)
@@ -539,23 +575,25 @@ export const useLevelStore = defineStore('level', () => {
 	 * Сбрасывает store к дефолтным значениям (универсальная логика)
 	 */
 	function resetToDefaults(): void {
-		tabs.value = [createDefaultTab()]
-		activeTabIndex.value = 0
+		withDirtyTrackingSuppressed(() => {
+			tabs.value = [createDefaultTab()]
+			activeTabIndex.value = 0
 
-		// Получаем дефолты из конфига типа уровня
-		const typeConfig = getLevelTypeConfig(levelType.value)
-		config.value = {
-			sectorMode: typeConfig?.defaults?.sectorMode || 'all',
-			bonusTime: typeConfig?.defaults?.bonusTime || { hours: 0, minutes: 0, seconds: 0, negative: false },
-			closedPattern: typeConfig?.defaults?.closedPattern || ''
-		}
+			// Получаем дефолты из конфига типа уровня
+			const typeConfig = getLevelTypeConfig(levelType.value)
+			config.value = {
+				sectorMode: typeConfig?.defaults?.sectorMode || 'all',
+				bonusTime: typeConfig?.defaults?.bonusTime || { hours: 0, minutes: 0, seconds: 0, negative: false },
+				closedPattern: typeConfig?.defaults?.closedPattern || ''
+			}
 
-		// Если тип поддерживает подтипы и есть фиксированная размерность
-		if (hasSubtypes(levelType.value) && dimension.value > 0) {
-			setDimension(dimension.value)
-		}
+			// Если тип поддерживает подтипы и есть фиксированная размерность
+			if (hasSubtypes(levelType.value) && dimension.value > 0) {
+				setDimension(dimension.value)
+			}
 
-		isDirty.value = false
+			isDirty.value = false
+		})
 	}
 
 	// ===== Автосохранение =====
@@ -643,4 +681,12 @@ export const useLevelStore = defineStore('level', () => {
 		initializeLevelType,
 		resetToDefaults
 	}
-})
+},
+{
+	...(isTestUrlMode() ? {} : {
+		persist: {
+			pick: ['domain', 'gameId', 'levelId', 'levelType', 'subtypeId', 'dimension']
+		}
+	})
+}
+)
