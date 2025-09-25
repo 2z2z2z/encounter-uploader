@@ -338,6 +338,19 @@ export function useLevelPayloads() {
 			// Инициализация прогресса
 			progress.start('bonus', allBonuses.length)
 			
+			const normalizeSimpleTime = (value?: Answer['delay']) => {
+				if (!value) {
+					return undefined
+				}
+				const hours = value.hours ?? 0
+				const minutes = value.minutes ?? 0
+				const seconds = value.seconds ?? 0
+				if (hours === 0 && minutes === 0 && seconds === 0) {
+					return undefined
+				}
+				return { hours, minutes, seconds }
+			}
+			
 			// Отправка бонусов по одному
 			for (let idx = 0; idx < allBonuses.length; idx++) {
 				const bonus = allBonuses[idx]
@@ -350,17 +363,30 @@ export function useLevelPayloads() {
 				// Конвертируем структуру данных для старой функции sendBonuses
 				const normalizedLevels = Array.isArray(bonus.bonusLevels) ? bonus.bonusLevels.map(String) : []
 				const allLevels = !Array.isArray(bonus.bonusLevels) || normalizedLevels.length === 0
+				const variants = Array.isArray(bonus.variants) ? [...bonus.variants] : []
+				const delay = normalizeSimpleTime(bonus.delay)
+				const relativeLimit = normalizeSimpleTime(bonus.limit)
+				const bonusHint = typeof bonus.hint === 'string' && bonus.hint.trim().length > 0 ? bonus.hint : undefined
+				const bonusTime = {
+					hours: bonus.bonusTime?.hours ?? 0,
+					minutes: bonus.bonusTime?.minutes ?? 0,
+					seconds: bonus.bonusTime?.seconds ?? 0,
+					negative: Boolean(bonus.bonusTime?.negative)
+				}
 				const legacyAnswer = {
 					number: bonus.number,
-					variants: bonus.variants,
+					variants,
 					inSector: bonus.sector,
 					inBonus: bonus.bonus,
-					bonusTime: {
-						...bonus.bonusTime,
-						negative: bonus.bonusTime.negative || false
-					},
+					bonusTime,
+					delay,
+					relativeLimit,
 					closedText: bonus.closedText,
 					displayText: bonus.displayText,
+					bonusName: bonus.bonusName || '',
+					bonusTask: bonus.bonusTask || '',
+					bonusHint,
+					sectorName: bonus.sectorName,
 					allLevels,
 					targetLevels: allLevels ? [] : normalizedLevels
 				}
