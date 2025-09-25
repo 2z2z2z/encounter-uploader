@@ -544,9 +544,10 @@ function sanitizeAnswer(source: Partial<Answer> | Record<string, unknown>, fallb
   const bonusLevelsSource = Array.isArray((source as Partial<Answer>).bonusLevels)
     ? (source as Partial<Answer>).bonusLevels!.map(level => String(level ?? ''))
     : undefined
+  const defaultBonusLevels = Array.isArray(defaults.bonusLevels) ? defaults.bonusLevels : []
   const bonusLevels = bonusLevelsSource
     ? bonusLevelsSource.filter(level => level.trim().length > 0)
-    : defaults.bonusLevels.slice()
+    : defaultBonusLevels.slice()
 
   return {
     id: typeof (source as Partial<Answer>).id === 'string' && (source as Partial<Answer>).id!.trim().length > 0
@@ -561,15 +562,21 @@ function sanitizeAnswer(source: Partial<Answer> | Record<string, unknown>, fallb
       ? (source as Partial<Answer>).bonus!
       : defaults.bonus,
     bonusTime: sanitizeTimeValue((source as Partial<Answer>).bonusTime as Partial<TimeValue>, defaults.bonusTime, true),
-    delay: sanitizeTimeValue((source as Partial<Answer>).delay as Partial<TimeValue>, defaults.delay),
-    limit: sanitizeTimeValue((source as Partial<Answer>).limit as Partial<TimeValue>, defaults.limit),
-    closedText: sanitizeString((source as Partial<Answer>).closedText, defaults.closedText),
-    displayText: sanitizeString((source as Partial<Answer>).displayText, defaults.displayText),
+    delay: sanitizeTimeValue(
+      (source as Partial<Answer>).delay as Partial<TimeValue>,
+      defaults.delay ?? getDefaultSimpleTime()
+    ),
+    limit: sanitizeTimeValue(
+      (source as Partial<Answer>).limit as Partial<TimeValue>,
+      defaults.limit ?? getDefaultSimpleTime()
+    ),
+    closedText: sanitizeString((source as Partial<Answer>).closedText, defaults.closedText ?? ''),
+    displayText: sanitizeString((source as Partial<Answer>).displayText, defaults.displayText ?? ''),
     bonusLevels,
-    sectorName: sanitizeString((source as Partial<Answer>).sectorName, defaults.sectorName),
-    bonusName: sanitizeString((source as Partial<Answer>).bonusName, defaults.bonusName),
-    bonusTask: sanitizeString((source as Partial<Answer>).bonusTask, defaults.bonusTask),
-    hint: sanitizeString((source as Partial<Answer>).hint, defaults.hint)
+    sectorName: sanitizeString((source as Partial<Answer>).sectorName, defaults.sectorName ?? ''),
+    bonusName: sanitizeString((source as Partial<Answer>).bonusName, defaults.bonusName ?? ''),
+    bonusTask: sanitizeString((source as Partial<Answer>).bonusTask, defaults.bonusTask ?? ''),
+    hint: sanitizeString((source as Partial<Answer>).hint, defaults.hint ?? '')
   }
 }
 
