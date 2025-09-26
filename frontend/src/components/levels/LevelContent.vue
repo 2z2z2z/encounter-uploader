@@ -1,5 +1,5 @@
 <template>
-  <div class="level-content">
+  <div class="level-content" data-tour="level-content">
     <DataTable
       :value="tableData"
       responsive-layout="scroll"

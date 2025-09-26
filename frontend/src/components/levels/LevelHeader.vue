@@ -1,11 +1,23 @@
 <template>
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-4 bg-surface-50">
-    <!-- Заголовок -->
-    <div v-if="showTitle" class="text-2xl font-semibold text-surface-900">
-      {{ title }}
+  <div
+    class="flex max-md:flex-col md:flex-row md:items-center md:justify-between gap-3 px-4 bg-surface-50"
+    data-tour="level-header"
+  >
+    <div class="flex items-center flex-wrap gap-x-4 gap-y-2">
+      <div v-if="showTitle" class="text-2xl font-semibold text-surface-900">
+        {{ title }}
+      </div>
+      <Button
+        label="Обучение"
+        icon="pi pi-graduation-cap"
+        severity="help"
+        outlined
+        size="small"
+        @click="startUserTour"
+        data-tour="tour-button"
+      />
     </div>
 
-    <!-- Мета-данные -->
     <div v-if="showMeta" class="flex flex-wrap gap-x-4 gap-y-2 text-sm text-surface-600">
       <span>автор: <strong class="text-surface-900">{{ authStore.username }}</strong></span>
       <span>домен: <strong class="text-surface-900">{{ levelStore.domain }}</strong></span>
@@ -21,6 +33,7 @@
  * Получает название из конфигов типа уровня, отображает мета-данные из store
  */
 import { computed } from 'vue'
+import Button from 'primevue/button'
 import { getLevelTypeConfig, getSubtypeConfig } from '@/entities/level/configs'
 import { useLevelStore } from '@/store/levels'
 import { useAuthStore } from '@/store/auth'
@@ -64,9 +77,15 @@ const title = computed(() => {
     // Fallback если подтип не найден в конфиге
     return `${baseTitle} (${props.subtype})`
   }
-  
+
   return baseTitle
 })
+
+/**
+ * Запуск пользовательской обучалки
+ */
+function startUserTour() {
+  // Диспетчим кастомное событие для запуска тура
+  globalThis.dispatchEvent(new globalThis.CustomEvent('start-user-tour'))
+}
 </script>
-
-

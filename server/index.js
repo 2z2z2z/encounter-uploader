@@ -107,22 +107,56 @@ app.post('/api/auth/login', async (req, res) => {
         validateStatus: null,
       }
     )
-    // Сохраняем куки
+
+    console.log('[Login] Status:', loginRes.status)
+    console.log('[Login] Headers:', loginRes.headers)
+
+    // Анализируем результат авторизации
+    const cookies = loginRes.headers['set-cookie'] || []
+    const hasCookies = cookies.length > 0
+
+    // Проверяем наличие atoken (токен авторизации с uid пользователя)
+    const hasAuthToken = cookies.some(cookie =>
+      cookie.includes('atoken=') && cookie.includes('uid%3d')
+    )
+
+    // Проверяем наличие stoken (сессионный токен)
+    const hasSessionToken = cookies.some(cookie =>
+      cookie.includes('stoken=')
+    )
+
+    console.log('[Login] hasCookies:', hasCookies)
+    console.log('[Login] hasAuthToken:', hasAuthToken)
+    console.log('[Login] hasSessionToken:', hasSessionToken)
+
+    if (!hasCookies || !hasAuthToken || !hasSessionToken) {
+      console.log('[Login] Auth failed - missing required tokens')
+      return res.status(401).json({
+        error: 'Неверный логин или пароль'
+      })
+    }
+
+    // Сохраняем куки только при успешной авторизации
     const setCookie = loginRes.headers['set-cookie'] || []
     req.session.authCookie = Array.isArray(setCookie)
       ? setCookie.map(c => c.split(';')[0]).join('; ')
       : setCookie.split(';')[0]
 
+    console.log('[Login] Auth successful, cookies saved')
+
     req.session.save(err => {
       if (err) {
         console.error('Session save error:', err)
-        return res.status(500).send('Session error')
+        return res.status(500).json({ error: 'Session error' })
       }
-      res.send({ ok: true })
+      res.json({ success: true })
     })
   } catch (err) {
     console.error('Login error:', err)
-    res.status(500).send('Login error')
+    if (err.code === 'ENOTFOUND') {
+      return res.status(400).json({ error: 'Домен не найден' })
+    }
+    res.status(500).json({ error: 'Ошибка сервера при авторизации' })
   }
 })
 

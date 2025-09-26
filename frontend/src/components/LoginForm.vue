@@ -38,12 +38,14 @@
             </div>
             
             <!-- Tailwind hover и focus utilities -->
-            <Button 
-              type="submit" 
-              label="Войти"
+            <Button
+              type="submit"
+              :label="isLoading ? 'Проверка...' : 'Войти'"
+              :loading="isLoading"
+              :disabled="isLoading"
               fluid
               class="transition-all duration-200"
-              icon="pi pi-user"
+              :icon="isLoading ? '' : 'pi pi-user'"
             />
           </form>
           
@@ -86,14 +88,50 @@ import FloatLabel from 'primevue/floatlabel'
 
 const username = ref('')
 const password = ref('')
+const isLoading = ref(false)
 
 const authStore = useAuthStore()
 const router = useRouter()
 
-function onSubmit() {
-  // сохраняем в Pinia
+async function onSubmit() {
+  // Очищаем предыдущие ошибки
+  authStore.error = ''
+
+  // Базовая валидация
+  if (!username.value.trim() || !password.value.trim()) {
+    authStore.error = 'Пожалуйста, заполните все поля'
+    return
+  }
+
+  // Сохраняем в Pinia
   authStore.setCredentials(username.value, password.value)
-  // переходим к настройкам
-  router.push('/settings')
+
+  // Если это тестовый режим, пропускаем проверку
+  if (authStore.isTestMode) {
+    router.push('/settings')
+    return
+  }
+
+  // Для обычного режима проверяем корректность логина/пароля на общем домене
+  isLoading.value = true
+
+  try {
+    // Делаем тестовый запрос авторизации к общему домену world.en.cx
+    await authStore.authenticate('world')
+
+    if (authStore.loggedIn) {
+      // Если авторизация прошла успешно, переходим к настройкам
+      router.push('/settings')
+    } else {
+      // Если авторизация не удалась, показываем ошибку
+      authStore.error = authStore.error || 'Неверный логин или пароль'
+    }
+  } catch (error: unknown) {
+    // Обработка ошибок сети или сервера
+    const message = error instanceof Error ? error.message : String(error)
+    authStore.error = `Ошибка проверки данных: ${message}`
+  } finally {
+    isLoading.value = false
+  }
 }
 </script>

@@ -30,15 +30,39 @@ export const useAuthStore = defineStore(
         return
       }
       try {
-        await axios.post(
+        const response = await axios.post(
           '/api/auth/login',
           { login: username.value, password: password.value, domain },
           { withCredentials: true }
         )
-        loggedIn.value = true
+
+        // Проверяем успешность авторизации по ответу
+        if (response.data.success) {
+          loggedIn.value = true
+        } else {
+          loggedIn.value = false
+          error.value = 'Ошибка авторизации'
+        }
       } catch (err: unknown) {
-        error.value = (err as { response?: { data: string }, message: string }).response?.data || (err as Error).message
         loggedIn.value = false
+
+        // Обработка различных типов ошибок
+        if (err && typeof err === 'object' && 'response' in err) {
+          const response = (err as { response?: { data?: { error?: string }, status?: number } }).response
+          if (response?.data?.error) {
+            error.value = response.data.error
+          } else if (response?.status === 401) {
+            error.value = 'Неверный логин или пароль'
+          } else if (response?.status === 400) {
+            error.value = 'Домен не найден'
+          } else {
+            error.value = 'Ошибка сервера при авторизации'
+          }
+        } else if (err instanceof Error) {
+          error.value = err.message
+        } else {
+          error.value = 'Неизвестная ошибка'
+        }
       }
     }
 

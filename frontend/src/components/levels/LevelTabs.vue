@@ -1,5 +1,5 @@
 <template>
-  <div v-if="shouldShowTabs" class="mb-4">
+  <div v-if="shouldShowTabs" class="mb-4" data-tour="level-tabs">
     <Tabs
       :value="store.activeTabIndex"
       @update:value="handleTabChange"

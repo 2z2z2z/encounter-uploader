@@ -11,6 +11,9 @@
           <LevelFooter />
         </template>
       </Card>
+
+      <!-- Компонент обучалки -->
+      <UserTour />
     </div>
   </div>
 </template>
@@ -31,6 +34,7 @@ import LevelTabs from './LevelTabs.vue'
 import LevelControlPanel from './LevelControlPanel.vue'
 import LevelContent from './LevelContent.vue'
 import LevelFooter from './LevelFooter.vue'
+import UserTour from '@/components/common/UserTour.vue'
 
 const route = useRoute()
 const router = useRouter()

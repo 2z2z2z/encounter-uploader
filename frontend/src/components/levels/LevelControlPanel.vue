@@ -1,8 +1,17 @@
 <template>
-  <div class="rounded-xl bg-violet-50 mb-4 overflow-hidden">
+  <div
+    class="rounded-xl bg-violet-50 mb-4 overflow-hidden"
+    data-tour="control-panel"
+  >
     <!-- Заголовок с кнопкой сворачивания -->
     <div class="flex items-center justify-between px-5 py-3" :class="{ 'border-b border-violet-100': !isCollapsed }">
-      <h3 class="text-sm font-semibold text-violet-900">Панель управления</h3>
+      <div class="flex items-center gap-2">
+        <h3 class="text-sm font-semibold text-violet-900">Панель управления</h3>
+        <i
+          class="pi pi-info-circle text-xs text-violet-600 cursor-help"
+          v-tooltip.top="'Инструменты для массового редактирования таблицы'"
+        />
+      </div>
       <Button
         :icon="isCollapsed ? 'pi pi-chevron-down' : 'pi pi-chevron-up'"
         text
@@ -16,7 +25,7 @@
     <!-- Контент панели с transition -->
     <Transition name="collapse">
       <div
-        v-if="!isCollapsed"
+        v-show="!isCollapsed"
         class="grid gap-x-6 gap-y-8 py-6 px-5 mt-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
       >
         <div
@@ -82,5 +91,6 @@ const getControlComponent = (controlId: ControlId) => {
   opacity: 0;
   padding-top: 0;
   padding-bottom: 0;
+  margin-top: 0;
 }
 </style>

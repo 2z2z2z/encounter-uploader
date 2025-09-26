@@ -10,11 +10,22 @@
                 <InputText
                   id="domain"
                   v-model="levelStore.domain"
+                  :invalid="!!domainValidationError"
+                  placeholder="domain или domain.en.cx"
                   fluid
                   class="transition-all duration-200"
+                  @input="onDomainInput"
                 />
                 <label for="domain">Домен Encounter</label>
               </FloatLabel>
+              <Message
+                v-if="domainValidationError"
+                severity="error"
+                :closable="false"
+                class="mt-1"
+              >
+                {{ domainValidationError }}
+              </Message>
             </div>
 
             <div class="space-y-1">
@@ -96,6 +107,7 @@ import { useLevelStore } from '@/store/levels'
 import type { LevelTypeId } from '@/entities/level/types'
 import { getAllLevelTypes } from '@/entities/level/configs'
 import { useAuthStore } from '../store/auth'
+import { extractDomainName, isValidEncounterDomain } from '@/utils/domainExtractor'
 import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
@@ -179,6 +191,7 @@ watch(
 
 const error = ref('')
 const levelValidationError = ref('')
+const domainValidationError = ref('')
 
 async function fetchGamesList() {
   const url = `https://${levelStore.domain}.en.cx/home?json=1`
@@ -199,15 +212,44 @@ function onLevelIdInput(event: globalThis.Event) {
   }
 }
 
+function onDomainInput(event: globalThis.Event) {
+  const input = event.target as HTMLInputElement
+  const raw = input.value
+
+  // Извлекаем имя домена из любого формата ввода
+  const extractedDomain = extractDomainName(raw)
+
+  // Если удалось извлечь домен и он отличается от исходного значения
+  if (extractedDomain && extractedDomain !== raw) {
+    levelStore.domain = extractedDomain
+  }
+
+  // Валидация домена
+  if (!extractedDomain) {
+    domainValidationError.value = 'Пожалуйста, укажите домен Encounter'
+  } else if (!isValidEncounterDomain(extractedDomain)) {
+    domainValidationError.value = 'Некорректное имя домена. Используйте латинские буквы, цифры и дефисы'
+  } else {
+    domainValidationError.value = ''
+  }
+}
+
 async function onContinue() {
   error.value = ''
 
   const inTestMode = authStore.isTestMode
   if (!inTestMode) {
+    // Проверяем валидность домена
     if (!levelStore.domain.trim()) {
-      error.value = 'Пожалуйста, укажите домен.'
+      domainValidationError.value = 'Пожалуйста, укажите домен Encounter'
       return
     }
+    if (!isValidEncounterDomain(levelStore.domain)) {
+      domainValidationError.value = 'Некорректное имя домена. Используйте латинские буквы, цифры и дефисы'
+      return
+    }
+    domainValidationError.value = '' // Очищаем ошибку если валидация прошла
+
     if (!String(levelStore.gameId).trim()) {
       error.value = 'Пожалуйста, укажите ID игры.'
       return

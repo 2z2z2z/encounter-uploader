@@ -13,6 +13,9 @@ import ConfirmationService from 'primevue/confirmationservice'
 import DialogService from 'primevue/dialogservice'
 import Tooltip from 'primevue/tooltip'
 
+// Vue Onboarding Tour
+import VueOnboardingTour from 'vue-onboarding-tour'
+
 // PrimeVue styles
 import 'primeicons/primeicons.css'
 import './index.css'
@@ -110,5 +113,6 @@ app.directive('tooltip', Tooltip)
 // Add other plugins
 app.use(pinia)
 app.use(router)
+app.use(VueOnboardingTour)
 
 app.mount('#app')
