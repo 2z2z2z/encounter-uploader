@@ -28,6 +28,16 @@
             v-tooltip.top="'Добавить таб'"
           />
           <Button
+            icon="pi pi-copy"
+            size="small"
+            text
+            rounded
+            severity="secondary"
+            @click="copyCurrentTab"
+            :disabled="!canCopyTab"
+            v-tooltip.top="'Копировать таб'"
+          />
+          <Button
             icon="pi pi-minus"
             size="small"
             text
@@ -112,6 +122,11 @@ const canRemoveTab = computed(() => {
   return store.tabs.length > 1
 })
 
+// Можно ли копировать текущий таб (есть активный таб и не превышен лимит)
+const canCopyTab = computed(() => {
+  return store.activeTab && store.tabs.length < 10
+})
+
 // Синхронизация имени текущего таба с локальным состоянием
 watch(() => store.activeTab?.name, (newName) => {
   if (newName !== undefined) {
@@ -144,9 +159,40 @@ const addTab = () => {
  */
 const removeCurrentTab = () => {
   if (!canRemoveTab.value) return
-  
+
   const currentIndex = store.activeTabIndex
   store.removeTab(currentIndex)
+}
+
+/**
+ * Копирование текущего таба
+ */
+const copyCurrentTab = () => {
+  if (!canCopyTab.value || !store.activeTab) return
+
+  const sourceTab = store.activeTab
+  const copyName = `${sourceTab.name} (копия)`
+
+  // Создаем новый ID для таба
+  const newTabId = `tab-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
+
+  // Копируем все ответы с новыми ID
+  const copiedAnswers = sourceTab.answers.map((answer, index) => ({
+    ...answer,
+    id: `answer-${Date.now()}-${Math.random().toString(36).slice(2, 11)}-${index}`
+  }))
+
+  // Создаем копию таба
+  const newTab = {
+    id: newTabId,
+    name: copyName.slice(0, 20), // Ограничиваем длину имени
+    answers: copiedAnswers
+  }
+
+  // Добавляем новый таб в store
+  store.tabs.push(newTab)
+  store.setActiveTab(store.tabs.length - 1)
+  store.markDirty()
 }
 
 /**
