@@ -14,7 +14,8 @@ import type {
 	Answer,
 	TimeValue,
 	SectorMode,
-	LevelSubtype
+	LevelSubtype,
+	AddCodesResult
 } from '@/entities/level/types'
 import {
 	createStorageKey,
@@ -275,39 +276,48 @@ export const useLevelStore = defineStore(
 	/**
 	 * Добавляет несколько ответов в активный таб
 	 */
-	function addMultipleAnswers(answersList: string[][]): number {
+	function addMultipleAnswers(answersList: string[][], excludeDuplicates = false): AddCodesResult {
 		const tab = activeTab.value
-		if (!tab) return 0
+		if (!tab) {
+			return { added: 0, duplicates: 0, total: answersList.length }
+		}
 
 		let added = 0
+		let duplicates = 0
 		const remainingCapacity = MAX_ANSWERS_PER_TAB - tab.answers.length
+		const total = answersList.length
 
 		for (const variants of answersList) {
 			if (added >= remainingCapacity) break
 
-			// Проверяем на дубликаты во всех табах
-			const isDuplicate = allAnswers.value.some(answer =>
-				answer.variants.length === variants.length &&
-				answer.variants.every((v, i) => v === variants[i])
-			)
+			let isDuplicate = false
+			if (excludeDuplicates) {
+				// Проверяем на дубликаты во всех табах
+				isDuplicate = allAnswers.value.some(answer =>
+					answer.variants.length === variants.length &&
+					answer.variants.every((v, i) => v === variants[i])
+				)
+			}
 
-			if (!isDuplicate) {
+			if (isDuplicate) {
+				duplicates++
+			} else {
 				if (addAnswer(variants)) {
 					added++
 				}
 			}
 		}
 
-		return added
+		return { added, duplicates, total }
 	}
 
 	/**
 	 * Добавляет коды в активный таб (для функциональных кнопок)
 	 * Каждый код становится первым вариантом нового ответа
 	 */
-	function addCodesToActiveTab(codes: string[]): number {
+	function addCodesToActiveTab(codes: string[], excludeDuplicates = false): AddCodesResult {
 		const variantsList = codes.map(code => [code.trim()]).filter(variants => variants[0])
-		return addMultipleAnswers(variantsList)
+		return addMultipleAnswers(variantsList, excludeDuplicates)
 	}
 
 	function shouldPreserveAnswerStructure(): boolean {

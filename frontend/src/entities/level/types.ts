@@ -372,6 +372,13 @@ export interface UploadResult {
 	details?: unknown
 }
 
+// Результат добавления кодов
+export interface AddCodesResult {
+	added: number      // Количество добавленных кодов
+	duplicates: number // Количество пропущенных дубликатов
+	total: number      // Общее количество кодов
+}
+
 // Прогресс загрузки
 export interface UploadProgress {
 	current: number

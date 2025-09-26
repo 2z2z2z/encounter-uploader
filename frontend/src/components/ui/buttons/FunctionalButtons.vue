@@ -87,9 +87,11 @@ import ExportModal from '@/components/common/modals/ExportModal.vue'
 import ImportModal from '@/components/common/modals/ImportModal.vue'
 import PreviewModal from '@/components/common/modals/PreviewModal.vue'
 import CodesModal from '@/components/common/modals/CodesModal.vue'
-import type { Answer, LevelStoreState, TabData, TimeValue } from '@/entities/level/types'
+import type { Answer, LevelStoreState, TabData, TimeValue, AddCodesResult } from '@/entities/level/types'
+import { useNotification } from '@/composables/useNotification'
 
 const store = useLevelStore()
+const { success: showSuccess, warn: showWarn, error: showError } = useNotification()
 
 const exportModalVisible = ref(false)
 const importModalVisible = ref(false)
@@ -242,52 +244,46 @@ const onImport = (file: globalThis.File): void => {
   importFile(file)
 }
 
-const onAddCodes = (codes: string[]): void => {
-  // Проверка дубликатов во всех табах
-  const existingCodes = getAllExistingCodes()
-  const newCodes = codes.filter(code => !existingCodes.has(code))
-  
-  if (newCodes.length === 0) {
-    globalThis.alert('Все указанные коды уже существуют в табах.')
-    return
-  }
-  
-  if (newCodes.length < codes.length) {
-    const duplicates = codes.length - newCodes.length
-    globalThis.alert(`Обнаружено и пропущено дубликатов: ${duplicates}`)
-  }
-  
+const onAddCodes = (codes: string[], excludeDuplicates: boolean): void => {
   // Проверка лимита на таб
   const currentCount = store.activeTab?.answers.length || 0
-  if (currentCount + newCodes.length > 10000) {
+  if (currentCount + codes.length > 10000) {
     const maxCanAdd = 10000 - currentCount
     if (maxCanAdd > 0) {
-      globalThis.alert(`Превышен лимит 10000 строк на таб. Будет добавлено только ${maxCanAdd} кодов.`)
-      store.addCodesToActiveTab(newCodes.slice(0, maxCanAdd))
+      showWarn('Превышен лимит', `Превышен лимит 10000 строк на таб. Будет добавлено только ${maxCanAdd} кодов.`)
+      const result: AddCodesResult = store.addCodesToActiveTab(codes.slice(0, maxCanAdd), excludeDuplicates)
+      showToastForResult(result)
     } else {
-      globalThis.alert('Достигнут лимит 10000 строк на таб. Невозможно добавить новые коды.')
+      showError('Лимит превышен', 'Достигнут лимит 10000 строк на таб. Невозможно добавить новые коды.')
     }
   } else {
-    store.addCodesToActiveTab(newCodes)
+    const result: AddCodesResult = store.addCodesToActiveTab(codes, excludeDuplicates)
+    showToastForResult(result)
+  }
+}
+
+const showToastForResult = (result: AddCodesResult): void => {
+  if (result.added === 0) {
+    if (result.duplicates > 0) {
+      showWarn('Коды не добавлены', `Все ${result.duplicates} кодов уже существуют в табах`)
+    } else {
+      showError('Ошибка', 'Не удалось добавить коды')
+    }
+    return
+  }
+
+  let message = `Добавлено ${result.added} кодов`
+  let detail = ''
+
+  if (result.duplicates > 0) {
+    detail = `Пропущено дубликатов: ${result.duplicates}`
+    showSuccess(message, detail)
+  } else {
+    showSuccess(message)
   }
 }
 
 // Утилиты
-const getAllExistingCodes = (): Set<string> => {
-  const codes = new Set<string>()
-  
-  store.tabs.forEach((tab: TabData) => {
-    tab.answers.forEach((answer: Answer) => {
-      answer.variants.forEach((variant: string) => {
-        if (variant.trim()) {
-          codes.add(variant.trim())
-        }
-      })
-    })
-  })
-  
-  return codes
-}
 
 
 const exportJSON = (): void => {

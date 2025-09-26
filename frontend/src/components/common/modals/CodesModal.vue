@@ -150,16 +150,30 @@
     </div>
     
     <template #footer>
-      <BaseButton 
-        variant="primary" 
-        @click="handleApply"
-        :disabled="!hasCodesReady"
-      >
-        Применить ({{ totalCodesCount }} кодов)
-      </BaseButton>
-      <BaseButton variant="secondary" @click="handleCancel" class="ml-2">
-        Отмена
-      </BaseButton>
+      <div class="flex items-center justify-between w-full">
+        <div class="flex items-center">
+          <Checkbox
+            v-model="excludeDuplicates"
+            input-id="exclude-duplicates"
+            binary
+          />
+          <label for="exclude-duplicates" class="ml-2 text-sm">
+            Исключать дубликаты
+          </label>
+        </div>
+        <div class="flex gap-2">
+          <BaseButton
+            variant="primary"
+            @click="handleApply"
+            :disabled="!hasCodesReady"
+          >
+            Применить ({{ totalCodesCount }} кодов)
+          </BaseButton>
+          <BaseButton variant="secondary" @click="handleCancel">
+            Отмена
+          </BaseButton>
+        </div>
+      </div>
     </template>
   </BaseModal>
 </template>
@@ -170,6 +184,7 @@ import TabView from 'primevue/tabview'
 import TabPanel from 'primevue/tabpanel'
 import Textarea from 'primevue/textarea'
 import FileUpload from 'primevue/fileupload'
+import Checkbox from 'primevue/checkbox'
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseInput from '@/components/ui/BaseInput.vue'
@@ -184,7 +199,7 @@ const props = defineProps<Props>()
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
-  'apply': [codes: string[]]
+  'apply': [codes: string[], excludeDuplicates: boolean]
 }>()
 
 const visible = computed({
@@ -196,6 +211,7 @@ const activeTab = ref(0)
 const manualCodes = ref('')
 const generatedCodes = ref('')
 const importedCodes = ref('')
+const excludeDuplicates = ref(false)
 
 const generationOptions = ref({
   prefix: '',
@@ -249,7 +265,7 @@ const totalCodesCount = computed(() => {
   return count
 })
 
-function parseCodeMask(mask: string): string {
+function parseCodeMask(mask: string, usedWords?: Set<string>): string {
   let result = ''
   let i = 0
 
@@ -258,12 +274,44 @@ function parseCodeMask(mask: string): string {
 
     if (mask.substring(i).startsWith('слово')) {
       const lengthMatch = mask.substring(i).match(/^слово\((\d+)\)/)
+      let word: string
+
       if (lengthMatch) {
         const length = Number.parseInt(lengthMatch[1])
-        result += getRandomWord(length)
+        // Если передан Set usedWords, ищем уникальное слово
+        if (usedWords) {
+          let attempts = 0
+          const maxAttempts = 50 // Лимит попыток для поиска уникального слова
+          do {
+            word = getRandomWord(length)
+            attempts++
+          } while (usedWords.has(word) && attempts < maxAttempts)
+
+          if (attempts < maxAttempts) {
+            usedWords.add(word)
+          }
+        } else {
+          word = getRandomWord(length)
+        }
+        result += word
         i += lengthMatch[0].length
       } else {
-        result += getRandomWord()
+        // Если передан Set usedWords, ищем уникальное слово
+        if (usedWords) {
+          let attempts = 0
+          const maxAttempts = 50 // Лимит попыток для поиска уникального слова
+          do {
+            word = getRandomWord()
+            attempts++
+          } while (usedWords.has(word) && attempts < maxAttempts)
+
+          if (attempts < maxAttempts) {
+            usedWords.add(word)
+          }
+        } else {
+          word = getRandomWord()
+        }
+        result += word
         i += 5
       }
     } else if (char === '0') {
@@ -284,7 +332,7 @@ function parseCodeMask(mask: string): string {
   return result
 }
 
-function generateRandomCode(size: number, format: string, mask?: string): string {
+function generateRandomCode(size: number, format: string, mask?: string, usedWords?: Set<string>): string {
   if (format === 'numeric') {
     const min = Math.pow(10, size - 1)
     const max = Math.pow(10, size) - 1
@@ -304,7 +352,7 @@ function generateRandomCode(size: number, format: string, mask?: string): string
   } else if (format === 'words') {
     return getRandomWord(size)
   } else if (format === 'mask' && mask) {
-    return parseCodeMask(mask)
+    return parseCodeMask(mask, usedWords)
   } else {
     let code = ''
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
@@ -318,12 +366,13 @@ function generateRandomCode(size: number, format: string, mask?: string): string
 function generateCodes() {
   const { prefix, suffix, count, size, format, mask } = generationOptions.value
   const codes = new Set<string>()
+  const usedWords = new Set<string>() // Для отслеживания уже использованных слов в масках
 
   let attempts = 0
   const maxAttempts = count * 100
 
   while (codes.size < count && attempts < maxAttempts) {
-    const code = generateRandomCode(size, format, mask)
+    const code = generateRandomCode(size, format, mask, usedWords)
     const fullCode = `${prefix}${code}${suffix}`
     codes.add(fullCode)
     attempts++
@@ -346,7 +395,7 @@ async function handleFileImport(event: { files: globalThis.File[] }) {
 
 function handleApply() {
   let codes: string[] = []
-  
+
   if (activeTab.value === 0 && manualCodes.value.trim()) {
     codes = manualCodes.value.trim().split('\n').map(c => c.trim()).filter(Boolean)
   } else if (activeTab.value === 1 && generatedCodes.value.trim()) {
@@ -354,9 +403,9 @@ function handleApply() {
   } else if (activeTab.value === 2 && importedCodes.value.trim()) {
     codes = importedCodes.value.trim().split('\n').map(c => c.trim()).filter(Boolean)
   }
-  
+
   if (codes.length > 0) {
-    emit('apply', codes)
+    emit('apply', codes, excludeDuplicates.value)
     visible.value = false
     resetState()
   }
@@ -372,6 +421,7 @@ function resetState() {
   manualCodes.value = ''
   generatedCodes.value = ''
   importedCodes.value = ''
+  excludeDuplicates.value = false
   generationOptions.value = {
     prefix: '',
     suffix: '',
