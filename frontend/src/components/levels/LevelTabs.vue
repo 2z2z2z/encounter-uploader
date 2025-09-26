@@ -87,6 +87,7 @@ import InputText from 'primevue/inputtext'
 import Tooltip from 'primevue/tooltip'
 import { useLevelStore } from '@/store/levels'
 import { getLevelTypeConfig } from '@/entities/level/configs'
+import type { Answer } from '@/entities/level/types'
 
 const vTooltip = Tooltip
 
@@ -176,8 +177,8 @@ const copyCurrentTab = () => {
   // Создаем новый ID для таба
   const newTabId = `tab-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
 
-  // Копируем все ответы с новыми ID
-  const copiedAnswers = sourceTab.answers.map((answer, index) => ({
+  // Делаем глубокое копирование всех ответов для избежания связанности данных
+  const copiedAnswers = JSON.parse(JSON.stringify(sourceTab.answers)).map((answer: Answer, index: number) => ({
     ...answer,
     id: `answer-${Date.now()}-${Math.random().toString(36).slice(2, 11)}-${index}`
   }))

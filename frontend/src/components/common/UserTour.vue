@@ -132,7 +132,7 @@ const tourSteps = computed(() => {
       tag: `Шаг ${stepNumber++} из ${getTotalSteps()}`,
       beforeScript: () => {
         // Проверяем, есть ли табы на странице
-        const tabsContainer = globalThis.document.querySelector<HTMLElement>('[data-tour="level-tabs"]')
+        const tabsContainer = globalThis.document.querySelector<globalThis.HTMLElement>('[data-tour="level-tabs"]')
         if (!tabsContainer || tabsContainer.offsetParent === null) {
           console.log('Tabs not visible, skipping step')
           return false // пропустить шаг если табов нет
