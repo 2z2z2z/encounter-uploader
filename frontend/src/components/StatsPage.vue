@@ -155,6 +155,67 @@
               </template>
             </Card>
 
+            <!-- Детализация по доменам -->
+            <Card v-if="rawStats?.breakdown?.domains && rawStats.breakdown.domains.length > 0">
+              <template #title>
+                <div class="flex items-center gap-2">
+                  <i class="pi pi-globe text-blue-500"></i>
+                  Статистика по доменам
+                </div>
+              </template>
+              <template #content>
+                <DataTable
+                  :value="rawStats.breakdown.domains"
+                  striped-rows
+                  responsive-layout="scroll"
+                  :rows="10"
+                  :paginator="rawStats.breakdown.domains.length > 10"
+                >
+                  <Column field="domain" header="Домен" sortable />
+                  <Column field="tasks" header="Задания" sortable />
+                  <Column field="sectors" header="Секторы" sortable />
+                  <Column field="bonuses" header="Бонусы" sortable />
+                  <Column field="uniqueGames" header="Игр" sortable />
+                  <Column field="gameIds" header="ID игр">
+                    <template #body="{ data }">
+                      <div class="max-w-xs truncate" :title="data.gameIds.join(', ')">
+                        {{ data.gameIds.slice(0, 3).join(', ') }}
+                        <span v-if="data.gameIds.length > 3" class="text-surface-500">
+                          и ещё {{ data.gameIds.length - 3 }}
+                        </span>
+                      </div>
+                    </template>
+                  </Column>
+                </DataTable>
+              </template>
+            </Card>
+
+            <!-- Детализация по играм -->
+            <Card v-if="rawStats?.breakdown?.games && rawStats.breakdown.games.length > 0">
+              <template #title>
+                <div class="flex items-center gap-2">
+                  <i class="pi pi-gamepad-2 text-green-500"></i>
+                  Топ активных игр
+                </div>
+              </template>
+              <template #content>
+                <DataTable
+                  :value="topGames"
+                  striped-rows
+                  responsive-layout="scroll"
+                  :rows="15"
+                  :paginator="topGames.length > 15"
+                >
+                  <Column field="domain" header="Домен" sortable />
+                  <Column field="gameId" header="ID игры" sortable />
+                  <Column field="tasks" header="Задания" sortable />
+                  <Column field="sectors" header="Секторы" sortable />
+                  <Column field="bonuses" header="Бонусы" sortable />
+                  <Column field="total" header="Всего" sortable />
+                </DataTable>
+              </template>
+            </Card>
+
             <!-- Дебаг: показать что rawStats содержит мета -->
             <div v-if="!rawStats?.meta && rawStats" class="text-sm text-surface-500">
               Отладка: rawStats есть, но meta нет. Ключи: {{ Object.keys(rawStats) }}
@@ -200,6 +261,23 @@ interface StatsData {
   uniqueDomains: number
 }
 
+interface DomainStats {
+  domain: string
+  tasks: number
+  sectors: number
+  bonuses: number
+  uniqueGames: number
+  gameIds: string[]
+}
+
+interface GameStats {
+  domain: string
+  gameId: string
+  tasks: number
+  sectors: number
+  bonuses: number
+}
+
 interface ApiStatsResponse {
   allTime: StatsData
   month: StatsData
@@ -210,6 +288,10 @@ interface ApiStatsResponse {
     totalRecords: number
     oldestRecord: string | null
     newestRecord: string | null
+  }
+  breakdown?: {
+    domains: DomainStats[]
+    games: GameStats[]
   }
 }
 
@@ -290,6 +372,17 @@ const summaryData = computed(() => {
       ...day
     }
   ]
+})
+
+const topGames = computed(() => {
+  if (!rawStats.value?.breakdown?.games) return []
+
+  return rawStats.value.breakdown.games
+    .map(game => ({
+      ...game,
+      total: game.tasks + game.sectors + game.bonuses
+    }))
+    .sort((a, b) => b.total - a.total)
 })
 
 async function fetchStats(): Promise<void> {

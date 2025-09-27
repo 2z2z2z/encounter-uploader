@@ -477,6 +477,65 @@ app.get('/api/stats', async (_req, res) => {
       }
     }
 
+    // Собираем детализацию по доменам и играм
+    function getDomainsAndGames() {
+      const allRecords = [...safeTasks, ...safeSectors, ...safeBonuses]
+      const domainStats = new Map()
+      const gameStats = new Map()
+
+      allRecords.forEach(record => {
+        if (record && typeof record.domain === 'string' && typeof record.gameId === 'string') {
+          const domain = record.domain
+          const gameKey = `${record.domain}-${record.gameId}`
+
+          // Статистика по доменам
+          if (!domainStats.has(domain)) {
+            domainStats.set(domain, { tasks: 0, sectors: 0, bonuses: 0, games: new Set() })
+          }
+          const domainStat = domainStats.get(domain)
+          domainStat.games.add(record.gameId)
+
+          // Статистика по играм
+          if (!gameStats.has(gameKey)) {
+            gameStats.set(gameKey, { domain: record.domain, gameId: record.gameId, tasks: 0, sectors: 0, bonuses: 0 })
+          }
+
+          // Увеличиваем счетчики в зависимости от типа записи
+          if (safeTasks.includes(record)) {
+            domainStat.tasks++
+            gameStats.get(gameKey).tasks++
+          } else if (safeSectors.includes(record)) {
+            const count = Number(record.count) || 1
+            domainStat.sectors += count
+            gameStats.get(gameKey).sectors += count
+          } else if (safeBonuses.includes(record)) {
+            domainStat.bonuses++
+            gameStats.get(gameKey).bonuses++
+          }
+        }
+      })
+
+      // Преобразуем в массивы для отправки
+      const domains = Array.from(domainStats.entries()).map(([domain, stats]) => ({
+        domain,
+        tasks: stats.tasks,
+        sectors: stats.sectors,
+        bonuses: stats.bonuses,
+        uniqueGames: stats.games.size,
+        gameIds: Array.from(stats.games).sort()
+      })).sort((a, b) => a.domain.localeCompare(b.domain))
+
+      const games = Array.from(gameStats.values())
+        .sort((a, b) => {
+          const domainCompare = a.domain.localeCompare(b.domain)
+          return domainCompare !== 0 ? domainCompare : a.gameId.localeCompare(b.gameId)
+        })
+
+      return { domains, games }
+    }
+
+    const { domains, games } = getDomainsAndGames()
+
     const result = {
       allTime: getAggregatedStats('all'),
       month: getAggregatedStats('month'),
@@ -487,6 +546,10 @@ app.get('/api/stats', async (_req, res) => {
         totalRecords: safeTasks.length + safeSectors.length + safeBonuses.length,
         oldestRecord: getOldestRecord([...safeTasks, ...safeSectors, ...safeBonuses]),
         newestRecord: getNewestRecord([...safeTasks, ...safeSectors, ...safeBonuses])
+      },
+      breakdown: {
+        domains,
+        games: games.slice(0, 50) // Ограничиваем количество игр для производительности
       }
     }
 
