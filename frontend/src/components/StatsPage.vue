@@ -313,6 +313,14 @@ const stats = computed(() => {
   const periodData = rawStats.value[selectedPeriod.value as keyof ApiStatsResponse]
   if (!periodData || typeof periodData !== 'object') return null
 
+  // Type guard для проверки что это StatsData
+  const isStatsData = (data: unknown): data is StatsData => {
+    return typeof data === 'object' && data !== null &&
+           'tasks' in data && 'sectors' in data && 'bonuses' in data
+  }
+
+  if (!isStatsData(periodData)) return null
+
   // Дополнительная защита от некорректных значений на клиенте
   return {
     tasks: Math.max(0, Number(periodData.tasks) || 0),
