@@ -3,12 +3,14 @@ import LoginForm from '../components/LoginForm.vue'
 import SettingsForm from '../components/SettingsForm.vue'
 import LevelUploadPage from '../components/levels/LevelUploadPage.vue'
 import TestUploadPage from '../components/levels/TestUploadPage.vue'
+import StatsPage from '../components/StatsPage.vue'
 import { useLevelStore } from '@/store/levels'
 
 const routes = [
   { path: '/', redirect: '/login' },
   { path: '/login', name: 'login', component: LoginForm },
   { path: '/settings', name: 'settings', component: SettingsForm },
+  { path: '/stats', name: 'stats', component: StatsPage },
   {
     path: '/upload',
     redirect: () => {

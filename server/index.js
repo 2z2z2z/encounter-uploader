@@ -5,6 +5,9 @@ const session = require('express-session')
 const axios = require('axios')
 const axiosRetry = require('axios-retry')
 const bodyParser = require('body-parser')
+const fs = require('fs')
+const path = require('path')
+const crypto = require('crypto')
 
 const app = express()
 
@@ -30,6 +33,104 @@ app.use(
 // Разбираем JSON и form-urlencoded
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
+
+// === МОДУЛЬ СТАТИСТИКИ ===
+const STATS_FILE = path.join(__dirname, 'stats.json')
+
+/**
+ * Создает анонимный хэш для пользователя на основе домена и сессии
+ */
+function createUserHash(domain, sessionId) {
+  return crypto.createHash('sha256').update(`${domain}-${sessionId}`).digest('hex').slice(0, 16)
+}
+
+/**
+ * Загружает статистику из файла
+ */
+function loadStats() {
+  try {
+    if (!fs.existsSync(STATS_FILE)) {
+      return { tasks: [], sectors: [], bonuses: [] }
+    }
+    const data = fs.readFileSync(STATS_FILE, 'utf8')
+    return JSON.parse(data)
+  } catch (error) {
+    console.error('[Stats] Error loading stats:', error)
+    return { tasks: [], sectors: [], bonuses: [] }
+  }
+}
+
+/**
+ * Сохраняет статистику в файл
+ */
+function saveStats(stats) {
+  try {
+    fs.writeFileSync(STATS_FILE, JSON.stringify(stats, null, 2), 'utf8')
+  } catch (error) {
+    console.error('[Stats] Error saving stats:', error)
+  }
+}
+
+/**
+ * Логирует задание
+ */
+function logTask(domain, gameId, sessionId) {
+  try {
+    const stats = loadStats()
+    const userHash = createUserHash(domain, sessionId)
+    stats.tasks.push({
+      timestamp: new Date().toISOString(),
+      domain,
+      gameId: String(gameId),
+      userHash
+    })
+    saveStats(stats)
+    console.log('[Stats] Task logged:', { domain, gameId, userHash })
+  } catch (error) {
+    console.error('[Stats] Error logging task:', error)
+  }
+}
+
+/**
+ * Логирует сектор
+ */
+function logSector(domain, gameId, sessionId, count = 1) {
+  try {
+    const stats = loadStats()
+    const userHash = createUserHash(domain, sessionId)
+    stats.sectors.push({
+      timestamp: new Date().toISOString(),
+      domain,
+      gameId: String(gameId),
+      userHash,
+      count: Number(count)
+    })
+    saveStats(stats)
+    console.log('[Stats] Sector logged:', { domain, gameId, userHash, count })
+  } catch (error) {
+    console.error('[Stats] Error logging sector:', error)
+  }
+}
+
+/**
+ * Логирует бонус
+ */
+function logBonus(domain, gameId, sessionId) {
+  try {
+    const stats = loadStats()
+    const userHash = createUserHash(domain, sessionId)
+    stats.bonuses.push({
+      timestamp: new Date().toISOString(),
+      domain,
+      gameId: String(gameId),
+      userHash
+    })
+    saveStats(stats)
+    console.log('[Stats] Bonus logged:', { domain, gameId, userHash })
+  } catch (error) {
+    console.error('[Stats] Error logging bonus:', error)
+  }
+}
 
 // Глобальные ретраи для запросов к EN: GET → 429/5xx/сеть; POST → 429/сеть
 axiosRetry(axios, {
@@ -181,6 +282,12 @@ app.post('/api/admin/task', async (req, res) => {
     refreshAuthCookie(req, proxyRes)
     const clientStatus = proxyRes.status === 302 ? 200 : proxyRes.status
     console.log('[proxyAdminTask] ◀', proxyRes.status, '→ client', clientStatus)
+
+    // Логируем статистику только при успешной отправке
+    if (clientStatus >= 200 && clientStatus < 300) {
+      logTask(domain, gid, req.sessionID)
+    }
+
     res.status(clientStatus).send(proxyRes.data)
   } catch (err) {
     console.error('[proxyAdminTask] Error:', err.response?.status, err.message)
@@ -216,6 +323,12 @@ app.post('/api/admin/sector', async (req, res) => {
     refreshAuthCookie(req, proxyRes)
     const clientStatus = proxyRes.status === 302 ? 200 : proxyRes.status
     console.log('[proxyAdminSector] ◀', proxyRes.status, '→ client', clientStatus)
+
+    // Логируем статистику только при успешной отправке
+    if (clientStatus >= 200 && clientStatus < 300) {
+      logSector(domain, gid, req.sessionID, 1)
+    }
+
     res.status(clientStatus).send(proxyRes.data)
   } catch (err) {
     console.error('[proxyAdminSector] Error:', err.response?.status, err.message)
@@ -246,6 +359,12 @@ app.post('/api/admin/bonus', async (req, res) => {
     refreshAuthCookie(req, proxyRes)
     const clientStatus = proxyRes.status === 302 ? 200 : proxyRes.status
     console.log('[proxyAdminBonus] ◀', proxyRes.status, '→ client', clientStatus)
+
+    // Логируем статистику только при успешной отправке
+    if (clientStatus >= 200 && clientStatus < 300) {
+      logBonus(domain, gid, req.sessionID)
+    }
+
     res.status(clientStatus).send(proxyRes.data)
   } catch (err) {
     console.error('[proxyAdminBonus] Error:', err.response?.status, err.message)
@@ -278,6 +397,147 @@ app.get('/api/admin/bonus-form', async (req, res) => {
     res.status(500).send('Error fetching bonus form')
   }
 })
+
+// === ENDPOINT СТАТИСТИКИ ===
+app.get('/api/stats', async (_req, res) => {
+  try {
+    const stats = loadStats()
+
+    // Защита от некорректных данных
+    const safeTasks = Array.isArray(stats.tasks) ? stats.tasks : []
+    const safeSectors = Array.isArray(stats.sectors) ? stats.sectors : []
+    const safeBonuses = Array.isArray(stats.bonuses) ? stats.bonuses : []
+
+    // Вычисляем агрегированную статистику
+    const now = new Date()
+    const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+
+    function filterByTime(items, timeFilter) {
+      if (!Array.isArray(items)) return []
+
+      return items.filter(item => {
+        if (!item || !item.timestamp) return false
+
+        try {
+          const timestamp = new Date(item.timestamp)
+          if (isNaN(timestamp.getTime())) return false
+
+          switch (timeFilter) {
+            case 'day': return timestamp >= dayAgo
+            case 'week': return timestamp >= weekAgo
+            case 'month': return timestamp >= monthAgo
+            default: return true // all time
+          }
+        } catch (e) {
+          console.warn('[Stats] Invalid timestamp:', item.timestamp)
+          return false
+        }
+      })
+    }
+
+    function getAggregatedStats(timeFilter) {
+      const filteredTasks = filterByTime(safeTasks, timeFilter)
+      const filteredSectors = filterByTime(safeSectors, timeFilter)
+      const filteredBonuses = filterByTime(safeBonuses, timeFilter)
+
+      // Подсчет уникальных значений с защитой от некорректных данных
+      const uniqueGames = new Set()
+      const uniqueUsers = new Set()
+      const uniqueDomains = new Set()
+
+      function addToSets(item) {
+        if (item && typeof item.domain === 'string' && typeof item.gameId === 'string') {
+          uniqueGames.add(`${item.domain}-${item.gameId}`)
+          uniqueDomains.add(item.domain)
+        }
+        if (item && typeof item.userHash === 'string') {
+          uniqueUsers.add(item.userHash)
+        }
+      }
+
+      filteredTasks.forEach(addToSets)
+      filteredSectors.forEach(addToSets)
+      filteredBonuses.forEach(addToSets)
+
+      // Подсчет общего количества секторов с защитой от NaN
+      const totalSectors = filteredSectors.reduce((sum, item) => {
+        const count = Number(item.count) || 1
+        return sum + (isNaN(count) ? 1 : Math.max(1, count))
+      }, 0)
+
+      return {
+        tasks: Math.max(0, filteredTasks.length),
+        sectors: Math.max(0, totalSectors),
+        bonuses: Math.max(0, filteredBonuses.length),
+        uniqueGames: Math.max(0, uniqueGames.size),
+        uniqueUsers: Math.max(0, uniqueUsers.size),
+        uniqueDomains: Math.max(0, uniqueDomains.size)
+      }
+    }
+
+    const result = {
+      allTime: getAggregatedStats('all'),
+      month: getAggregatedStats('month'),
+      week: getAggregatedStats('week'),
+      day: getAggregatedStats('day'),
+      meta: {
+        lastUpdate: new Date().toISOString(),
+        totalRecords: safeTasks.length + safeSectors.length + safeBonuses.length,
+        oldestRecord: getOldestRecord([...safeTasks, ...safeSectors, ...safeBonuses]),
+        newestRecord: getNewestRecord([...safeTasks, ...safeSectors, ...safeBonuses])
+      }
+    }
+
+    console.log('[Stats] Statistics requested:', result)
+    res.json(result)
+  } catch (error) {
+    console.error('[Stats] Error getting statistics:', error)
+    res.status(500).json({ error: 'Error loading statistics' })
+  }
+})
+
+// Вспомогательные функции для метаданных
+function getOldestRecord(records) {
+  if (!Array.isArray(records) || records.length === 0) return null
+
+  let oldest = null
+  records.forEach(record => {
+    if (record && record.timestamp) {
+      try {
+        const timestamp = new Date(record.timestamp)
+        if (!isNaN(timestamp.getTime()) && (!oldest || timestamp < oldest)) {
+          oldest = timestamp
+        }
+      } catch (e) {
+        // Игнорируем некорректные временные метки
+      }
+    }
+  })
+
+  return oldest ? oldest.toISOString() : null
+}
+
+function getNewestRecord(records) {
+  if (!Array.isArray(records) || records.length === 0) return null
+
+  let newest = null
+  records.forEach(record => {
+    if (record && record.timestamp) {
+      try {
+        const timestamp = new Date(record.timestamp)
+        if (!isNaN(timestamp.getTime()) && (!newest || timestamp > newest)) {
+          newest = timestamp
+        }
+      } catch (e) {
+        // Игнорируем некорректные временные метки
+      }
+    }
+  })
+
+  return newest ? newest.toISOString() : null
+}
 
 // === Старт сервера ===
 app.listen(PORT, () => {
