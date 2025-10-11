@@ -23,7 +23,8 @@ import {
 	getSubtypeConfig,
 	hasSubtypes
 } from '@/entities/level/configs'
-import { DEFAULT_OPEN_PIC_SVG } from '@/entities/level/fields/tableRenderers'
+import { getFieldDefaultValue } from '@/entities/level/fields/fieldDefinitions'
+import type { FieldId } from '@/entities/level/types'
 
 // Константы
 const SCHEMA_VERSION = 1
@@ -168,28 +169,63 @@ export const useLevelStore = defineStore(
 	}
 
 	/**
-	 * Создает пустой ответ
+	 * Создает пустой ответ с условной инициализацией полей
+	 * на основе конфигурации текущего типа уровня
+	 *
+	 * ВАЖНО: Инициализируются только поля, которые есть в levelConfig.fields
+	 * Это предотвращает добавление ненужных данных в localStorage для типов,
+	 * которые не используют определенные поля (например, closedPic/openPic для olymp)
 	 */
 	function createEmptyAnswer(number: number): Answer {
-		return {
+		// Получаем конфигурацию текущего типа уровня
+		const config = getLevelTypeConfig(levelType.value)
+
+		// Базовые поля, которые всегда присутствуют в Answer
+		const answer: Answer = {
 			id: generateAnswerId(),
 			number,
 			variants: [''],
 			sector: true,
 			bonus: true,
-			bonusTime: { hours: 0, minutes: 0, seconds: 0, negative: false },
-			closedText: '',
-			displayText: '',
-			bonusLevels: levelId.value ? [String(levelId.value)] : [],
-			delay: { hours: 0, minutes: 0, seconds: 0 },
-			limit: { hours: 0, minutes: 0, seconds: 0 },
-			sectorName: '',
-			bonusName: '',
-			bonusTask: '',
-			hint: '',
-			closedPic: [''],
-			openPic: [DEFAULT_OPEN_PIC_SVG]
+			bonusTime: { hours: 0, minutes: 0, seconds: 0, negative: false }
 		}
+
+		// Если конфига нет, возвращаем только базовые поля
+		if (!config) {
+			return answer
+		}
+
+		// Инициализируем дополнительные поля на основе конфигурации типа
+		// Проходим по всем полям из конфига и добавляем их с дефолтными значениями
+		config.fields.forEach((fieldId: FieldId) => {
+			// Базовые поля уже инициализированы выше
+			if (fieldId === 'answer' || fieldId === 'sector' || fieldId === 'bonus' || fieldId === 'bonusTime') {
+				return
+			}
+
+			// Получаем дефолтное значение из fieldDefinitions
+			const defaultValue = getFieldDefaultValue(fieldId)
+
+			// Специальная обработка для bonusLevels - добавляем текущий levelId
+			if (fieldId === 'bonusLevels' && levelId.value) {
+				answer.bonusLevels = [String(levelId.value)]
+				return
+			}
+
+			// Для остальных полей используем дефолтное значение из определения поля
+			if (defaultValue !== undefined) {
+				// Клонируем объекты и массивы, чтобы избежать общих ссылок
+				if (Array.isArray(defaultValue)) {
+					answer[fieldId] = [...defaultValue] as never
+				} else if (typeof defaultValue === 'object' && defaultValue !== null) {
+					answer[fieldId] = { ...defaultValue } as never
+				} else {
+					answer[fieldId] = defaultValue as never
+				}
+			}
+		})
+
+		return answer
 	}
 
 	// ===== Управление табами =====

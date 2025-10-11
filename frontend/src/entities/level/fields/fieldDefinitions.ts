@@ -1,11 +1,12 @@
 /**
  * Определения полей для системы level-system
- * 
- * Содержит канонический набор из 13 полей с метаданными.
+ *
+ * Содержит канонический набор из 15 полей с метаданными.
  * Порядок полей определяет порядок колонок в DataTable.
  */
 
 import type { FieldDefinition, FieldId, FieldType } from "@/entities/level/types"
+import { DEFAULT_OPEN_PIC_SVG, DEFAULT_BONUS_TIME, DEFAULT_TIME_SIMPLE } from '@/entities/level/constants'
 
 /**
  * Канонические определения полей
@@ -20,7 +21,8 @@ export const FIELD_DEFINITIONS: readonly FieldDefinition[] = [
 		type: 'string[]',
 		columnLabel: 'Ответ',
 		required: true,
-		placeholder: 'Введите варианты ответов'
+		placeholder: 'Введите варианты ответов',
+		defaultValue: ['']
 	},
 	{
 		id: 'sector',
@@ -43,7 +45,7 @@ export const FIELD_DEFINITIONS: readonly FieldDefinition[] = [
 		type: 'time',
 		columnLabel: 'Бонусное время',
 		controlId: 'bonusTime',
-		defaultValue: { hours: 0, minutes: 0, seconds: 0, negative: false }
+		defaultValue: DEFAULT_BONUS_TIME
 	},
 	{
 		id: 'closedText',
@@ -51,7 +53,8 @@ export const FIELD_DEFINITIONS: readonly FieldDefinition[] = [
 		type: 'string',
 		columnLabel: 'Закрытый сектор',
 		controlId: 'closedSector',
-		placeholder: 'Текст или картинка'
+		placeholder: 'Текст или картинка',
+		defaultValue: ''
 	},
 	{
 		id: 'displayText',
@@ -59,7 +62,8 @@ export const FIELD_DEFINITIONS: readonly FieldDefinition[] = [
 		type: 'string',
 		columnLabel: 'Открытый сектор',
 		controlId: 'openSector',
-		placeholder: 'Отображение ответа'
+		placeholder: 'Отображение ответа',
+		defaultValue: ''
 	},
 	{
 		id: 'closedPic',
@@ -67,7 +71,8 @@ export const FIELD_DEFINITIONS: readonly FieldDefinition[] = [
 		type: 'string[]',
 		columnLabel: 'Закрытая картинка',
 		controlId: 'closedPicNames',
-		placeholder: 'URL или HTML'
+		placeholder: 'URL или HTML',
+		defaultValue: ['']
 	},
 	{
 		id: 'openPic',
@@ -75,14 +80,16 @@ export const FIELD_DEFINITIONS: readonly FieldDefinition[] = [
 		type: 'string[]',
 		columnLabel: 'Открытая картинка',
 		controlId: 'openPicNames',
-		placeholder: 'URL или HTML'
+		placeholder: 'URL или HTML',
+		defaultValue: [DEFAULT_OPEN_PIC_SVG]
 	},
 	{
 		id: 'bonusLevels',
 		label: 'Уровни бонуса',
 		type: 'levels',
 		columnLabel: 'Уровни бонуса',
-		controlId: 'bonusLevels'
+		controlId: 'bonusLevels',
+		defaultValue: []
 	},
 	{
 		id: 'delay',
@@ -90,7 +97,7 @@ export const FIELD_DEFINITIONS: readonly FieldDefinition[] = [
 		type: 'timeSimple',
 		columnLabel: 'Задержка',
 		controlId: 'delay',
-		defaultValue: { hours: 0, minutes: 0, seconds: 0 }
+		defaultValue: DEFAULT_TIME_SIMPLE
 	},
 	{
 		id: 'limit',
@@ -98,7 +105,7 @@ export const FIELD_DEFINITIONS: readonly FieldDefinition[] = [
 		type: 'timeSimple',
 		columnLabel: 'Ограничение',
 		controlId: 'limit',
-		defaultValue: { hours: 0, minutes: 0, seconds: 0 }
+		defaultValue: DEFAULT_TIME_SIMPLE
 	},
 	{
 		id: 'sectorName',
@@ -106,15 +113,17 @@ export const FIELD_DEFINITIONS: readonly FieldDefinition[] = [
 		type: 'string',
 		columnLabel: 'Название сектора',
 		controlId: 'sectorName',
-		placeholder: 'Название'
+		placeholder: 'Название',
+		defaultValue: ''
 	},
 	{
 		id: 'bonusName',
 		label: 'Название бонуса',
 		type: 'string',
-		columnLabel: 'Название бонуса', 
+		columnLabel: 'Название бонуса',
 		controlId: 'bonusName',
-		placeholder: 'Название'
+		placeholder: 'Название',
+		defaultValue: ''
 	},
 	{
 		id: 'bonusTask',
@@ -123,7 +132,8 @@ export const FIELD_DEFINITIONS: readonly FieldDefinition[] = [
 		columnLabel: 'Бонусное задание',
 		controlId: 'bonusTask',
 		expandable: true,
-		placeholder: 'HTML код задания'
+		placeholder: 'HTML код задания',
+		defaultValue: ''
 	},
 	{
 		id: 'hint',
@@ -132,7 +142,8 @@ export const FIELD_DEFINITIONS: readonly FieldDefinition[] = [
 		columnLabel: 'Подсказка',
 		controlId: 'hint',
 		expandable: true,
-		placeholder: 'HTML код подсказки'
+		placeholder: 'HTML код подсказки',
+		defaultValue: ''
 	}
 ] as const
 

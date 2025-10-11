@@ -127,18 +127,6 @@ const generateStyles = (): string => {
     max-width: 100%;
     padding: 10px;
   }
-
-  .svalka-block {
-    width: calc(50% - 5px);
-    height: auto;
-    aspect-ratio: 1;
-  }
-}
-
-@media (max-width: 480px) {
-  .svalka-block {
-    width: 100%;
-  }
 }
 </style>`
 }

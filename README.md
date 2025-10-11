@@ -53,11 +53,12 @@ Encounter Uploader — внутренняя утилита для подгото
 ### Система типов уровней
 - Реестр типов: `frontend/src/entities/level/configs.ts`. Каждая запись описывает `id`, `subtypes`, `fields`, `controls`, `buttons`, `payloads`, `defaults`. Регистрация выполняется вызовом `registerLevelType` в конце модуля.
 - Типы данных: `frontend/src/entities/level/types.ts` — единый контракт для полей, табов, конфигов, пейлоадов и стора.
-- Поля: `frontend/src/entities/level/fields/fieldDefinitions.ts` (канонический список 13 полей, их порядок = порядок колонок). Рендеры PrimeVue-компонентами описаны в `tableRenderers.ts` и подключаются динамически в `LevelContent.vue`.
+- Поля: `frontend/src/entities/level/fields/fieldDefinitions.ts` (канонический список 15 полей, их порядок = порядок колонок). Рендеры PrimeVue-компонентами описаны в `tableRenderers.ts` и подключаются динамически в `LevelContent.vue`.
+- Константы: `frontend/src/entities/level/constants.ts` — дефолтные значения полей (DEFAULT_OPEN_PIC_SVG, DEFAULT_BONUS_TIME, DEFAULT_TIME_SIMPLE), используются в fieldDefinitions и store.
 - Контролы: `frontend/src/components/ui/controls/*.vue`, реестр в `index.ts`, выбирается по `ControlId` из конфига типа.
 - Кнопки: `frontend/src/components/ui/buttons`, три группы (navigation/functional/action), управляются конфигом типа.
 - Импорт/экспорт: реализован в `FunctionalButtons.vue`, использует структуру `TabData`. JSON сохраняет все табы; CSV использует колонку `tab`.
-- Генераторы пейлоадов: `frontend/src/services/levelPayloads/*` — собирают формы EN для task/sector/bonus. Простые типы могут включать `true`, сложные — ссылку на генератор (`generator: 'olymp.task'`).
+- Генераторы пейлоадов: `frontend/src/services/levelPayloads/*` — собирают формы EN для task/sector/bonus. Простые типы могут включать `true`, сложные — ссылку на генератор (`generator: 'olymp.task'`, `generator: 'svalka.task'`).
 
 ### UI-слой
 - `LevelUploadPage.vue` — главный контейнер: инициализация стора, перехват переключения подтипов, показ `UploadProgress.vue`.
@@ -67,7 +68,30 @@ Encounter Uploader — внутренняя утилита для подгото
 - Общие модалки (`components/common/modals/*`) и уведомления (`components/common/notifications`) подключаются через PrimeVue сервисы.
 
 ### Тестовые конфиги
-`frontend/test-configs/config.json` сопоставляет алиасы (`olymp15`, `type100500`) файлам с данными. Композабл `useTestConfig` загружает JSON и env-креды, `useTestUrlMode` отключает persist.
+`frontend/test-configs/config.json` сопоставляет алиасы (`olymp15`, `type100500`, `svalka`) файлам с данными. Композабл `useTestConfig` загружает JSON и env-креды, `useTestUrlMode` отключает persist.
+
+### Реализованные типы уровней
+
+#### 1. Олимпийка (olymp)
+- **Подтипы:** 7, 15, 31, 63, 127 секторов (фиксированная размерность)
+- **Поля:** answer, sector, bonus, bonusTime, closedText, displayText
+- **Контролы:** sectorMode, bonusTime, closedSectorName, openSectorFill
+- **Особенности:** Автоматическое количество ответов по размерности подтипа; генератор Task пейлоада с таблицей секторов; стратегия hint = autoContent (генерация скрипта замены innerHTML)
+- **Генератор:** `olymp.task` — создает HTML таблицу с закрытыми секторами
+
+#### 2. 100500 секторов и бонусов (type100500)
+- **Подтипы:** Нет (гибкая структура)
+- **Поля:** answer, sector, bonus, bonusLevels, bonusTime, delay, limit, sectorName, bonusName, bonusTask, hint
+- **Контролы:** bonusTime, delay, limit, bonusLevels, sectorNames, bonusNames, bonusTasks, hints
+- **Особенности:** Мультиблочная структура (до 10 табов); ручное добавление кодов; режим БМП (объединение секторов из разных табов); без Task пейлоада
+- **Генератор:** Нет (только Sector и Bonus пейлоады)
+
+#### 3. Свалка картинками (svalka)
+- **Подтипы:** Нет (гибкая структура)
+- **Поля:** answer, sector, bonus, bonusTime, sectorName, bonusName, closedPic, openPic
+- **Контролы:** bonusTime, sectorNames, bonusNames, closedPicNames, openPicNames
+- **Особенности:** Мультиблочная структура; множественные картинки на ответ (closedPic/openPic массивы); генератор Task с сеткой блоков 120×120px; предпросмотр с переключением закрытый/открытый режимы; перемешивание порядка блоков с сохранением в blockOrder
+- **Генератор:** `svalka.task` — создает адаптивную сетку квадратных блоков с картинками; стратегия hint = autoContent (генерация скриптов для каждого ID картинки)
 
 ## Добавление нового типа уровня
 1. Создать конфиг в `frontend/src/entities/level/configs.ts`:
@@ -76,12 +100,15 @@ Encounter Uploader — внутренняя утилита для подгото
    - Указать `fields`, `controls`, `buttons`, `payloads`, `defaults`.
    - Вызвать `registerLevelType(newConfig)`.
 2. При необходимости расширить базу полей:
-   - Добавить запись в `fieldDefinitions.ts` (label, type, defaults, controlId).
+   - Добавить запись в `fieldDefinitions.ts` (label, type, defaultValue, controlId).
+   - Если нужна новая константа для defaultValue — добавить в `constants.ts`.
    - Реализовать рендер в `tableRenderers.ts` и экспортировать через `fieldRenderers`.
 3. Добавить/переиспользовать контролы (`components/ui/controls`) и кнопки (`components/ui/buttons`), обновить перечисления в `types.ts`.
-4. Если нужны новые генераторы пейлоадов — реализовать в `src/services/levelPayloads` и зарегистрировать в `payloads` конфига.
+4. Если нужны новые генераторы пейлоадов — реализовать в `src/services/levelPayloads` и зарегистрировать в `payloads` конфига и в `content/generators/index.ts`.
 5. Обновить тестовый JSON в `frontend/test-configs` и `config.json`, чтобы режим `/test/<type>` отражал новый тип.
-6. Дополнить текущую документацию при изменении сценариев.
+6. Дополнить текущую документацию (README.md) при изменении сценариев.
+
+**Важно:** Система автоматически инициализирует только те поля, которые указаны в `config.fields`. Это предотвращает добавление ненужных данных в localStorage для типов, которые не используют определенные поля (например, closedPic/openPic не будут создаваться для olymp или type100500).
 
 ## Расширение функциональности
 - Массовые операции реализованы в контрол-компонентах — добавляя новый control, обеспечьте связь со `store.config` и экшенами стора.
@@ -122,7 +149,7 @@ Encounter Uploader — внутренняя утилита для подгото
 - Демо авторизация: логин `test`, пароль `test` — пропускает реальную валидацию.
 - Основные тестовые URL:
   - UI с авторизацией: http://192.168.0.12:5173/
-  - Прямой доступ к типам без логина: `/test/olymp15`, `/test/olymp31`, `/test/olymp63`, `/test/olymp127`, `/test/type100500`.
+  - Прямой доступ к типам без логина: `/test/olymp15`, `/test/olymp31`, `/test/olymp63`, `/test/olymp127`, `/test/type100500`, `/test/svalka`.
 - Перед заливкой уровня рекомендуется прогнать сценарий: заполнение, экспорт, импорт, загрузка Task/Sector/Bonus, проверка прогресса с паузой и резюме.
 
 ## Контроль качества

@@ -11,15 +11,10 @@ import Button from 'primevue/button'
 import Textarea from 'primevue/textarea'
 import type { Answer } from '@/entities/level/types'
 import { useLevelStore } from '@/store/levels'
+import { DEFAULT_OPEN_PIC_SVG } from '@/entities/level/constants'
 
 // Тип для функции рендеринга поля в DataTable
 export type FieldRenderer = (data: { data: Answer, index: number }) => VNode
-
-// SVG чекбокс для предзаполнения openPic
-export const DEFAULT_OPEN_PIC_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
-  <rect x="20" y="20" width="60" height="60" fill="none" stroke="#00ff00" stroke-width="3" rx="5"/>
-  <polyline points="30,50 45,65 70,35" fill="none" stroke="#00ff00" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>`
 
 /**
  * Рендер поля Answer - варианты ответов с кнопками +/-
