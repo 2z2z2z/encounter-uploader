@@ -153,8 +153,8 @@ const initializeTestData = async (): Promise<void> => {
     authStore.loggedIn = true
     authStore.username = credentials.login
 
-    // Инициализируем useLevelStore  
-    levelStore.initializeLevelType(typeId as 'olymp' | 'type100500', subtype || undefined, false)
+    // Инициализируем useLevelStore
+    levelStore.initializeLevelType(typeId as 'olymp' | 'type100500' | 'svalka', subtype || undefined, false)
     
     // Загружаем данные напрямую в store (НЕ через localStorage)
     levelStore.domain = credentials.domain

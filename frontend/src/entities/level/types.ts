@@ -15,6 +15,8 @@ export type FieldId =
 	| 'limit'           // Ограничение
 	| 'closedText'      // Закрытый сектор
 	| 'displayText'     // Открытый сектор
+	| 'closedPic'       // Закрытая картинка (массив)
+	| 'openPic'         // Открытая картинка (массив)
 	| 'sectorName'      // Название сектора
 	| 'bonusName'       // Название бонуса
 	| 'bonusTask'       // Бонусное задание
@@ -65,6 +67,8 @@ export interface Answer {
 	bonusTime: TimeValue          // Бонусное время
 	closedText: string            // Закрытый сектор (текст или URL картинки)
 	displayText: string           // Открытый сектор (отображение после ввода)
+	closedPic?: string[]          // Закрытые картинки (массив)
+	openPic?: string[]            // Открытые картинки (массив)
 	bonusLevels?: string[]        // Уровни для бонуса
 	delay?: TimeValue             // Задержка
 	limit?: TimeValue             // Ограничение
@@ -114,6 +118,8 @@ export type ControlId =
 	| 'openSectorFill'       // Заполнить открытые сектора
 	| 'sectorNames'          // Название секторов
 	| 'bonusNames'           // Название бонусов
+	| 'closedPicNames'       // Название закрытых картинок
+	| 'openPicNames'         // Название открытых картинок
 	| 'delay'                // Задержка (ч, м, с)
 	| 'limit'                // Ограничение (ч, м, с)
 	| 'bonusTasks'           // Бонусные задания
@@ -189,6 +195,8 @@ export interface ContentGeneratorContext {
 		bonusTime: { hours: number; minutes: number; seconds: number; negative?: boolean }
 		closedText: string
 		displayText: string
+		closedPic?: string[]
+		openPic?: string[]
 		bonusLevels?: string[]
 		delay?: { hours: number; minutes: number; seconds: number }
 		limit?: { hours: number; minutes: number; seconds: number }
@@ -200,6 +208,8 @@ export interface ContentGeneratorContext {
 	fields: FieldId[]               // Поля для использования в генерации
 	dimension?: number              // Размерность (для типов с подтипами)
 	levelId: string                 // ID уровня
+	showBlockIds?: boolean          // Показывать визуальные метки ID (только для preview)
+	blockOrder?: number[]           // Фиксированный порядок блоков (индексы для перемешивания)
 }
 
 /**
@@ -315,6 +325,7 @@ export interface BonusPayloadData extends BasePayloadData {
 	bonus: Answer
 	levelMapping?: Record<string, string>  // Маппинг уровней для выбора
 	hintStrategy?: BonusHintStrategy
+	closedPicIds?: string[]  // Массив ID закрытых картинок для hint (например, ["1_02", "1_03"])
 }
 
 // Параметры URLSearchParams для задания
@@ -417,6 +428,7 @@ export interface LevelStoreState {
 		sectorMode: SectorMode
 		bonusTime: TimeValue
 		closedPattern?: string
+		blockOrder?: number[]     // Порядок блоков для предпросмотра (сохраняется между сессиями)
 		[key: string]: unknown
 	}
 

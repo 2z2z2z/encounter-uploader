@@ -24,6 +24,10 @@ import BonusTaskControl from './BonusTaskControl.vue'
 import HintControl from './HintControl.vue'
 import BonusLevelsControl from './BonusLevelsControl.vue'
 
+// Импорты контролов для svalka
+import ClosedPicNamesControl from './ClosedPicNamesControl.vue'
+import OpenPicNamesControl from './OpenPicNamesControl.vue'
+
 // Тип для контрол-компонента
 export type ControlComponent = Component
 
@@ -34,17 +38,21 @@ export const controls: Record<ControlId, ControlComponent> = {
 	bonusTime: BonusTimeControl,
 	closedSectorName: ClosedSectorControl,
 	openSectorFill: OpenSectorControl,
-	
+
 	// Шаг 16: Контролы названий
 	sectorNames: SectorNameControl,
 	bonusNames: BonusNameControl,
-	
+
 	// Шаг 17: Контролы 100500
 	delay: DelayControl,
 	limit: LimitControl,
 	bonusTasks: BonusTaskControl,
 	hints: HintControl,
-	bonusLevels: BonusLevelsControl
+	bonusLevels: BonusLevelsControl,
+
+	// Контролы для svalka
+	closedPicNames: ClosedPicNamesControl,
+	openPicNames: OpenPicNamesControl
 }
 
 // Функция получения контрола по ID
@@ -65,6 +73,8 @@ export {
 	BonusTaskControl,
 	HintControl,
 	BonusLevelsControl,
+	ClosedPicNamesControl,
+	OpenPicNamesControl,
 }
 
 

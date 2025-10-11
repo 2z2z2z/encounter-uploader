@@ -23,6 +23,7 @@ import {
 	getSubtypeConfig,
 	hasSubtypes
 } from '@/entities/level/configs'
+import { DEFAULT_OPEN_PIC_SVG } from '@/entities/level/fields/tableRenderers'
 
 // Константы
 const SCHEMA_VERSION = 1
@@ -185,7 +186,9 @@ export const useLevelStore = defineStore(
 			sectorName: '',
 			bonusName: '',
 			bonusTask: '',
-			hint: ''
+			hint: '',
+			closedPic: [''],
+			openPic: [DEFAULT_OPEN_PIC_SVG]
 		}
 	}
 
@@ -484,6 +487,14 @@ export const useLevelStore = defineStore(
 		markDirty()
 	}
 
+	/**
+	 * Устанавливает порядок блоков для предпросмотра
+	 */
+	function setBlockOrder(order: number[] | undefined): void {
+		config.value.blockOrder = order
+		markDirty()
+	}
+
 	// ===== LocalStorage =====
 
 	/**
@@ -709,6 +720,7 @@ export const useLevelStore = defineStore(
 		updateConfig,
 		setSectorMode,
 		setBonusTime,
+		setBlockOrder,
 
 		// LocalStorage
 		saveToLocalStorage,

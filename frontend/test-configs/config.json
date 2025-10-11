@@ -5,13 +5,13 @@
     "configFile": "olymp15.json"
   },
   "olymp31": {
-    "typeId": "olymp", 
+    "typeId": "olymp",
     "subtype": "31",
     "configFile": "olymp31.json"
   },
   "olymp63": {
     "typeId": "olymp",
-    "subtype": "63", 
+    "subtype": "63",
     "configFile": "olymp63.json"
   },
   "olymp127": {
@@ -23,5 +23,10 @@
     "typeId": "type100500",
     "subtype": null,
     "configFile": "type100500.json"
+  },
+  "svalka": {
+    "typeId": "svalka",
+    "subtype": null,
+    "configFile": "svalka.json"
   }
 }

@@ -43,16 +43,17 @@ export function useLevelPayloads() {
 	
 	/**
 	 * Создает пейлоад для бонуса
-	 * 
+	 *
 	 * @param bonus - Данные бонуса (Answer)
 	 * @param levelMapping - Маппинг уровней для выбора (лейбл → checkbox имя)
+	 * @param closedPicIds - Массив ID закрытых картинок для hint
 	 * @returns URLSearchParams для отправки
 	 */
-	function createBonusPayload(bonus: Answer, levelMapping?: Record<string, string>): globalThis.URLSearchParams {
+	function createBonusPayload(bonus: Answer, levelMapping?: Record<string, string>, closedPicIds?: string[]): globalThis.URLSearchParams {
 		if (!store.domain || !store.gameId || !store.levelId) {
 			throw new Error('Не установлены данные игры (domain, gameId, levelId)')
 		}
-		
+
 	const config = getLevelTypeConfig(store.levelType)
 	const hintStrategy = config?.bonusHintStrategy ?? 'none'
 
@@ -62,9 +63,10 @@ export function useLevelPayloads() {
 		levelId: store.levelId,
 		bonus,
 		levelMapping,
-		hintStrategy
+		hintStrategy,
+		closedPicIds
 	}
-	
+
 	return buildBonusPayload(data)
 }
 	
@@ -167,7 +169,8 @@ export function useLevelPayloads() {
 			await authStore.authenticate(store.domain)
 			
 			// Создание пейлоада через Content Generators System
-			const taskPayload = createTaskPayload(store, config)
+			// Передаем blockOrder из config для сохранения порядка блоков как в предпросмотре
+			const taskPayload = createTaskPayload(store, config, false, store.config.blockOrder)
 			if (!taskPayload) {
 				throw new Error('Не удалось создать Task пейлоад')
 			}
@@ -378,19 +381,51 @@ export function useLevelPayloads() {
 			}
 			
 			// Сбор данных бонусов в зависимости от типа (мульти-табы или одиночный)
-			let allBonuses: Answer[] = []
-			
+			// Для типов с closedPic нужно вычислять ID картинок с учетом блока и глобального счетчика
+			interface BonusWithIds {
+				bonus: Answer
+				closedPicIds?: string[]
+			}
+
+			const allBonuses: BonusWithIds[] = []
+
 			if (config.isMultiBlocks) {
 				// Для типов с мульти-табами собираем из всех табов
-				for (const tab of store.tabs) {
-					const tabBonuses = tab.answers.filter((answer: Answer) => answer.bonus)
-					allBonuses.push(...tabBonuses)
-				}
+				const levelKey = String(store.levelId) // Номер уровня для ID
+				let globalPictureIndex = 1 // Глобальный счетчик картинок для всех блоков (1-based)
+
+				store.tabs.forEach((tab) => {
+					tab.answers.forEach((answer: Answer) => {
+						// Вычисляем ID картинок для текущего ответа
+						const closedPicCount = answer.closedPic?.length || 0
+						const closedPicIds: string[] = []
+
+						if (closedPicCount > 0) {
+							for (let i = 0; i < closedPicCount; i++) {
+								const picId = `${levelKey}_${String(globalPictureIndex).padStart(2, '0')}`
+								closedPicIds.push(picId)
+								globalPictureIndex++
+							}
+						}
+
+						// Добавляем только если это бонус
+						if (answer.bonus) {
+							allBonuses.push({
+								bonus: answer,
+								closedPicIds: closedPicIds.length > 0 ? closedPicIds : undefined
+							})
+						}
+					})
+				})
 			} else {
 				// Для одиночных типов берем только из активного таба
 				const activeTab = store.tabs[store.activeTabIndex]
 				if (activeTab) {
-					allBonuses = activeTab.answers.filter((answer: Answer) => answer.bonus)
+					activeTab.answers.forEach((answer: Answer) => {
+						if (answer.bonus) {
+							allBonuses.push({ bonus: answer })
+						}
+					})
 				}
 			}
 			
@@ -410,19 +445,19 @@ export function useLevelPayloads() {
 			
 			// Отправка бонусов по одному
 			for (let idx = 0; idx < allBonuses.length; idx++) {
-				const bonus = allBonuses[idx]
-				
+				const bonusData = allBonuses[idx]
+
 				// Проверяем паузу перед каждым бонусом
 				await progress.waitForResume()
-				
-				progress.updateTitle(`Бонус ${bonus.number}`)
-				
-				// Создание и отправка бонуса через новую систему
-				const bonusPayload = createBonusPayload(bonus, levelMapping)
+
+				progress.updateTitle(`Бонус ${bonusData.bonus.number}`)
+
+				// Создание и отправка бонуса через новую систему с передачей closedPicIds
+				const bonusPayload = createBonusPayload(bonusData.bonus, levelMapping, bonusData.closedPicIds)
 				await sendBonus(bonusPayload)
-				
-				progress.updateSuccess(`Бонус ${bonus.number} отправлен`)
-				
+
+				progress.updateSuccess(`Бонус ${bonusData.bonus.number} отправлен`)
+
 				// Каждые 25 бонусов обновляем авторизацию
 				if ((idx + 1) % 25 === 0) {
 					await authStore.authenticate(store.domain)

@@ -16,20 +16,28 @@
         </TabList>
         <TabPanels>
           <TabPanel value="closed">
-            <SafeHtmlDisplay class="preview-content" :content="content" />
+            <SafeHtmlDisplay class="preview-content" :content="content" :allow-styles="true" />
           </TabPanel>
           <TabPanel value="open">
-            <SafeHtmlDisplay class="preview-content" :content="currentContent" />
+            <SafeHtmlDisplay class="preview-content" :content="currentContent" :allow-styles="true" />
           </TabPanel>
         </TabPanels>
       </Tabs>
 
       <!-- Показываем только основной контент если переключение отключено -->
-      <SafeHtmlDisplay v-else class="preview-content" :content="content" />
+      <SafeHtmlDisplay v-else class="preview-content" :content="content" :allow-styles="true" />
     </div>
 
     <template #footer>
-      <div class="flex justify-end">
+      <div class="flex justify-between">
+        <Button
+          v-if="showShuffleButton"
+          label="Перемешать"
+          icon="pi pi-sync"
+          severity="info"
+          @click="handleShuffle"
+        />
+        <div v-else></div>
         <Button label="Закрыть" severity="secondary" @click="visible = false" />
       </div>
     </template>
@@ -53,16 +61,19 @@ interface Props {
   alternativeContent?: string
   showModeToggle?: boolean
   initialMode?: 'closed' | 'open'
+  showShuffleButton?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   alternativeContent: '',
   showModeToggle: false,
-  initialMode: 'closed'
+  initialMode: 'closed',
+  showShuffleButton: false
 })
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
+  'shuffle': []
 }>()
 
 const visible = computed({
@@ -82,6 +93,10 @@ const currentContent = computed(() => {
 watch(() => props.initialMode, (newMode) => {
   mode.value = newMode
 })
+
+const handleShuffle = (): void => {
+  emit('shuffle')
+}
 </script>
 
 <style scoped>

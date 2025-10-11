@@ -5,7 +5,7 @@
 
 import { h, type VNode } from 'vue'
 import InputText from 'primevue/inputtext'
-import InputNumber from 'primevue/inputnumber' 
+import InputNumber from 'primevue/inputnumber'
 import Checkbox from 'primevue/checkbox'
 import Button from 'primevue/button'
 import Textarea from 'primevue/textarea'
@@ -14,6 +14,12 @@ import { useLevelStore } from '@/store/levels'
 
 // Тип для функции рендеринга поля в DataTable
 export type FieldRenderer = (data: { data: Answer, index: number }) => VNode
+
+// SVG чекбокс для предзаполнения openPic
+export const DEFAULT_OPEN_PIC_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+  <rect x="20" y="20" width="60" height="60" fill="none" stroke="#00ff00" stroke-width="3" rx="5"/>
+  <polyline points="30,50 45,65 70,35" fill="none" stroke="#00ff00" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`
 
 /**
  * Рендер поля Answer - варианты ответов с кнопками +/-
@@ -361,14 +367,108 @@ export const renderHint: FieldRenderer = ({ data }) => {
   })
 }
 
+/**
+ * Рендер поля ClosedPic - закрытые картинки с кнопками +/-
+ * Управляет также добавлением/удалением связанных openPic
+ */
+export const renderClosedPic: FieldRenderer = ({ data }) => {
+  // Инициализация массивов если не существуют
+  if (!data.closedPic) {
+    data.closedPic = ['']
+  }
+  if (!data.openPic) {
+    data.openPic = [DEFAULT_OPEN_PIC_SVG]
+  }
+
+  const addPair = (answer: Answer): void => {
+    if (answer.closedPic && answer.openPic && answer.closedPic.length < 10) {
+      answer.closedPic.push('')
+      answer.openPic.push(DEFAULT_OPEN_PIC_SVG)
+    }
+  }
+
+  const removePair = (answer: Answer, index: number): void => {
+    if (answer.closedPic && answer.openPic && answer.closedPic.length > 1) {
+      answer.closedPic.splice(index, 1)
+      answer.openPic.splice(index, 1)
+    }
+  }
+
+  return h('div', { class: 'flex flex-col gap-1' },
+    data.closedPic.map((pic, idx) =>
+      h('div', { key: idx, class: 'flex items-center gap-1' }, [
+        h(InputText, {
+          modelValue: pic,
+          'onUpdate:modelValue': (value: string) => {
+            if (data.closedPic) {
+              data.closedPic[idx] = value
+            }
+          },
+          placeholder: 'URL или HTML',
+          size: 'small'
+        }),
+        // Кнопка добавления (на последней паре, если меньше 10)
+        idx === data.closedPic!.length - 1 && idx < 9
+          ? h(Button, {
+              onClick: () => addPair(data),
+              icon: 'pi pi-plus',
+              severity: 'success',
+              size: 'small',
+              variant: 'outlined'
+            })
+          : null,
+        // Кнопка удаления (если больше одной пары)
+        idx > 0
+          ? h(Button, {
+              onClick: () => removePair(data, idx),
+              icon: 'pi pi-minus',
+              severity: 'danger',
+              size: 'small',
+              variant: 'outlined'
+            })
+          : null
+      ].filter(Boolean))
+    )
+  )
+}
+
+/**
+ * Рендер поля OpenPic - открытые картинки (зависимое поле без кнопок)
+ */
+export const renderOpenPic: FieldRenderer = ({ data }) => {
+  // Инициализация массива если не существует
+  if (!data.openPic) {
+    data.openPic = [DEFAULT_OPEN_PIC_SVG]
+  }
+
+  return h('div', { class: 'flex flex-col gap-1' },
+    data.openPic.map((pic, idx) =>
+      h('div', { key: idx, class: 'flex items-center gap-1' }, [
+        h(InputText, {
+          modelValue: pic,
+          'onUpdate:modelValue': (value: string) => {
+            if (data.openPic) {
+              data.openPic[idx] = value
+            }
+          },
+          placeholder: 'URL или HTML',
+          size: 'small'
+        })
+      ])
+    )
+  )
+}
+
 // Мапа рендеров по ID поля
 export const fieldRenderers: Record<string, FieldRenderer> = {
   answer: renderAnswer,
-  sector: renderSector,  
+  sector: renderSector,
   bonus: renderBonus,
   bonusTime: renderBonusTime,
   closedText: renderClosedSector,
   displayText: renderOpenSector,
+  closedPic: renderClosedPic,
+  openPic: renderOpenPic,
   bonusLevels: renderBonusLevels,
   delay: renderDelay,
   limit: renderLimit,

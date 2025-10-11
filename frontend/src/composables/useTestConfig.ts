@@ -118,7 +118,7 @@ export const useTestConfig = () => {
 
   /**
    * Парсит параметры роута для извлечения typeId и subtype
-   * @param levelType - параметр из роута (olymp15, olymp31, type100500)
+   * @param levelType - параметр из роута (olymp15, olymp31, type100500, svalka)
    * @returns объект с typeId и subtype
    */
   const parseTestLevelType = (levelType: string): { typeId: string; subtype: string | null } => {
@@ -127,12 +127,17 @@ export const useTestConfig = () => {
       const subtype = levelType.replace('olymp', '')
       return { typeId: 'olymp', subtype }
     }
-    
+
     // Type100500: type100500 -> typeId: 'type100500', subtype: null
     if (levelType === 'type100500') {
       return { typeId: 'type100500', subtype: null }
     }
-    
+
+    // Svalka: svalka -> typeId: 'svalka', subtype: null
+    if (levelType === 'svalka') {
+      return { typeId: 'svalka', subtype: null }
+    }
+
     // Fallback
     return { typeId: levelType, subtype: null }
   }

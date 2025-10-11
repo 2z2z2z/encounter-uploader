@@ -67,7 +67,9 @@
       :content="previewContent"
       :alternative-content="previewAlternativeContent"
       :show-mode-toggle="previewSupportsToggle"
+      :show-shuffle-button="previewSupportsShuffle"
       initial-mode="closed"
+      @shuffle="handleShufflePreview"
     />
     
     <CodesModal
@@ -78,7 +80,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import Button from 'primevue/button'
 import { useLevelStore } from '@/store/levels'
 import { getLevelTypeConfig } from '@/entities/level/configs'
@@ -100,6 +102,7 @@ const codesModalVisible = ref(false)
 const previewContent = ref('')
 const previewAlternativeContent = ref('')
 const previewSupportsToggle = ref(false)
+const previewSupportsShuffle = ref(false)
 
 const EXPORT_VERSION = 1
 const MAX_TAB_NAME_LENGTH = 20
@@ -116,6 +119,8 @@ const CSV_HEADERS = [
   'limit',
   'closedText',
   'displayText',
+  'closedPic',
+  'openPic',
   'bonusLevels',
   'sectorName',
   'bonusName',
@@ -165,6 +170,35 @@ const isTabLimitExceeded = computed(() => {
   return store.activeTab.answers.length >= 10000
 })
 
+// Экземпляр usePreviewModes для использования в handlePreview и handleShufflePreview
+let previewModesInstance: ReturnType<typeof usePreviewModes> | null = null
+
+/**
+ * Вычисляет "структурный хэш" данных для отслеживания изменений структуры
+ * Включает: количество табов + общее количество closedPic во всех табах
+ */
+const dataStructureHash = computed(() => {
+  const tabsCount = store.tabs.length
+  let totalClosedPics = 0
+
+  store.tabs.forEach(tab => {
+    tab.answers.forEach((answer: Answer) => {
+      totalClosedPics += answer.closedPic?.length || 0
+    })
+  })
+
+  return `${tabsCount}:${totalClosedPics}`
+})
+
+/**
+ * Отслеживаем изменения структуры данных и сбрасываем previewModesInstance
+ * при добавлении/удалении табов, строк ответов или closedPic
+ */
+watch(dataStructureHash, () => {
+  // Сбрасываем экземпляр при изменении структуры
+  previewModesInstance = null
+})
+
 // Обработчики кнопок
 const handleAddCodes = (): void => {
   codesModalVisible.value = true
@@ -192,8 +226,12 @@ const handlePreview = (): void => {
   }
 
   try {
-    // Инициализируем композабл для режимов предпросмотра
-    const { generateClosedContent, generateOpenContent, supportsToggle } = usePreviewModes(store, levelConfig.value)
+    // Создаем экземпляр только если его еще нет
+    // Это сохраняет blockOrder между открытиями предпросмотра
+    if (!previewModesInstance) {
+      previewModesInstance = usePreviewModes(store, levelConfig.value)
+    }
+    const { generateClosedContent, generateOpenContent, supportsToggle } = previewModesInstance
 
     // Проверяем поддержку предпросмотра
     if (!supportsToggle() && !levelConfig.value.payloads.task) {
@@ -220,12 +258,48 @@ const handlePreview = (): void => {
       previewSupportsToggle.value = false
     }
 
+    // Проверяем поддержку shuffle (для svalka и других типов с генератором перемешивания)
+    const taskPayload = levelConfig.value.payloads.task
+    const supportsShuffleCheck = taskPayload && typeof taskPayload === 'object' && taskPayload.generator === 'svalka.task'
+    previewSupportsShuffle.value = Boolean(supportsShuffleCheck)
+
     // Показываем модальное окно
     previewModalVisible.value = true
 
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error)
     globalThis.alert(`Ошибка генерации предпросмотра: ${message}`)
+  }
+}
+
+const handleShufflePreview = (): void => {
+  // Перемешиваем порядок блоков и перегенерируем контент
+  if (!previewModesInstance) {
+    handlePreview()
+    return
+  }
+
+  try {
+    const { shuffleBlockOrder, generateClosedContent, generateOpenContent, supportsToggle } = previewModesInstance
+
+    // Перемешиваем порядок
+    shuffleBlockOrder()
+
+    // Перегенерируем контент
+    const closedContent = generateClosedContent()
+    if (closedContent) {
+      previewContent.value = closedContent
+    }
+
+    if (supportsToggle()) {
+      const openContent = generateOpenContent()
+      if (openContent) {
+        previewAlternativeContent.value = openContent
+      }
+    }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error)
+    globalThis.alert(`Ошибка перемешивания: ${message}`)
   }
 }
 
@@ -459,11 +533,22 @@ const importCSV = async (content: string): Promise<void> => {
     rawAnswer.limit = parseTimeValueLiteral(getCsvValue(row, columnIndex, 'limit'), getDefaultSimpleTime())
     rawAnswer.closedText = getCsvValue(row, columnIndex, 'closedText')
     rawAnswer.displayText = getCsvValue(row, columnIndex, 'displayText')
+    rawAnswer.closedPic = splitList(getCsvValue(row, columnIndex, 'closedPic'))
+    rawAnswer.openPic = splitList(getCsvValue(row, columnIndex, 'openPic'))
     rawAnswer.bonusLevels = splitList(getCsvValue(row, columnIndex, 'bonusLevels'))
     rawAnswer.sectorName = getCsvValue(row, columnIndex, 'sectorName')
     rawAnswer.bonusName = getCsvValue(row, columnIndex, 'bonusName')
     rawAnswer.bonusTask = getCsvValue(row, columnIndex, 'bonusTask')
     rawAnswer.hint = getCsvValue(row, columnIndex, 'hint')
+
+    // Валидация: количество closedPic должно равняться количеству openPic
+    const closedPicArray = Array.isArray(rawAnswer.closedPic) ? rawAnswer.closedPic as string[] : []
+    const openPicArray = Array.isArray(rawAnswer.openPic) ? rawAnswer.openPic as string[] : []
+    if (closedPicArray.length > 0 || openPicArray.length > 0) {
+      if (closedPicArray.length !== openPicArray.length) {
+        throw new Error(`Ошибка импорта: количество closedPic (${closedPicArray.length}) не равно количеству openPic (${openPicArray.length}) в строке ${numberToken}`)
+      }
+    }
 
     const sanitizedAnswer = sanitizeAnswer(rawAnswer, fallbackNumber)
     tabsMap.get(tabName)!.answers.push(sanitizedAnswer)
@@ -545,6 +630,16 @@ function sanitizeAnswer(source: Partial<Answer> | Record<string, unknown>, fallb
     ? bonusLevelsSource.filter(level => level.trim().length > 0)
     : defaultBonusLevels.slice()
 
+  const closedPicSource = Array.isArray((source as Partial<Answer>).closedPic)
+    ? (source as Partial<Answer>).closedPic!.map(pic => String(pic ?? ''))
+    : undefined
+  const closedPic = closedPicSource || []
+
+  const openPicSource = Array.isArray((source as Partial<Answer>).openPic)
+    ? (source as Partial<Answer>).openPic!.map(pic => String(pic ?? ''))
+    : undefined
+  const openPic = openPicSource || []
+
   return {
     id: typeof (source as Partial<Answer>).id === 'string' && (source as Partial<Answer>).id!.trim().length > 0
       ? (source as Partial<Answer>).id!
@@ -568,6 +663,8 @@ function sanitizeAnswer(source: Partial<Answer> | Record<string, unknown>, fallb
     ),
     closedText: sanitizeString((source as Partial<Answer>).closedText, defaults.closedText ?? ''),
     displayText: sanitizeString((source as Partial<Answer>).displayText, defaults.displayText ?? ''),
+    closedPic,
+    openPic,
     bonusLevels,
     sectorName: sanitizeString((source as Partial<Answer>).sectorName, defaults.sectorName ?? ''),
     bonusName: sanitizeString((source as Partial<Answer>).bonusName, defaults.bonusName ?? ''),
@@ -708,6 +805,10 @@ function buildCsvRow(tabName: string, answer: Answer | null): string {
         return answer.closedText ?? ''
       case 'displayText':
         return answer.displayText ?? ''
+      case 'closedPic':
+        return joinList(answer.closedPic ?? [])
+      case 'openPic':
+        return joinList(answer.openPic ?? [])
       case 'bonusLevels':
         return joinList(answer.bonusLevels ?? [])
       case 'sectorName':

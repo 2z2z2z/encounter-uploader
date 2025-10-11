@@ -11,10 +11,16 @@ export default defineComponent({
     tag: {
       type: String as PropType<keyof globalThis.HTMLElementTagNameMap>,
       default: 'div'
+    },
+    allowStyles: {
+      type: Boolean,
+      default: false
     }
   },
   setup(props, { attrs }) {
-    const sanitized = computed(() => sanitizeHtml(props.content))
+    const sanitized = computed(() =>
+      sanitizeHtml(props.content, { allowStyles: props.allowStyles })
+    )
 
     return () =>
       h(

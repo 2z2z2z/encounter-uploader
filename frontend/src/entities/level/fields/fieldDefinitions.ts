@@ -62,6 +62,22 @@ export const FIELD_DEFINITIONS: readonly FieldDefinition[] = [
 		placeholder: 'Отображение ответа'
 	},
 	{
+		id: 'closedPic',
+		label: 'Закрытая картинка',
+		type: 'string[]',
+		columnLabel: 'Закрытая картинка',
+		controlId: 'closedPicNames',
+		placeholder: 'URL или HTML'
+	},
+	{
+		id: 'openPic',
+		label: 'Открытая картинка',
+		type: 'string[]',
+		columnLabel: 'Открытая картинка',
+		controlId: 'openPicNames',
+		placeholder: 'URL или HTML'
+	},
+	{
 		id: 'bonusLevels',
 		label: 'Уровни бонуса',
 		type: 'levels',

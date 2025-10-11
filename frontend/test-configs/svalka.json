@@ -1,0 +1,290 @@
+{
+  "version": 1,
+  "type": "svalka",
+  "timestamp": "2025-10-11T06:15:44.582Z",
+  "exportFormat": "multi-tab",
+  "meta": {
+    "domain": "tech",
+    "gameId": "80722",
+    "levelId": "1",
+    "dimension": 0
+  },
+  "config": {
+    "sectorMode": "all",
+    "bonusTime": {
+      "hours": 0,
+      "minutes": 0,
+      "seconds": 0,
+      "negative": false
+    },
+    "closedPattern": "",
+    "blockOrder": [4, 6, 8, 5, 9, 11, 0, 7, 10, 2, 3, 1]
+  },
+  "tabs": [
+    {
+      "id": "tab-1760163136574-en8zy16vz",
+      "name": "Блок 1",
+      "answers": [
+        {
+          "id": "answer-1760163147379-jn2zmafws",
+          "number": 1,
+          "variants": [
+            "1"
+          ],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": {
+            "hours": 0,
+            "minutes": 1,
+            "seconds": 0,
+            "negative": true
+          },
+          "delay": {
+            "hours": 0,
+            "minutes": 0,
+            "seconds": 0
+          },
+          "limit": {
+            "hours": 0,
+            "minutes": 0,
+            "seconds": 0
+          },
+          "closedText": "",
+          "displayText": "",
+          "closedPic": [
+            "https://upload.wikimedia.org/wikipedia/commons/1/1b/Square_200x200.png"
+          ],
+          "openPic": [
+            "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\" viewBox=\"0 0 100 100\">\n  <rect x=\"20\" y=\"20\" width=\"60\" height=\"60\" fill=\"none\" stroke=\"#00ff00\" stroke-width=\"3\" rx=\"5\"/>\n  <polyline points=\"30,50 45,65 70,35\" fill=\"none\" stroke=\"#00ff00\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n</svg>"
+          ],
+          "bonusLevels": [
+            "1"
+          ],
+          "sectorName": "Гибрид 1",
+          "bonusName": "Гибрид 1",
+          "bonusTask": "",
+          "hint": ""
+        },
+        {
+          "id": "answer-1760163147379-mq427q55v",
+          "number": 2,
+          "variants": [
+            "2"
+          ],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": {
+            "hours": 0,
+            "minutes": 1,
+            "seconds": 0,
+            "negative": false
+          },
+          "delay": {
+            "hours": 0,
+            "minutes": 0,
+            "seconds": 0
+          },
+          "limit": {
+            "hours": 0,
+            "minutes": 0,
+            "seconds": 0
+          },
+          "closedText": "",
+          "displayText": "",
+          "closedPic": [
+            "https://upload.wikimedia.org/wikipedia/commons/1/1b/Square_200x200.png",
+            "https://upload.wikimedia.org/wikipedia/commons/1/1b/Square_200x200.png"
+          ],
+          "openPic": [
+            "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\" viewBox=\"0 0 100 100\">\n  <rect x=\"20\" y=\"20\" width=\"60\" height=\"60\" fill=\"none\" stroke=\"#00ff00\" stroke-width=\"3\" rx=\"5\"/>\n  <polyline points=\"30,50 45,65 70,35\" fill=\"none\" stroke=\"#00ff00\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n</svg>",
+            "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\" viewBox=\"0 0 100 100\">\n  <rect x=\"20\" y=\"20\" width=\"60\" height=\"60\" fill=\"none\" stroke=\"#00ff00\" stroke-width=\"3\" rx=\"5\"/>\n  <polyline points=\"30,50 45,65 70,35\" fill=\"none\" stroke=\"#00ff00\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n</svg>"
+          ],
+          "bonusLevels": [
+            "1"
+          ],
+          "sectorName": "Гибрид 2",
+          "bonusName": "Гибрид 2",
+          "bonusTask": "",
+          "hint": ""
+        },
+        {
+          "id": "answer-1760163147379-62tjggbz8",
+          "number": 3,
+          "variants": [
+            "3"
+          ],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": {
+            "hours": 0,
+            "minutes": 1,
+            "seconds": 0,
+            "negative": false
+          },
+          "delay": {
+            "hours": 0,
+            "minutes": 0,
+            "seconds": 0
+          },
+          "limit": {
+            "hours": 0,
+            "minutes": 0,
+            "seconds": 0
+          },
+          "closedText": "",
+          "displayText": "",
+          "closedPic": [
+            "https://upload.wikimedia.org/wikipedia/commons/1/1b/Square_200x200.png",
+            "https://upload.wikimedia.org/wikipedia/commons/1/1b/Square_200x200.png",
+            "https://upload.wikimedia.org/wikipedia/commons/1/1b/Square_200x200.png"
+          ],
+          "openPic": [
+            "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\" viewBox=\"0 0 100 100\">\n  <rect x=\"20\" y=\"20\" width=\"60\" height=\"60\" fill=\"none\" stroke=\"#00ff00\" stroke-width=\"3\" rx=\"5\"/>\n  <polyline points=\"30,50 45,65 70,35\" fill=\"none\" stroke=\"#00ff00\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n</svg>",
+            "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\" viewBox=\"0 0 100 100\">\n  <rect x=\"20\" y=\"20\" width=\"60\" height=\"60\" fill=\"none\" stroke=\"#00ff00\" stroke-width=\"3\" rx=\"5\"/>\n  <polyline points=\"30,50 45,65 70,35\" fill=\"none\" stroke=\"#00ff00\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n</svg>",
+            "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\" viewBox=\"0 0 100 100\">\n  <rect x=\"20\" y=\"20\" width=\"60\" height=\"60\" fill=\"none\" stroke=\"#00ff00\" stroke-width=\"3\" rx=\"5\"/>\n  <polyline points=\"30,50 45,65 70,35\" fill=\"none\" stroke=\"#00ff00\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n</svg>"
+          ],
+          "bonusLevels": [
+            "1"
+          ],
+          "sectorName": "Гибрид 3",
+          "bonusName": "Гибрид 3",
+          "bonusTask": "",
+          "hint": ""
+        }
+      ]
+    },
+    {
+      "id": "tab-1760163150519-ic1772ey9",
+      "name": "Блок 2",
+      "answers": [
+        {
+          "id": "answer-1760163154886-v1fxc2305",
+          "number": 1,
+          "variants": [
+            "4",
+            "4_1"
+          ],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": {
+            "hours": 0,
+            "minutes": 2,
+            "seconds": 0,
+            "negative": false
+          },
+          "delay": {
+            "hours": 0,
+            "minutes": 0,
+            "seconds": 0
+          },
+          "limit": {
+            "hours": 0,
+            "minutes": 0,
+            "seconds": 0
+          },
+          "closedText": "",
+          "displayText": "",
+          "closedPic": [
+            "https://upload.wikimedia.org/wikipedia/commons/1/1b/Square_200x200.png",
+            "https://upload.wikimedia.org/wikipedia/commons/1/1b/Square_200x200.png"
+          ],
+          "openPic": [
+            "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\" viewBox=\"0 0 100 100\">\n  <rect x=\"20\" y=\"20\" width=\"60\" height=\"60\" fill=\"none\" stroke=\"#00ff00\" stroke-width=\"3\" rx=\"5\"/>\n  <polyline points=\"30,50 45,65 70,35\" fill=\"none\" stroke=\"#00ff00\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n</svg>",
+            "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\" viewBox=\"0 0 100 100\">\n  <rect x=\"20\" y=\"20\" width=\"60\" height=\"60\" fill=\"none\" stroke=\"#00ff00\" stroke-width=\"3\" rx=\"5\"/>\n  <polyline points=\"30,50 45,65 70,35\" fill=\"none\" stroke=\"#00ff00\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n</svg>"
+          ],
+          "bonusLevels": [
+            "1"
+          ],
+          "sectorName": "Метаграмма 1",
+          "bonusName": "Метаграмма 1",
+          "bonusTask": "",
+          "hint": ""
+        },
+        {
+          "id": "answer-1760163154886-jb1zfv92y",
+          "number": 2,
+          "variants": [
+            "5"
+          ],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": {
+            "hours": 0,
+            "minutes": 2,
+            "seconds": 0,
+            "negative": false
+          },
+          "delay": {
+            "hours": 0,
+            "minutes": 0,
+            "seconds": 0
+          },
+          "limit": {
+            "hours": 0,
+            "minutes": 0,
+            "seconds": 0
+          },
+          "closedText": "",
+          "displayText": "",
+          "closedPic": [
+            "https://upload.wikimedia.org/wikipedia/commons/1/1b/Square_200x200.png",
+            "https://upload.wikimedia.org/wikipedia/commons/1/1b/Square_200x200.png"
+          ],
+          "openPic": [
+            "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\" viewBox=\"0 0 100 100\">\n  <rect x=\"20\" y=\"20\" width=\"60\" height=\"60\" fill=\"none\" stroke=\"#00ff00\" stroke-width=\"3\" rx=\"5\"/>\n  <polyline points=\"30,50 45,65 70,35\" fill=\"none\" stroke=\"#00ff00\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n</svg>",
+            "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\" viewBox=\"0 0 100 100\">\n  <rect x=\"20\" y=\"20\" width=\"60\" height=\"60\" fill=\"none\" stroke=\"#00ff00\" stroke-width=\"3\" rx=\"5\"/>\n  <polyline points=\"30,50 45,65 70,35\" fill=\"none\" stroke=\"#00ff00\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n</svg>"
+          ],
+          "bonusLevels": [
+            "1"
+          ],
+          "sectorName": "Метаграмма 2",
+          "bonusName": "Метаграмма 2",
+          "bonusTask": "",
+          "hint": ""
+        },
+        {
+          "id": "answer-1760163154886-02xeqvr69",
+          "number": 3,
+          "variants": [
+            "6"
+          ],
+          "sector": true,
+          "bonus": true,
+          "bonusTime": {
+            "hours": 0,
+            "minutes": 2,
+            "seconds": 0,
+            "negative": false
+          },
+          "delay": {
+            "hours": 0,
+            "minutes": 0,
+            "seconds": 0
+          },
+          "limit": {
+            "hours": 0,
+            "minutes": 0,
+            "seconds": 0
+          },
+          "closedText": "",
+          "displayText": "",
+          "closedPic": [
+            "https://upload.wikimedia.org/wikipedia/commons/1/1b/Square_200x200.png",
+            "https://upload.wikimedia.org/wikipedia/commons/1/1b/Square_200x200.png"
+          ],
+          "openPic": [
+            "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\" viewBox=\"0 0 100 100\">\n  <rect x=\"20\" y=\"20\" width=\"60\" height=\"60\" fill=\"none\" stroke=\"#00ff00\" stroke-width=\"3\" rx=\"5\"/>\n  <polyline points=\"30,50 45,65 70,35\" fill=\"none\" stroke=\"#00ff00\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n</svg>",
+            "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\" viewBox=\"0 0 100 100\">\n  <rect x=\"20\" y=\"20\" width=\"60\" height=\"60\" fill=\"none\" stroke=\"#00ff00\" stroke-width=\"3\" rx=\"5\"/>\n  <polyline points=\"30,50 45,65 70,35\" fill=\"none\" stroke=\"#00ff00\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n</svg>"
+          ],
+          "bonusLevels": [
+            "1"
+          ],
+          "sectorName": "Метаграмма 3",
+          "bonusName": "Метаграмма 3",
+          "bonusTask": "",
+          "hint": ""
+        }
+      ]
+    }
+  ]
+}

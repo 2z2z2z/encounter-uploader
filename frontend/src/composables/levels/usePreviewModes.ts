@@ -31,6 +31,8 @@ interface UsePreviewModes {
 	generateOpenContent: () => string | null
 	/** Поддерживает ли тип уровня переключение режимов */
 	supportsToggle: () => boolean
+	/** Перемешать порядок блоков (для типов с множественными блоками) */
+	shuffleBlockOrder: () => void
 }
 
 /**
@@ -42,11 +44,22 @@ interface UsePreviewModes {
 const getPreviewModeConfig = (config: LevelTypeConfig): PreviewModeConfig | null => {
 	const { fields } = config
 
-	// Проверяем наличие полей для переключения
+	// Проверяем наличие полей для переключения closedPic/openPic (для типа svalka)
+	const hasClosedPic = fields.includes('closedPic')
+	const hasOpenPic = fields.includes('openPic')
+
+	if (hasClosedPic && hasOpenPic) {
+		return {
+			closedFields: ['closedPic'],
+			openFields: ['openPic'],
+			enableOpenStyling: false // Для svalka стилизация не нужна
+		}
+	}
+
+	// Проверяем наличие полей для переключения closedText/displayText (для olymp)
 	const hasClosedField = fields.includes('closedText')
 	const hasOpenField = fields.includes('displayText')
 
-	// Если есть и закрытое и открытое поля - поддерживаем переключение
 	if (hasClosedField && hasOpenField) {
 		return {
 			closedFields: ['closedText'],
@@ -76,12 +89,54 @@ export const usePreviewModes = (
 	const modeConfig = getPreviewModeConfig(levelConfig)
 
 	/**
+	 * Подсчет количества блоков из данных store
+	 * Используется для типов с closedPic/openPic
+	 */
+	const countBlocks = (): number => {
+		const answers = levelConfig.isMultiBlocks
+			? storeInstance.tabs.flatMap(tab => tab.answers)
+			: [storeInstance.tabs[storeInstance.activeTabIndex]].flatMap(tab => tab?.answers || [])
+
+		// Для svalka считаем количество closedPic элементов
+		const hasClosedPic = levelConfig.fields.includes('closedPic')
+		if (hasClosedPic) {
+			return answers.reduce((sum, answer) => sum + (answer.closedPic?.length || 0), 0)
+		}
+
+		return 0
+	}
+
+	/**
+	 * Инициализация порядка блоков
+	 * Создает массив индексов [0, 1, 2, ..., count-1] и сохраняет в store
+	 * ТОЛЬКО если blockOrder не установлен или имеет неправильную длину
+	 */
+	const initializeBlockOrder = (): void => {
+		const count = countBlocks()
+		if (count === 0) return
+
+		const currentOrder = getBlockOrder()
+		// Инициализируем только если порядка нет или длина не совпадает
+		if (!currentOrder || currentOrder.length !== count) {
+			storeInstance.setBlockOrder(Array.from({ length: count }, (_, i) => i))
+		}
+	}
+
+	/**
+	 * Получить текущий blockOrder из store (или создать если нет)
+	 */
+	const getBlockOrder = (): number[] | undefined => {
+		return storeInstance.config.blockOrder
+	}
+
+	/**
 	 * Генерация закрытого контента
 	 */
 	const generateClosedContent = (): string | null => {
 		try {
 			// Используем существующую систему генераторов с закрытыми полями
-			const payload = createTaskPayload(storeInstance, levelConfig)
+			// Передаем showBlockIds: true для отображения ID в preview
+			const payload = createTaskPayload(storeInstance, levelConfig, true, getBlockOrder())
 			return payload ? payload.get('inputTask') || '' : null
 		} catch (error: unknown) {
 			console.error('[usePreviewModes] Error generating closed content:', error)
@@ -113,7 +168,7 @@ export const usePreviewModes = (
 				}
 			}
 
-			const payload = createTaskPayload(storeInstance, openConfig)
+			const payload = createTaskPayload(storeInstance, openConfig, true, getBlockOrder())
 			let content = payload ? payload.get('inputTask') || '' : null
 
 			// Применяем стилизацию для открытого режима
@@ -135,10 +190,41 @@ export const usePreviewModes = (
 		return modeConfig !== null
 	}
 
+	/**
+	 * Перемешать порядок блоков (Fisher-Yates shuffle)
+	 * Используется для кнопки "Перемешать" в preview
+	 */
+	const shuffleBlockOrder = (): void => {
+		const currentOrder = getBlockOrder()
+
+		if (!currentOrder || currentOrder.length === 0) {
+			// Если blockOrder еще не создан, создаем его
+			initializeBlockOrder()
+			return
+		}
+
+		if (currentOrder.length > 1) {
+			const arr = [...currentOrder]
+			for (let i = arr.length - 1; i > 0; i--) {
+				const j = Math.floor(Math.random() * (i + 1));
+				[arr[i], arr[j]] = [arr[j], arr[i]]
+			}
+			// Сохраняем перемешанный порядок в store
+			storeInstance.setBlockOrder(arr)
+		}
+	}
+
+	// Инициализируем blockOrder при создании композабла
+	// Функция initializeBlockOrder сама проверит нужна ли (пере)инициализация
+	if (levelConfig.fields.includes('openPic')) {
+		initializeBlockOrder()
+	}
+
 	return {
 		generateClosedContent,
 		generateOpenContent,
-		supportsToggle
+		supportsToggle,
+		shuffleBlockOrder
 	}
 }
 

@@ -5,6 +5,48 @@
       "domain": "tech",
       "gameId": "80722",
       "userHash": "9166aa0957b7981c"
+    },
+    {
+      "timestamp": "2025-10-10T20:45:00.836Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "cc0513b2a156e120"
+    },
+    {
+      "timestamp": "2025-10-10T21:09:00.601Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "cc0513b2a156e120"
+    },
+    {
+      "timestamp": "2025-10-11T10:19:39.559Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "7882e0f771ca4623"
+    },
+    {
+      "timestamp": "2025-10-11T10:21:02.150Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563"
+    },
+    {
+      "timestamp": "2025-10-11T10:29:13.234Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563"
+    },
+    {
+      "timestamp": "2025-10-11T10:32:46.342Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563"
+    },
+    {
+      "timestamp": "2025-10-11T10:37:52.060Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563"
     }
   ],
   "sectors": [
@@ -20,6 +62,132 @@
       "domain": "tech",
       "gameId": "80722",
       "userHash": "9166aa0957b7981c",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-10T20:45:07.212Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "cc0513b2a156e120",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-10T20:45:08.564Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "cc0513b2a156e120",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-10T20:45:09.922Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "cc0513b2a156e120",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-10T20:45:11.281Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "cc0513b2a156e120",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-10T20:45:12.646Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "cc0513b2a156e120",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-10T20:45:13.996Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "cc0513b2a156e120",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-11T10:21:07.632Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-11T10:21:09.023Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-11T10:21:10.399Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-11T10:21:11.807Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-11T10:21:13.157Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-11T10:21:14.510Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-11T10:29:21.330Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-11T10:29:22.690Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-11T10:29:24.056Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-11T10:29:25.416Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-11T10:29:26.768Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-11T10:29:28.132Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563",
       "count": 1
     }
   ],
@@ -113,6 +281,150 @@
       "domain": "tech",
       "gameId": "80722",
       "userHash": "9166aa0957b7981c"
+    },
+    {
+      "timestamp": "2025-10-10T20:45:26.408Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "cc0513b2a156e120"
+    },
+    {
+      "timestamp": "2025-10-10T20:45:27.796Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "cc0513b2a156e120"
+    },
+    {
+      "timestamp": "2025-10-10T20:45:29.215Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "cc0513b2a156e120"
+    },
+    {
+      "timestamp": "2025-10-10T20:45:30.583Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "cc0513b2a156e120"
+    },
+    {
+      "timestamp": "2025-10-10T20:45:31.951Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "cc0513b2a156e120"
+    },
+    {
+      "timestamp": "2025-10-10T20:45:33.319Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "cc0513b2a156e120"
+    },
+    {
+      "timestamp": "2025-10-10T21:09:07.807Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "cc0513b2a156e120"
+    },
+    {
+      "timestamp": "2025-10-10T21:09:09.171Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "cc0513b2a156e120"
+    },
+    {
+      "timestamp": "2025-10-10T21:09:10.529Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "cc0513b2a156e120"
+    },
+    {
+      "timestamp": "2025-10-10T21:09:11.887Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "cc0513b2a156e120"
+    },
+    {
+      "timestamp": "2025-10-10T21:09:13.242Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "cc0513b2a156e120"
+    },
+    {
+      "timestamp": "2025-10-10T21:09:14.597Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "cc0513b2a156e120"
+    },
+    {
+      "timestamp": "2025-10-11T10:21:20.088Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563"
+    },
+    {
+      "timestamp": "2025-10-11T10:21:21.512Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563"
+    },
+    {
+      "timestamp": "2025-10-11T10:21:22.907Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563"
+    },
+    {
+      "timestamp": "2025-10-11T10:21:24.526Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563"
+    },
+    {
+      "timestamp": "2025-10-11T10:21:25.900Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563"
+    },
+    {
+      "timestamp": "2025-10-11T10:21:27.264Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563"
+    },
+    {
+      "timestamp": "2025-10-11T10:29:34.773Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563"
+    },
+    {
+      "timestamp": "2025-10-11T10:29:36.139Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563"
+    },
+    {
+      "timestamp": "2025-10-11T10:29:37.500Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563"
+    },
+    {
+      "timestamp": "2025-10-11T10:29:38.881Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563"
+    },
+    {
+      "timestamp": "2025-10-11T10:29:40.303Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563"
+    },
+    {
+      "timestamp": "2025-10-11T10:29:41.672Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "5f3803eb45df1563"
     }
   ]
 }

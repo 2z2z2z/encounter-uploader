@@ -59,3 +59,4 @@ blob-report/
 *.pid
 *.seed
 *.pid.lock
+server/stats.json

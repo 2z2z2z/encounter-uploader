@@ -208,6 +208,65 @@ export const type100500Config: LevelTypeConfig = {
 	}
 }
 
+/**
+ * Конфигурация типа уровня "Свалка картинками"
+ */
+export const svalkaConfig: LevelTypeConfig = {
+	id: 'svalka',
+	category: 'svalka',
+	name: 'Свалка картинками',
+	isMultiBlocks: true,
+	manualCodeAddition: true,
+	maxAnswers: 10000,
+	maxTabs: 10,
+	subtypes: undefined,
+
+	// Поля согласно документации
+	fields: ['answer', 'sector', 'bonus', 'bonusTime', 'sectorName', 'bonusName', 'closedPic', 'openPic'],
+
+	// Контролы согласно документации
+	controls: ['bonusTime', 'sectorNames', 'bonusNames', 'closedPicNames', 'openPicNames'],
+
+	// Кнопки согласно документации
+	buttons: {
+		navigation: ['back'],
+		functional: ['addCodes', 'clear', 'export', 'import', 'preview'],
+		action: [
+			{ id: 'uploadTask', label: 'Залить задание', variant: 'primary' },
+			{
+				id: 'uploadSectors',
+				label: 'Залить секторы',
+				variant: 'primary',
+				options: {
+					combineSectors: false
+				}
+			},
+			{ id: 'uploadBonuses', label: 'Залить бонусы', variant: 'primary' }
+		]
+	},
+
+	// Пейлоады
+	payloads: {
+		task: {
+			generator: 'svalka.task',
+			fields: ['closedPic']
+		},
+		sector: true,
+		bonus: true
+	},
+
+	// Стратегия hint для бонусов
+	bonusHintStrategy: 'autoContent',
+
+	// Значения по умолчанию
+	defaults: {
+		sectorMode: 'all',
+		bonusTime: { hours: 0, minutes: 0, seconds: 0, negative: false },
+		closedPattern: ''
+	}
+}
+
 // Авто-регистрация при импорте модуля
 registerLevelType(olympConfig)
 registerLevelType(type100500Config)
+registerLevelType(svalkaConfig)

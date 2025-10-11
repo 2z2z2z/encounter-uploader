@@ -37,7 +37,9 @@ export const buildBonusPayload: PayloadBuilder<BonusPayloadData> = (data) => {
 			data.levelId,
 			bonus.number,
 			bonus.displayText,
-			bonus.closedText
+			bonus.closedText,
+			bonus.openPic,
+			data.closedPicIds
 		)
 		params.append('txtHelp', autoHint)
 	} else {
@@ -96,18 +98,56 @@ export const buildBonusPayload: PayloadBuilder<BonusPayloadData> = (data) => {
 }
 
 
+/**
+ * Минификация HTML/текста для вставки в hint скрипт
+ * Убирает переносы строк и лишние пробелы, экранирует кавычки
+ */
+function minifyContent(content: string): string {
+	return content
+		.replace(/\r?\n/g, '') // Убираем переносы строк
+		.replace(/\s+/g, ' ')  // Заменяем множественные пробелы на одинарные
+		.trim()                // Убираем пробелы по краям
+		.replace(/"/g, '\\"')  // Экранируем двойные кавычки
+}
+
 function generateAutoHintScript(
 	levelId: string | number,
 	bonusNumber: number,
 	displayText: string,
-	closedText: string
+	closedText: string,
+	openPic?: string[],
+	closedPicIds?: string[]
 ): string {
+	// Проверяем наличие openPic и closedPicIds (для типа svalka с мультикартинками)
+	if (openPic && openPic.length > 0 && closedPicIds && closedPicIds.length > 0) {
+		// Для svalka с несколькими картинками генерируем скрипт для каждого ID
+		const scripts: string[] = []
+
+		for (let i = 0; i < closedPicIds.length && i < openPic.length; i++) {
+			const targetId = closedPicIds[i]
+			const content = minifyContent(openPic[i])
+			scripts.push(`<script type="text/javascript">document.getElementById("${targetId}").innerHTML="${content}";</script>`)
+		}
+
+		return scripts.join('')
+	}
+
+	// Fallback для старых типов без closedPicIds
 	const levelKey = String(levelId)
 	const targetId = `${levelKey}_${String(bonusNumber).padStart(2, '0')}`
+
+	if (openPic && openPic.length > 0 && openPic[0].trim()) {
+		// Для svalka с одной картинкой (старая логика)
+		const content = minifyContent(openPic[0])
+		return `<script type="text/javascript">document.getElementById("${targetId}").innerHTML="${content}";</script>`
+	}
+
+	// Для olymp и других типов используем displayText или closedText
 	const hasDisplay = displayText && displayText.trim().length > 0
-	const content = hasDisplay
-		? `<p class='up'>${displayText.replace(/"/g, '\\"')}</p>`
-		: closedText.replace(/"/g, '\\"')
+	const rawContent = hasDisplay
+		? `<p class='up'>${displayText}</p>`
+		: closedText
+	const content = minifyContent(rawContent)
 
 	return `<script type="text/javascript">document.getElementById("${targetId}").innerHTML="${content}";</script>`
 }

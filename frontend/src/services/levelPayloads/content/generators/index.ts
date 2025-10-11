@@ -7,15 +7,17 @@
 
 import type { ContentGenerator } from "@/entities/level/types"
 import { olympTaskGenerator } from './olymp.task'
+import { svalkaTaskGenerator } from './svalka.task'
 
 /**
  * Реестр всех доступных генераторов контента
- * 
+ *
  * Ключ: имя генератора (формат: 'домен.тип')
  * Значение: функция генератора
  */
 export const contentGenerators: Record<string, ContentGenerator> = {
 	'olymp.task': olympTaskGenerator,
+	'svalka.task': svalkaTaskGenerator,
 	// Здесь будут добавляться новые генераторы по мере необходимости
 	// 'type100500.task': type100500TaskGenerator,
 	// 'newType.task': newTypeTaskGenerator,
