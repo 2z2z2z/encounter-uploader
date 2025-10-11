@@ -181,7 +181,8 @@ export const useLevelStore = defineStore(
 		const config = getLevelTypeConfig(levelType.value)
 
 		// Базовые поля, которые всегда присутствуют в Answer
-		const answer: Answer = {
+		// Используем Partial для построения объекта постепенно
+		const answer: Partial<Answer> = {
 			id: generateAnswerId(),
 			number,
 			variants: [''],
@@ -190,9 +191,9 @@ export const useLevelStore = defineStore(
 			bonusTime: { hours: 0, minutes: 0, seconds: 0, negative: false }
 		}
 
-		// Если конфига нет, возвращаем только базовые поля
+		// Если конфига нет, возвращаем базовый объект с приведением типа
 		if (!config) {
-			return answer
+			return answer as Answer
 		}
 
 		// Инициализируем дополнительные поля на основе конфигурации типа
@@ -225,7 +226,7 @@ export const useLevelStore = defineStore(
 			}
 		})
 
-		return answer
+		return answer as Answer
 	}
 
 	// ===== Управление табами =====
