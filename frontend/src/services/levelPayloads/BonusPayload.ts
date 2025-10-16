@@ -1,6 +1,6 @@
 /**
  * Пейлоад для заливки бонусов
- * 
+ *
  * Портировано из оригинальной функции buildBonusPayload() в services/uploader.ts
  * с адаптацией под новую структуру данных Answer
  */
@@ -9,23 +9,23 @@ import type { PayloadBuilder, BonusPayloadData } from "@/entities/level/types"
 
 /**
  * Создает пейлоад для заливки одного бонуса
- * 
+ *
  * Соответствует оригинальной функции buildBonusPayload() из services/uploader.ts
- * 
+ *
  * @param data - Данные для формирования пейлоада
  * @returns URLSearchParams готовый для отправки
  */
 export const buildBonusPayload: PayloadBuilder<BonusPayloadData> = (data) => {
 	const params = new globalThis.URLSearchParams()
 	const { bonus, levelMapping = {} } = data
-	
+
 	// Основные параметры
 	params.append('domain', data.domain)
 	params.append('gid', String(data.gameId))
 	params.append('level', String(data.levelId))
 	params.append('txtBonusName', bonus.bonusName || '')
 	params.append('txtTask', bonus.bonusTask || '')
-	
+
 	// Обработка подсказки (txtHelp)
 	const explicitHint = typeof bonus.hint === 'string' ? bonus.hint : ''
 	const hintStrategy = data.hintStrategy ?? 'none'
@@ -45,7 +45,7 @@ export const buildBonusPayload: PayloadBuilder<BonusPayloadData> = (data) => {
 	} else {
 		params.append('txtHelp', '')
 	}
-	
+
 	// Варианты ответов (специальный формат с отрицательными индексами!)
 	if (Array.isArray(bonus.variants)) {
 		bonus.variants.forEach((variant, idx) => {
@@ -54,7 +54,7 @@ export const buildBonusPayload: PayloadBuilder<BonusPayloadData> = (data) => {
 			}
 		})
 	}
-	
+
 	// Бонусное время
 	params.append('txtHours', String(bonus.bonusTime.hours || 0))
 	params.append('txtMinutes', String(bonus.bonusTime.minutes || 0))
@@ -62,7 +62,7 @@ export const buildBonusPayload: PayloadBuilder<BonusPayloadData> = (data) => {
 	if (bonus.bonusTime.negative) {
 		params.append('negative', 'on')
 	}
-	
+
 	// Задержка (опционально)
 	if (bonus.delay && (bonus.delay.hours || bonus.delay.minutes || bonus.delay.seconds)) {
 		params.append('chkDelay', 'on')
@@ -70,7 +70,7 @@ export const buildBonusPayload: PayloadBuilder<BonusPayloadData> = (data) => {
 		params.append('txtDelayMinutes', String(bonus.delay.minutes || 0))
 		params.append('txtDelaySeconds', String(bonus.delay.seconds || 0))
 	}
-	
+
 	// Ограничение времени (опционально) - адаптация relativeLimit → limit
 	if (bonus.limit && (bonus.limit.hours || bonus.limit.minutes || bonus.limit.seconds)) {
 		params.append('chkRelativeLimit', 'on')
@@ -78,22 +78,43 @@ export const buildBonusPayload: PayloadBuilder<BonusPayloadData> = (data) => {
 		params.append('txtValidMinutes', String(bonus.limit.minutes || 0))
 		params.append('txtValidSeconds', String(bonus.limit.seconds || 0))
 	}
-	
+
 	// Логика выбора уровней - адаптация allLevels/targetLevels → bonusLevels
-	const isAllLevels = !Array.isArray(bonus.bonusLevels) || bonus.bonusLevels.length === 0
-	params.append('rbAllLevels', isAllLevels ? '0' : '1')
-	
-	if (!isAllLevels && Array.isArray(bonus.bonusLevels)) {
-		// Используем только выбранные пользователем уровни (текущий уровень уже включен если выбран)
-		const selected = new Set<string>(bonus.bonusLevels.map(String))
-		for (const lbl of selected) {
-			const chk = levelMapping[lbl]
-			if (chk) {
-				params.append(chk, 'on')
+	let isAllLevels = false
+
+	if (Array.isArray(bonus.bonusLevels)) {
+		// bonusLevels явно определен
+		if (bonus.bonusLevels.length === 0) {
+			// Пустой массив = "все уровни" (явный выбор пользователя)
+			isAllLevels = true
+		} else {
+			// Есть конкретные уровни
+			isAllLevels = false
+			const selected = new Set<string>(bonus.bonusLevels.map(String))
+			for (const lbl of selected) {
+				const chk = levelMapping[lbl]
+				if (chk) {
+					params.append(chk, 'on')
+				}
 			}
 		}
+	} else {
+		// bonusLevels не определен (undefined)
+		// ПО УМОЛЧАНИЮ ВСЕГДА используем текущий levelId (для ВСЕХ типов!)
+		isAllLevels = false
+		const currentLevelStr = String(data.levelId)
+		const chk = levelMapping[currentLevelStr]
+
+		if (!chk) {
+			// Если для текущего уровня нет маппинга, это ошибка
+			throw new Error(`Не найден маппинг уровня для текущего levelId="${currentLevelStr}". Обновите список уровней и повторите.`)
+		}
+
+		params.append(chk, 'on')
 	}
-	
+
+	params.append('rbAllLevels', isAllLevels ? '0' : '1')
+
 	return params
 }
 
@@ -151,5 +172,4 @@ function generateAutoHintScript(
 
 	return `<script type="text/javascript">document.getElementById("${targetId}").innerHTML="${content}";</script>`
 }
-
 

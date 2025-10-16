@@ -47,6 +47,18 @@
       "domain": "tech",
       "gameId": "80722",
       "userHash": "5f3803eb45df1563"
+    },
+    {
+      "timestamp": "2025-10-16T10:52:19.927Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "1d1da0daf946e2ef"
+    },
+    {
+      "timestamp": "2025-10-16T10:55:54.132Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "1d1da0daf946e2ef"
     }
   ],
   "sectors": [
@@ -188,6 +200,76 @@
       "domain": "tech",
       "gameId": "80722",
       "userHash": "5f3803eb45df1563",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-16T10:52:25.748Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "1d1da0daf946e2ef",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-16T10:52:27.148Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "1d1da0daf946e2ef",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-16T10:52:28.502Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "1d1da0daf946e2ef",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-16T10:52:29.857Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "1d1da0daf946e2ef",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-16T10:52:31.213Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "1d1da0daf946e2ef",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-16T10:52:32.564Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "1d1da0daf946e2ef",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-16T10:52:33.911Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "1d1da0daf946e2ef",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-16T10:55:58.544Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "1d1da0daf946e2ef",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-16T10:55:59.910Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "1d1da0daf946e2ef",
+      "count": 1
+    },
+    {
+      "timestamp": "2025-10-16T10:56:01.270Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "1d1da0daf946e2ef",
       "count": 1
     }
   ],
@@ -425,6 +507,90 @@
       "domain": "tech",
       "gameId": "80722",
       "userHash": "5f3803eb45df1563"
+    },
+    {
+      "timestamp": "2025-10-16T10:52:39.738Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "1d1da0daf946e2ef"
+    },
+    {
+      "timestamp": "2025-10-16T10:52:41.163Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "1d1da0daf946e2ef"
+    },
+    {
+      "timestamp": "2025-10-16T10:52:42.513Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "1d1da0daf946e2ef"
+    },
+    {
+      "timestamp": "2025-10-16T10:52:43.868Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "1d1da0daf946e2ef"
+    },
+    {
+      "timestamp": "2025-10-16T10:52:45.245Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "1d1da0daf946e2ef"
+    },
+    {
+      "timestamp": "2025-10-16T10:52:46.602Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "1d1da0daf946e2ef"
+    },
+    {
+      "timestamp": "2025-10-16T10:52:47.969Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "1d1da0daf946e2ef"
+    },
+    {
+      "timestamp": "2025-10-16T10:56:33.169Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "1d1da0daf946e2ef"
+    },
+    {
+      "timestamp": "2025-10-16T10:56:34.529Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "1d1da0daf946e2ef"
+    },
+    {
+      "timestamp": "2025-10-16T10:56:35.892Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "1d1da0daf946e2ef"
+    },
+    {
+      "timestamp": "2025-10-16T11:03:15.382Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "1d1da0daf946e2ef"
+    },
+    {
+      "timestamp": "2025-10-16T11:03:16.744Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "1d1da0daf946e2ef"
+    },
+    {
+      "timestamp": "2025-10-16T11:03:18.113Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "1d1da0daf946e2ef"
+    },
+    {
+      "timestamp": "2025-10-16T11:03:19.460Z",
+      "domain": "tech",
+      "gameId": "80722",
+      "userHash": "1d1da0daf946e2ef"
     }
   ]
 }

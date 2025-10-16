@@ -15,12 +15,12 @@ import type { SectorPayloadData, BonusPayloadData, Answer, TabData } from "@/ent
 
 export function useLevelPayloads() {
 	const store = useLevelStore()
-	
+
 	/**
 	 * Создает пейлоад для сектора с учетом БМП режима
-	 * 
+	 *
 	 * @param answers - Массив ответов для сектора
-	 * @param sectorName - Название сектора 
+	 * @param sectorName - Название сектора
 	 * @param combineSectors - Режим БМП (объединение секторов)
 	 * @returns URLSearchParams для отправки
 	 */
@@ -28,7 +28,7 @@ export function useLevelPayloads() {
 		if (!store.domain || !store.gameId || !store.levelId) {
 			throw new Error('Не установлены данные игры (domain, gameId, levelId)')
 		}
-		
+
 		const data: SectorPayloadData = {
 			domain: store.domain,
 			gameId: store.gameId,
@@ -37,10 +37,10 @@ export function useLevelPayloads() {
 			answers,
 			combineSectors
 		}
-		
+
 		return buildSectorPayload(data)
 	}
-	
+
 	/**
 	 * Создает пейлоад для бонуса
 	 *
@@ -69,7 +69,7 @@ export function useLevelPayloads() {
 
 	return buildBonusPayload(data)
 }
-	
+
 	// Дополнительные композаблы и stores
 	const progress = useProgressStore()
 	const notify = useNotification()
@@ -142,7 +142,7 @@ export function useLevelPayloads() {
 			await progress.waitForResume()
 		}
 	}
-	
+
 	/**
 	 * Загружает задание через Task пейлоад
 	 * Поддерживается только для типов с task пейлоадом в конфиге
@@ -159,35 +159,35 @@ export function useLevelPayloads() {
 			if (!config.payloads.task || typeof config.payloads.task !== 'object') {
 				throw new Error(`Тип ${store.levelType} не поддерживает загрузку заданий`)
 			}
-			
+
 			// Проверка данных игры
 			if (!store.domain || !store.gameId || !store.levelId) {
 				throw new Error('Не установлены данные игры (domain, gameId, levelId)')
 			}
-			
+
 			// Обновление авторизации перед загрузкой
 			await authStore.authenticate(store.domain)
-			
+
 			// Создание пейлоада через Content Generators System
 			// Передаем blockOrder из config для сохранения порядка блоков как в предпросмотре
 			const taskPayload = createTaskPayload(store, config, false, store.config.blockOrder)
 			if (!taskPayload) {
 				throw new Error('Не удалось создать Task пейлоад')
 			}
-			
+
 			// Инициализация прогресса
 			progress.start('task', 1)
 			progress.updateTitle('Отправка задания')
-			
+
 			// Проверка паузы перед отправкой
 			await progress.waitForResume()
-			
+
 			// Отправка задания
 			await sendTask(taskPayload)
-			
+
 			progress.updateSuccess('Задание отправлено')
 			progress.finish()
-			
+
 		} catch (error: unknown) {
 			const message = error instanceof Error ? error.message : String(error)
 			progress.reportError(`Ошибка загрузки задания: ${message}`)
@@ -196,10 +196,10 @@ export function useLevelPayloads() {
 			throw error
 		}
 	}
-	
+
 	/**
 	 * Загружает секторы с поддержкой мульти-табов и БМП
-	 * 
+	 *
 	 * @param combineSectors - Режим БМП (объединение секторов)
 	 */
 	async function uploadSectors(combineSectors = false): Promise<void> {
@@ -349,7 +349,7 @@ export function useLevelPayloads() {
 
 				progress.finish()
 			}
-			
+
 		} catch (error: unknown) {
 			const message = error instanceof Error ? error.message : String(error)
 			progress.reportError(`Ошибка загрузки секторов: ${message}`)
@@ -358,7 +358,7 @@ export function useLevelPayloads() {
 			throw error
 		}
 	}
-	
+
 	/**
 	 * Загружает бонусы с поддержкой мульти-табов
 	 */
@@ -369,17 +369,17 @@ export function useLevelPayloads() {
 			if (!config) {
 				throw new Error(`Конфиг для типа ${store.levelType} не найден`)
 			}
-			
+
 			// Проверка поддержки загрузки бонусов
 			if (!config.payloads.bonus) {
 				throw new Error(`Тип ${store.levelType} не поддерживает загрузку бонусов`)
 			}
-			
+
 			// Проверка данных игры
 			if (!store.domain || !store.gameId || !store.levelId) {
 				throw new Error('Не установлены данные игры (domain, gameId, levelId)')
 			}
-			
+
 			// Сбор данных бонусов в зависимости от типа (мульти-табы или одиночный)
 			// Для типов с closedPic нужно вычислять ID картинок с учетом блока и глобального счетчика
 			interface BonusWithIds {
@@ -428,21 +428,26 @@ export function useLevelPayloads() {
 					})
 				}
 			}
-			
+
 			if (allBonuses.length === 0) {
 				notify.info('Нет отмеченных бонусов', 'Отметьте бонусы для загрузки')
 				return
 			}
-			
+
 			// Обновление авторизации перед массовой загрузкой
 			await authStore.authenticate(store.domain)
 
 			// Получение маппинга уровней для бонусов
 			const levelMapping = await getLevelMapping(store.domain, store.gameId, store.levelId)
 
+			// Валидация маппинга (необходим для определения текущего уровня по умолчанию)
+			if (Object.keys(levelMapping).length === 0) {
+				throw new Error('Не удалось получить маппинг уровней для загрузки бонусов')
+			}
+
 			// Инициализация прогресса
 			progress.start('bonus', allBonuses.length)
-			
+
 			// Отправка бонусов по одному
 			for (let idx = 0; idx < allBonuses.length; idx++) {
 				const bonusData = allBonuses[idx]
@@ -463,9 +468,9 @@ export function useLevelPayloads() {
 					await authStore.authenticate(store.domain)
 				}
 			}
-			
+
 			progress.finish()
-			
+
 		} catch (error: unknown) {
 			const message = error instanceof Error ? error.message : String(error)
 			progress.reportError(`Ошибка загрузки бонусов: ${message}`)
@@ -474,7 +479,7 @@ export function useLevelPayloads() {
 			throw error
 		}
 	}
-	
+
 	return {
 		createSectorPayload,
 		createBonusPayload,
@@ -483,5 +488,4 @@ export function useLevelPayloads() {
 		uploadBonuses
 	}
 }
-
 

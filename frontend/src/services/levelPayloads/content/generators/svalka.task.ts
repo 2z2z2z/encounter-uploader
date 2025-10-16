@@ -87,7 +87,7 @@ const generateStyles = (): string => {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  padding: 20px;
+  padding: 20px 0;
 }
 
 .svalka-block {
@@ -98,8 +98,8 @@ const generateStyles = (): string => {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: #f5f5f5;
-  border: 1px solid #ddd;
+  background: #272727;
+  border: 1px solid #414141;
   border-radius: 4px;
 }
 
