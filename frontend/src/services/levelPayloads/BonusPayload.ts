@@ -7,6 +7,56 @@
 
 import type { PayloadBuilder, BonusPayloadData } from "@/entities/level/types"
 
+function normalizeBonusLevels(
+	levels: unknown,
+	fallbackLevel: string
+): string[] {
+	if (Array.isArray(levels)) {
+		const normalized = Array.from(new Set(
+			levels
+				.map(level => String(level ?? '').trim())
+				.filter(Boolean)
+		))
+
+		if (normalized.length > 0) {
+			return normalized
+		}
+
+		if (levels.length === 0) {
+			// Явный выбор "на все уровни"
+			return []
+		}
+	}
+
+	return fallbackLevel ? [fallbackLevel] : []
+}
+
+function resolveLevelCheckboxName(
+	label: string,
+	mapping: Record<string, string>
+): string | undefined {
+	if (!mapping) return undefined
+
+	if (mapping[label]) return mapping[label]
+
+	const trimmedLabel = label.trim()
+	if (mapping[trimmedLabel]) return mapping[trimmedLabel]
+
+	const byTrimmedKey = Object.entries(mapping).find(([key]) => key.trim() === trimmedLabel)
+	if (byTrimmedKey) return byTrimmedKey[1]
+
+	const numericLabel = trimmedLabel.replace(/\D+/g, '')
+	if (numericLabel) {
+		const byNumericMatch = Object.entries(mapping).find(([key]) => key.replace(/\D+/g, '') === numericLabel)
+		if (byNumericMatch) return byNumericMatch[1]
+	}
+
+	const byValueMatch = Object.entries(mapping).find(([, value]) => value === trimmedLabel)
+	if (byValueMatch) return byValueMatch[1]
+
+	return undefined
+}
+
 /**
  * Создает пейлоад для заливки одного бонуса
  * 
@@ -80,19 +130,34 @@ export const buildBonusPayload: PayloadBuilder<BonusPayloadData> = (data) => {
 	}
 	
 	// Логика выбора уровней - адаптация allLevels/targetLevels → bonusLevels
-	const isAllLevels = !Array.isArray(bonus.bonusLevels) || bonus.bonusLevels.length === 0
-	params.append('rbAllLevels', isAllLevels ? '0' : '1')
+	const fallbackLevelId = data.levelId !== undefined && data.levelId !== null
+		? String(data.levelId).trim()
+		: ''
+	const normalizedLevels = normalizeBonusLevels(bonus.bonusLevels, fallbackLevelId)
+	let isAllLevels = normalizedLevels.length === 0
 	
-	if (!isAllLevels && Array.isArray(bonus.bonusLevels)) {
-		// Используем только выбранные пользователем уровни (текущий уровень уже включен если выбран)
-		const selected = new Set<string>(bonus.bonusLevels.map(String))
+	if (!isAllLevels) {
+		const selected = new Set<string>(normalizedLevels)
+		const checkboxNames: string[] = []
+
 		for (const lbl of selected) {
-			const chk = levelMapping[lbl]
-			if (chk) {
-				params.append(chk, 'on')
+			const checkboxName = resolveLevelCheckboxName(lbl, levelMapping)
+			if (!checkboxName) {
+				throw new Error(`Не удалось сопоставить уровень "${lbl}" в форме бонусов. Обновите список уровней и повторите.`)
 			}
+			checkboxNames.push(checkboxName)
 		}
+
+		if (checkboxNames.length === 0) {
+			throw new Error('Не удалось определить чекбоксы уровней для бонуса. Обновите список уровней и повторите.')
+		}
+
+		checkboxNames.forEach(name => {
+			params.append(name, 'on')
+		})
 	}
+
+	params.set('rbAllLevels', isAllLevels ? '0' : '1')
 	
 	return params
 }

@@ -622,12 +622,21 @@ function sanitizeAnswer(source: Partial<Answer> | Record<string, unknown>, fallb
     : []
   const variants = variantsSource.length > 0 ? variantsSource : defaults.variants.slice()
 
-  const bonusLevelsSource = Array.isArray((source as Partial<Answer>).bonusLevels)
-    ? (source as Partial<Answer>).bonusLevels!.map(level => String(level ?? ''))
+  const hasSourceLevels = Array.isArray((source as Partial<Answer>).bonusLevels)
+  const bonusLevelsSource = hasSourceLevels
+    ? (source as Partial<Answer>).bonusLevels!.map(level => String(level ?? '').trim())
     : undefined
   const defaultBonusLevels = Array.isArray(defaults.bonusLevels) ? defaults.bonusLevels : []
-  const bonusLevels = bonusLevelsSource
-    ? bonusLevelsSource.filter(level => level.trim().length > 0)
+  const normalizedBonusLevels = bonusLevelsSource
+    ? Array.from(new Set(bonusLevelsSource.filter(level => level.length > 0)))
+    : []
+  const explicitAllLevels = hasSourceLevels && (bonusLevelsSource?.length === 0 || bonusLevelsSource!.every(level => level.length === 0))
+  const bonusLevels = hasSourceLevels
+    ? normalizedBonusLevels.length > 0
+      ? normalizedBonusLevels
+      : explicitAllLevels
+        ? []
+        : defaultBonusLevels.slice()
     : defaultBonusLevels.slice()
 
   const closedPicSource = Array.isArray((source as Partial<Answer>).closedPic)

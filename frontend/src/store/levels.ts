@@ -77,6 +77,7 @@ export const useLevelStore = defineStore(
 	const isDirty = ref<boolean>(false)
 
 	let suppressDirtyTracking = false
+	let isNormalizingBonusLevels = false
 
 	function withDirtyTrackingSuppressed<T>(callback: () => T): T {
 		const previous = suppressDirtyTracking
@@ -91,6 +92,7 @@ export const useLevelStore = defineStore(
 	watch(
 		tabs,
 		() => {
+			normalizeAllBonusLevels()
 			markDirty()
 		},
 		{ deep: true }
@@ -103,6 +105,10 @@ export const useLevelStore = defineStore(
 		},
 		{ deep: true }
 	)
+
+	watch(levelId, () => {
+		normalizeAllBonusLevels()
+	})
 
 	// ===== Геттеры =====
 
@@ -168,6 +174,126 @@ export const useLevelStore = defineStore(
 		return `answer-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
 	}
 
+	function levelSupportsBonusLevels(): boolean {
+		const config = getLevelTypeConfig(levelType.value)
+		return Boolean(config?.fields.includes('bonusLevels'))
+	}
+
+	function getDefaultBonusLevels(): string[] {
+		if (!levelSupportsBonusLevels()) {
+			return []
+		}
+
+		const currentLevel = String(levelId.value || '').trim()
+		return currentLevel ? [currentLevel] : []
+	}
+
+	function sanitizeBonusLevels(levels: unknown): string[] {
+		if (!Array.isArray(levels)) {
+			return []
+		}
+
+		return Array.from(new Set(
+			levels
+				.map(level => String(level ?? '').trim())
+				.filter(Boolean)
+		))
+	}
+
+	function areStringArraysEqual(a: string[], b: string[]): boolean {
+		if (a.length !== b.length) return false
+		return a.every((value, index) => value === b[index])
+	}
+
+	function normalizeAnswerBonusLevels(
+		answer: Answer,
+		supportsBonusLevels = levelSupportsBonusLevels(),
+		fallbackLevels?: string[]
+	): boolean {
+		if (!supportsBonusLevels) {
+			if (typeof answer.bonusLevels !== 'undefined') {
+				answer.bonusLevels = undefined
+				return true
+			}
+			return false
+		}
+
+		const fallback = fallbackLevels ?? getDefaultBonusLevels()
+
+		if (!Array.isArray(answer.bonusLevels)) {
+			const next = fallback.slice()
+			if (next.length > 0) {
+				answer.bonusLevels = next
+				return true
+			}
+
+			if (typeof answer.bonusLevels !== 'undefined' && answer.bonusLevels !== null) {
+				answer.bonusLevels = []
+				return true
+			}
+			return false
+		}
+
+		const raw = answer.bonusLevels
+		const normalized = sanitizeBonusLevels(raw)
+
+		if (normalized.length > 0) {
+			if (!areStringArraysEqual(raw, normalized)) {
+				answer.bonusLevels = normalized
+				return true
+			}
+			return false
+		}
+
+		if (raw.length === 0) {
+			// Явный выбор "на все уровни" остаётся пустым массивом
+			return false
+		}
+
+		if (!areStringArraysEqual(raw, fallback)) {
+			answer.bonusLevels = fallback.slice()
+			return true
+		}
+
+		return false
+	}
+
+	function normalizeAllBonusLevels(): boolean {
+		if (isNormalizingBonusLevels) return false
+		const supportsBonusLevels = levelSupportsBonusLevels()
+
+		if (!supportsBonusLevels) {
+			let changed = false
+			tabs.value.forEach(tab => {
+				tab.answers.forEach(answer => {
+					if (typeof answer.bonusLevels !== 'undefined') {
+						answer.bonusLevels = undefined
+						changed = true
+					}
+				})
+			})
+			return changed
+		}
+
+		isNormalizingBonusLevels = true
+
+		const fallbackLevels = getDefaultBonusLevels()
+		let changed = false
+		try {
+			tabs.value.forEach(tab => {
+				tab.answers.forEach(answer => {
+					if (normalizeAnswerBonusLevels(answer, supportsBonusLevels, fallbackLevels)) {
+						changed = true
+					}
+				})
+			})
+		} finally {
+			isNormalizingBonusLevels = false
+		}
+
+		return changed
+	}
+
 	/**
 	 * Создает пустой ответ с условной инициализацией полей
 	 * на основе конфигурации текущего типа уровня
@@ -179,6 +305,7 @@ export const useLevelStore = defineStore(
 	function createEmptyAnswer(number: number): Answer {
 		// Получаем конфигурацию текущего типа уровня
 		const config = getLevelTypeConfig(levelType.value)
+		const supportsBonusLevels = config?.fields.includes('bonusLevels') === true
 
 		// Базовые поля, которые всегда присутствуют в Answer
 		// Используем Partial для построения объекта постепенно
@@ -189,6 +316,12 @@ export const useLevelStore = defineStore(
 			sector: true,
 			bonus: true,
 			bonusTime: { hours: 0, minutes: 0, seconds: 0, negative: false }
+		}
+
+		let defaultBonusLevels: string[] | undefined
+		if (supportsBonusLevels) {
+			defaultBonusLevels = getDefaultBonusLevels()
+			answer.bonusLevels = defaultBonusLevels.slice()
 		}
 
 		// Если конфига нет, возвращаем базовый объект с приведением типа
@@ -208,8 +341,13 @@ export const useLevelStore = defineStore(
 			const defaultValue = getFieldDefaultValue(fieldId)
 
 			// Специальная обработка для bonusLevels - добавляем текущий levelId
-			if (fieldId === 'bonusLevels' && levelId.value) {
-				answer.bonusLevels = [String(levelId.value)]
+			if (fieldId === 'bonusLevels') {
+				const defaults = sanitizeBonusLevels(defaultValue)
+				if (defaults.length > 0) {
+					answer.bonusLevels = defaults
+				} else if (!answer.bonusLevels) {
+					answer.bonusLevels = getDefaultBonusLevels().slice()
+				}
 				return
 			}
 
@@ -226,7 +364,13 @@ export const useLevelStore = defineStore(
 			}
 		})
 
-		return answer as Answer
+		const result = answer as Answer
+		if (supportsBonusLevels) {
+			normalizeAnswerBonusLevels(result, true, defaultBonusLevels)
+		} else {
+			result.bonusLevels = undefined
+		}
+		return result
 	}
 
 	// ===== Управление табами =====
@@ -404,6 +548,9 @@ export const useLevelStore = defineStore(
 		if (!answer) return false
 
 		Object.assign(answer, updates)
+		if ('bonusLevels' in updates) {
+			normalizeAnswerBonusLevels(answer)
+		}
 		markDirty()
 		return true
 	}
@@ -465,6 +612,9 @@ export const useLevelStore = defineStore(
 
 		tab.answers.forEach(answer => {
 			answer[field] = value
+			if (field === 'bonusLevels') {
+				normalizeAnswerBonusLevels(answer)
+			}
 		})
 
 		markDirty()
@@ -576,6 +726,7 @@ export const useLevelStore = defineStore(
 			withDirtyTrackingSuppressed(() => {
 				// Восстанавливаем данные
 				tabs.value = data.tabs || [createDefaultTab()]
+				normalizeAllBonusLevels()
 				config.value = data.config || {
 					sectorMode: 'all',
 					bonusTime: { hours: 0, minutes: 0, seconds: 0, negative: false },
