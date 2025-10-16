@@ -60,3 +60,6 @@ blob-report/
 *.seed
 *.pid.lock
 server/stats.json
+
+# ────────────── Custom ──────────────
+stats.json
