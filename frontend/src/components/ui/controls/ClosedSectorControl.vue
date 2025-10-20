@@ -40,6 +40,13 @@ watch(localClosedPattern, (pattern) => {
 })
 
 /**
+ * Сброс локального состояния при переключении табов
+ */
+watch(() => store.activeTabIndex, () => {
+  localClosedPattern.value = ''
+})
+
+/**
  * Инициализация компонента
  */
 onMounted(() => {

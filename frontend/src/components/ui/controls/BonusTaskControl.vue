@@ -42,6 +42,13 @@ watch(localBonusTask, (task) => {
 })
 
 /**
+ * Сброс локального состояния при переключении табов
+ */
+watch(() => store.activeTabIndex, () => {
+  localBonusTask.value = ''
+})
+
+/**
  * Инициализация компонента
  */
 onMounted(() => {

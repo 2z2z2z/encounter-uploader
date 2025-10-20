@@ -39,6 +39,13 @@ watch(localSectorName, (name) => {
 })
 
 /**
+ * Сброс локального состояния при переключении табов
+ */
+watch(() => store.activeTabIndex, () => {
+  localSectorName.value = ''
+})
+
+/**
  * Инициализация компонента
  */
 onMounted(() => {

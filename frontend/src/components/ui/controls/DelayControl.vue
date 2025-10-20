@@ -70,6 +70,17 @@ watch(() => ({ ...quickTime }), (timeValue) => {
     answer.delay = { ...timeValue }
   })
 }, { deep: true })
+
+/**
+ * Сброс локального состояния при переключении табов
+ */
+watch(() => store.activeTabIndex, () => {
+  Object.assign(quickTime, {
+    hours: 0,
+    minutes: 0,
+    seconds: 0
+  })
+})
 </script>
 
 <style>

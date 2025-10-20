@@ -50,6 +50,13 @@ watch(localOpenPicName, (name) => {
 })
 
 /**
+ * Сброс локального состояния при переключении табов
+ */
+watch(() => store.activeTabIndex, () => {
+  localOpenPicName.value = ''
+})
+
+/**
  * Инициализация компонента
  */
 onMounted(() => {

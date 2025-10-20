@@ -39,6 +39,13 @@ watch(localBonusName, (name) => {
 })
 
 /**
+ * Сброс локального состояния при переключении табов
+ */
+watch(() => store.activeTabIndex, () => {
+  localBonusName.value = ''
+})
+
+/**
  * Инициализация компонента
  */
 onMounted(() => {

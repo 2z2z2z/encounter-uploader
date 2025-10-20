@@ -42,6 +42,13 @@ watch(localHint, (hint) => {
 })
 
 /**
+ * Сброс локального состояния при переключении табов
+ */
+watch(() => store.activeTabIndex, () => {
+  localHint.value = ''
+})
+
+/**
  * Инициализация компонента
  */
 onMounted(() => {
