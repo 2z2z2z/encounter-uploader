@@ -398,6 +398,75 @@ app.get('/api/admin/bonus-form', async (req, res) => {
   }
 })
 
+// === ENDPOINT СЦЕНАРИЯ (для Проверятора) ===
+app.get('/api/scenario', async (req, res) => {
+  const { url } = req.query
+  if (!url) {
+    return res.status(400).json({ error: 'Missing url parameter' })
+  }
+
+  // Валидируем URL сценария
+  const scenarioUrlRegex = /^https:\/\/[a-zA-Z0-9-]+\.en\.cx\/GameScenario\.aspx\?gid=\d+$/
+  if (!scenarioUrlRegex.test(url)) {
+    return res.status(400).json({ error: 'Invalid scenario URL format' })
+  }
+
+  console.log('[proxyGetScenario] ▶', url)
+
+  try {
+    // Выполняем GET запрос к странице сценария
+    // Сценарий может быть доступен без авторизации для публичных игр
+    // но для приватных нужны куки
+    const headers = {}
+    if (req.session.authCookie) {
+      headers.Cookie = req.session.authCookie
+    }
+
+    const proxyRes = await axios.get(url, {
+      headers,
+      timeout: 30000, // 30 секунд таймаут
+    })
+
+    // Обновляем authCookie, если EN прислал новый
+    refreshAuthCookie(req, proxyRes)
+
+    // Проверяем что получили HTML
+    const contentType = proxyRes.headers['content-type'] || ''
+    if (!contentType.includes('text/html')) {
+      console.error('[proxyGetScenario] Unexpected content type:', contentType)
+      return res.status(400).json({ error: 'Unexpected response type' })
+    }
+
+    // Проверяем на закрытый сценарий
+    if (proxyRes.data.includes('Просмотр сценария игры не разрешен')) {
+      console.log('[proxyGetScenario] Scenario is private')
+      return res.status(403).json({
+        error: 'Сценарий закрыт. Проверьте права доступа к игре.'
+      })
+    }
+
+    // Проверяем на несуществующую игру
+    if (proxyRes.data.includes('Запрошенная игра не существует')) {
+      console.log('[proxyGetScenario] Game does not exist')
+      return res.status(404).json({
+        error: 'Игра не найдена. Проверьте правильность URL сценария.'
+      })
+    }
+
+    // Возвращаем HTML страницы сценария
+    res.status(200).send(proxyRes.data)
+  } catch (err) {
+    console.error('[proxyGetScenario] Error:', err.response?.status, err.message)
+    if (err.response?.status === 404) {
+      return res.status(404).json({ error: 'Сценарий не найден' })
+    }
+    if (err.response?.status === 403) {
+      return res.status(403).json({ error: 'Доступ к сценарию запрещен' })
+    }
+    res.status(500).json({ error: 'Error fetching scenario' })
+  }
+})
+
 // === ENDPOINT СТАТИСТИКИ ===
 app.get('/api/stats', async (_req, res) => {
   try {

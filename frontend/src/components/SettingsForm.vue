@@ -5,90 +5,147 @@
         <template #title>Настройки</template>
         <template #content>
           <form @submit.prevent="onContinue" class="space-y-6">
-            <div class="space-y-1">
-              <FloatLabel variant="on">
-                <InputText
-                  id="domain"
-                  v-model="levelStore.domain"
-                  :invalid="!!domainValidationError"
-                  placeholder="domain или domain.en.cx"
-                  fluid
-                  class="transition-all duration-200"
-                  @input="onDomainInput"
-                />
-                <label for="domain">Домен Encounter</label>
-              </FloatLabel>
-              <Message
-                v-if="domainValidationError"
-                severity="error"
-                :closable="false"
-                class="mt-1"
-              >
-                {{ domainValidationError }}
-              </Message>
+            <!-- Переключатель режимов -->
+            <div class="flex justify-center">
+              <SelectButton
+                v-model="checkerStore.mode"
+                :options="modeOptions"
+                option-label="label"
+                option-value="value"
+                aria-label="Выбор режима"
+              />
             </div>
 
-            <div class="space-y-1">
-              <FloatLabel variant="on">
-                <InputText
-                  id="gameId"
-                  v-model="levelStore.gameId"
-                  fluid
-                  class="transition-all duration-200"
-                />
-                <label for="gameId">ID игры</label>
-              </FloatLabel>
-            </div>
+            <!-- Режим Заливатор -->
+            <template v-if="checkerStore.mode === 'uploader'">
+              <div class="space-y-1">
+                <FloatLabel variant="on">
+                  <InputText
+                    id="domain"
+                    v-model="levelStore.domain"
+                    :invalid="!!domainValidationError"
+                    placeholder="domain или domain.en.cx"
+                    fluid
+                    class="transition-all duration-200"
+                    @input="onDomainInput"
+                  />
+                  <label for="domain">Домен Encounter</label>
+                </FloatLabel>
+                <Message
+                  v-if="domainValidationError"
+                  severity="error"
+                  :closable="false"
+                  class="mt-1"
+                >
+                  {{ domainValidationError }}
+                </Message>
+              </div>
 
-            <div class="space-y-1">
-              <FloatLabel variant="on">
-                <InputText
-                  id="levelId"
-                  v-model="levelStore.levelId"
-                  :invalid="!!levelValidationError"
-                  fluid
-                  class="transition-all duration-200"
-                  @input="onLevelIdInput"
-                />
-                <label for="levelId">№ уровня</label>
-              </FloatLabel>
-              <Message 
-                v-if="levelValidationError" 
-                severity="error" 
-                :closable="false"
-                class="mt-1"
-              >
-                {{ levelValidationError }}
-              </Message>
-            </div>
+              <div class="space-y-1">
+                <FloatLabel variant="on">
+                  <InputText
+                    id="gameId"
+                    v-model="levelStore.gameId"
+                    fluid
+                    class="transition-all duration-200"
+                  />
+                  <label for="gameId">ID игры</label>
+                </FloatLabel>
+              </div>
 
-            <div class="space-y-1">
-              <FloatLabel variant="on">
-                <Select
-                  id="uploadType"
-                  v-model="selectedLevelType"
-                  :options="levelTypeOptions"
-                  option-label="label"
-                  option-value="value"
-                  placeholder="Выберите тип уровня"
-                  fluid
-                  class="transition-all duration-200"
-                />
-                <label for="uploadType">Тип уровня</label>
-              </FloatLabel>
-            </div>
+              <div class="space-y-1">
+                <FloatLabel variant="on">
+                  <InputText
+                    id="levelId"
+                    v-model="levelStore.levelId"
+                    :invalid="!!levelValidationError"
+                    fluid
+                    class="transition-all duration-200"
+                    @input="onLevelIdInput"
+                  />
+                  <label for="levelId">№ уровня</label>
+                </FloatLabel>
+                <Message
+                  v-if="levelValidationError"
+                  severity="error"
+                  :closable="false"
+                  class="mt-1"
+                >
+                  {{ levelValidationError }}
+                </Message>
+              </div>
 
-            <Message 
-              v-if="error" 
-              severity="error" 
+              <div class="space-y-1">
+                <FloatLabel variant="on">
+                  <Select
+                    id="uploadType"
+                    v-model="selectedLevelType"
+                    :options="levelTypeOptions"
+                    option-label="label"
+                    option-value="value"
+                    placeholder="Выберите тип уровня"
+                    fluid
+                    class="transition-all duration-200"
+                  />
+                  <label for="uploadType">Тип уровня</label>
+                </FloatLabel>
+              </div>
+            </template>
+
+            <!-- Режим Проверятор -->
+            <template v-else>
+              <div class="space-y-1">
+                <FloatLabel variant="on">
+                  <InputText
+                    id="scenarioUrl"
+                    v-model="checkerStore.scenarioUrl"
+                    :invalid="!!scenarioUrlError"
+                    placeholder="https://domain.en.cx/GameScenario.aspx?gid=12345"
+                    fluid
+                    class="transition-all duration-200"
+                    @input="onScenarioUrlInput"
+                  />
+                  <label for="scenarioUrl">URL сценария</label>
+                </FloatLabel>
+                <Message
+                  v-if="scenarioUrlError"
+                  severity="error"
+                  :closable="false"
+                  class="mt-1"
+                >
+                  {{ scenarioUrlError }}
+                </Message>
+              </div>
+
+              <div class="space-y-1">
+                <FloatLabel variant="on">
+                  <Select
+                    id="gameType"
+                    v-model="checkerStore.gameType"
+                    :options="gameTypeOptions"
+                    option-label="label"
+                    option-value="value"
+                    :invalid="!!gameTypeError"
+                    fluid
+                    class="transition-all duration-200"
+                    @change="gameTypeError = ''"
+                  />
+                  <label for="gameType">Тип игры</label>
+                </FloatLabel>
+              </div>
+            </template>
+
+            <Message
+              v-if="error"
+              severity="error"
               :closable="false"
             >
               {{ error }}
             </Message>
 
-            <Button 
-              type="submit" 
-              label="Продолжить"
+            <Button
+              type="submit"
+              :label="checkerStore.mode === 'uploader' ? 'Продолжить' : 'Проверить'"
               fluid
               class="transition-all duration-200"
             />
@@ -104,6 +161,7 @@ import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { useLevelStore } from '@/store/levels'
+import { useCheckerStore, type AppMode, type GameType } from '@/store/checker'
 import type { LevelTypeId } from '@/entities/level/types'
 import { getAllLevelTypes } from '@/entities/level/configs'
 import { useAuthStore } from '../store/auth'
@@ -111,13 +169,59 @@ import { extractDomainName, isValidEncounterDomain } from '@/utils/domainExtract
 import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
+import SelectButton from 'primevue/selectbutton'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
 import FloatLabel from 'primevue/floatlabel'
 
 const levelStore = useLevelStore()
 const authStore = useAuthStore()
+const checkerStore = useCheckerStore()
 const router = useRouter()
+
+/** Опции режимов приложения */
+const modeOptions = [
+  { label: 'Заливатор', value: 'uploader' as AppMode },
+  { label: 'Проверятор', value: 'checker' as AppMode }
+]
+
+/** Опции типов игры для проверятора */
+const gameTypeOptions = [
+  { label: 'Точки', value: 'points' as GameType },
+  { label: 'Схватка', value: 'encounter' as GameType }
+]
+
+/** Ошибка валидации URL сценария */
+const scenarioUrlError = ref('')
+
+/** Ошибка валидации типа игры */
+const gameTypeError = ref('')
+
+/** Регулярное выражение для валидации URL сценария */
+const SCENARIO_URL_REGEX = /^https:\/\/[a-zA-Z0-9-]+\.en\.cx\/GameScenario\.aspx\?gid=\d+$/
+
+/**
+ * Валидирует URL сценария
+ */
+function validateScenarioUrl(url: string): boolean {
+  return SCENARIO_URL_REGEX.test(url)
+}
+
+/**
+ * Обработчик ввода URL сценария
+ */
+function onScenarioUrlInput(): void {
+  const url = checkerStore.scenarioUrl.trim()
+  if (!url) {
+    scenarioUrlError.value = ''
+    return
+  }
+  if (!validateScenarioUrl(url)) {
+    scenarioUrlError.value = 'Неверный формат URL. Ожидается: https://domain.en.cx/GameScenario.aspx?gid=12345'
+  } else {
+    scenarioUrlError.value = ''
+  }
+}
 
 const levelTypeOptions = computed(() => {
   return getAllLevelTypes().reduce((options, config) => {
@@ -237,6 +341,42 @@ function onDomainInput(event: globalThis.Event) {
 async function onContinue() {
   error.value = ''
 
+  // Режим Проверятор - отдельная логика
+  if (checkerStore.mode === 'checker') {
+    const url = checkerStore.scenarioUrl.trim()
+    if (!url) {
+      scenarioUrlError.value = 'Пожалуйста, укажите URL сценария'
+      return
+    }
+    if (!validateScenarioUrl(url)) {
+      scenarioUrlError.value = 'Неверный формат URL. Ожидается: https://domain.en.cx/GameScenario.aspx?gid=12345'
+      return
+    }
+    scenarioUrlError.value = ''
+
+    if (!checkerStore.gameType) {
+      gameTypeError.value = 'Пожалуйста, выберите тип игры'
+      return
+    }
+    gameTypeError.value = ''
+
+    // Авторизация для доступа к закрытым сценариям
+    if (!authStore.isTestMode) {
+      const domain = checkerStore.scenarioDomain
+      if (domain) {
+        await authStore.authenticate(domain)
+        if (!authStore.loggedIn) {
+          error.value = `Ошибка авторизации: ${authStore.error}`
+          return
+        }
+      }
+    }
+
+    router.push('/check')
+    return
+  }
+
+  // Режим Заливатор - существующая логика без изменений
   const inTestMode = authStore.isTestMode
   if (!inTestMode) {
     // Проверяем валидность домена
