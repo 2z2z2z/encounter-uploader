@@ -166,6 +166,7 @@ import type { LevelTypeId } from '@/entities/level/types'
 import { getAllLevelTypes } from '@/entities/level/configs'
 import { useAuthStore } from '../store/auth'
 import { extractDomainName, isValidEncounterDomain } from '@/utils/domainExtractor'
+import { isValidScenarioUrl } from '@/utils/scenario-url'
 import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
@@ -173,6 +174,12 @@ import SelectButton from 'primevue/selectbutton'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
 import FloatLabel from 'primevue/floatlabel'
+
+/** Элемент списка игр из API */
+interface GameListItem {
+  GameID: number | string
+  Name?: string
+}
 
 const levelStore = useLevelStore()
 const authStore = useAuthStore()
@@ -197,16 +204,6 @@ const scenarioUrlError = ref('')
 /** Ошибка валидации типа игры */
 const gameTypeError = ref('')
 
-/** Регулярное выражение для валидации URL сценария */
-const SCENARIO_URL_REGEX = /^https:\/\/[a-zA-Z0-9-]+\.en\.cx\/GameScenario\.aspx\?gid=\d+$/
-
-/**
- * Валидирует URL сценария
- */
-function validateScenarioUrl(url: string): boolean {
-  return SCENARIO_URL_REGEX.test(url)
-}
-
 /**
  * Обработчик ввода URL сценария
  */
@@ -216,7 +213,7 @@ function onScenarioUrlInput(): void {
     scenarioUrlError.value = ''
     return
   }
-  if (!validateScenarioUrl(url)) {
+  if (!isValidScenarioUrl(url)) {
     scenarioUrlError.value = 'Неверный формат URL. Ожидается: https://domain.en.cx/GameScenario.aspx?gid=12345'
   } else {
     scenarioUrlError.value = ''
@@ -348,7 +345,7 @@ async function onContinue() {
       scenarioUrlError.value = 'Пожалуйста, укажите URL сценария'
       return
     }
-    if (!validateScenarioUrl(url)) {
+    if (!isValidScenarioUrl(url)) {
       scenarioUrlError.value = 'Неверный формат URL. Ожидается: https://domain.en.cx/GameScenario.aspx?gid=12345'
       return
     }
@@ -416,7 +413,7 @@ async function onContinue() {
       }
       const { ActiveGames = [], ComingGames = [] } = res.data
       const allGames = [...ActiveGames, ...ComingGames]
-      if (!allGames.some((g: Record<string, unknown>) => String(g.GameID) === String(levelStore.gameId))) {
+      if (!allGames.some((g: GameListItem) => String(g.GameID) === String(levelStore.gameId))) {
         error.value = 'Игра с указанным ID не найдена на домене.'
         return
       }

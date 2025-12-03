@@ -5,6 +5,7 @@
  */
 
 import type { ScenarioLevel, LevelCheckResult, CheckStatus } from '@/store/checker'
+import { parseTimeToSeconds, formatSecondsToString } from '@/utils/time-parser'
 
 /** Результат парсинга сценария */
 export interface ParsedScenario {
@@ -135,15 +136,37 @@ function escapeRegex(str: string): string {
  * - <span...><b>ФО (любой текст):</b> значение </span>
  */
 function extractCodesFormat(taskHtml: string): string | null {
-  // Паттерн 1: значение ПОСЛЕ </span>
+  /**
+   * Паттерн 1: значение ПОСЛЕ закрывающего </span>
+   *
+   * Структура regex:
+   * - <span[^>]*>     - открывающий тег span с любыми атрибутами
+   * - (?:<b>)?        - опциональный тег <b>
+   * - \s*ФО           - текст "ФО" с возможными пробелами перед
+   * - (?:\s*\([^)]*\))? - опциональная скобка с содержимым, например "(Сектор 1)"
+   * - :\s*            - двоеточие с пробелами
+   * - (?:<\/b>)?      - опциональный закрывающий </b>
+   * - <\/span>        - закрывающий тег </span>
+   * - \s*             - пробелы
+   * - ([^<]+)         - ЗАХВАТ: текст до следующего тега (значение ФО)
+   *
+   * @example
+   * Входной HTML: <span class="TaskText">ФО:</span> цифры
+   * Результат: "цифры"
+   */
   const regex1 = /<span[^>]*>(?:<b>)?\s*ФО(?:\s*\([^)]*\))?:\s*(?:<\/b>)?<\/span>\s*([^<]+)/i
   const match1 = taskHtml.match(regex1)
   if (match1 && match1[1]?.trim()) {
     return match1[1].trim()
   }
 
-  // Паттерн 2: значение ВНУТРИ span после </b>
-  // <span...><b>ФО:</b> ЗНАЧЕНИЕ </span>
+  /**
+   * Паттерн 2: значение ВНУТРИ span после </b>
+   *
+   * @example
+   * Входной HTML: <span class="TaskText"><b>ФО:</b> буквы </span>
+   * Результат: "буквы"
+   */
   const regex2 = /<span[^>]*><b>\s*ФО(?:\s*\([^)]*\))?:\s*<\/b>\s*([^<]+)\s*<\/span>/i
   const match2 = taskHtml.match(regex2)
   if (match2 && match2[1]?.trim()) {
@@ -188,65 +211,6 @@ function parseBonuses(scenarioBlock: globalThis.Element): { bonusCount: number; 
 }
 
 /**
- * Парсит строку времени и возвращает количество секунд
- * Поддерживает форматы:
- * - "20 минут", "1 час", "1 час 30 минут", "2 часа 15 минут", "2 минуты", "1 минуту"
- * - "1 день", "2 дня", "5 дней"
- * - "30 секунд", "1 секунду", "2 секунды"
- * - Комбинации: "1 день 2 часа 30 минут 15 секунд"
- */
-function parseTimeStringToSeconds(timeStr: string): number {
-  let totalSeconds = 0
-
-  // Ищем дни (день, дня, дней, д)
-  const daysMatch = timeStr.match(/(\d+)\s*(?:день|дня|дней|д\.?)(?:\s|$)/i)
-  if (daysMatch) {
-    totalSeconds += parseInt(daysMatch[1], 10) * 24 * 60 * 60
-  }
-
-  // Ищем часы (час, часа, часов, ч)
-  const hoursMatch = timeStr.match(/(\d+)\s*(?:час|ч\.?)(?:\s|$|[ао])/i)
-  if (hoursMatch) {
-    totalSeconds += parseInt(hoursMatch[1], 10) * 60 * 60
-  }
-
-  // Ищем минуты (минут, минуты, минута, минуту, мин, м)
-  const minutesMatch = timeStr.match(/(\d+)\s*(?:минут[у|а|ы]?|мин\.?|м\.?)(?:\s|$)/i)
-  if (minutesMatch) {
-    totalSeconds += parseInt(minutesMatch[1], 10) * 60
-  }
-
-  // Ищем секунды (секунд, секунды, секунда, секунду, сек, с)
-  const secondsMatch = timeStr.match(/(\d+)\s*(?:секунд[у|а|ы]?|сек\.?|с)(?:\s|$)/i)
-  if (secondsMatch) {
-    totalSeconds += parseInt(secondsMatch[1], 10)
-  }
-
-  return totalSeconds
-}
-
-/**
- * Форматирует секунды в строку времени
- * Выводит дни, часы, минуты, секунды
- */
-function formatSecondsToTimeString(totalSeconds: number): string {
-  if (totalSeconds === 0) return '0м'
-
-  const days = Math.floor(totalSeconds / (24 * 60 * 60))
-  const hours = Math.floor((totalSeconds % (24 * 60 * 60)) / (60 * 60))
-  const minutes = Math.floor((totalSeconds % (60 * 60)) / 60)
-  const seconds = totalSeconds % 60
-
-  const parts: string[] = []
-  if (days > 0) parts.push(`${days}д`)
-  if (hours > 0) parts.push(`${hours}ч`)
-  if (minutes > 0) parts.push(`${minutes}м`)
-  if (seconds > 0) parts.push(`${seconds}с`)
-
-  return parts.join(' ')
-}
-
-/**
  * Парсит суммарное бонусное время из блока сценария
  * Ищет несколько вариантов:
  * - <span class="green">Бонусное время: {TIME}</span>
@@ -262,7 +226,7 @@ function parseBonusTime(scenarioBlock: globalThis.Element): string | null {
     const text = span.textContent || ''
     const match = text.match(/Бонусное время:\s*(.+)/i)
     if (match) {
-      totalSeconds += parseTimeStringToSeconds(match[1].trim())
+      totalSeconds += parseTimeToSeconds(match[1].trim())
     }
   })
 
@@ -273,7 +237,7 @@ function parseBonusTime(scenarioBlock: globalThis.Element): string | null {
       const text = span.textContent || ''
       const match = text.match(/Бонусное время:\s*(.+)/i)
       if (match) {
-        totalSeconds += parseTimeStringToSeconds(match[1].trim())
+        totalSeconds += parseTimeToSeconds(match[1].trim())
       }
     })
   }
@@ -285,12 +249,12 @@ function parseBonusTime(scenarioBlock: globalThis.Element): string | null {
     let regexMatch
     while ((regexMatch = regex.exec(html)) !== null) {
       if (regexMatch[1]) {
-        totalSeconds += parseTimeStringToSeconds(regexMatch[1].trim())
+        totalSeconds += parseTimeToSeconds(regexMatch[1].trim())
       }
     }
   }
 
-  return totalSeconds > 0 ? formatSecondsToTimeString(totalSeconds) : null
+  return totalSeconds > 0 ? formatSecondsToString(totalSeconds) : null
 }
 
 /**
@@ -512,26 +476,5 @@ function findNextScenarioBlock(element: globalThis.Element): globalThis.Element 
   return null
 }
 
-/**
- * Валидирует URL сценария
- */
-export function isValidScenarioUrl(url: string): boolean {
-  const regex = /^https:\/\/[a-zA-Z0-9-]+\.en\.cx\/GameScenario\.aspx\?gid=\d+$/
-  return regex.test(url)
-}
-
-/**
- * Извлекает домен из URL сценария
- */
-export function extractDomainFromUrl(url: string): string | null {
-  const match = url.match(/^https:\/\/([a-zA-Z0-9-]+)\.en\.cx\//)
-  return match ? match[1] : null
-}
-
-/**
- * Извлекает ID игры из URL сценария
- */
-export function extractGameIdFromUrl(url: string): string | null {
-  const match = url.match(/gid=(\d+)/)
-  return match ? match[1] : null
-}
+// Реэкспорт утилит для обратной совместимости
+export { isValidScenarioUrl, extractDomainFromUrl, extractGameIdFromUrl } from '@/utils/scenario-url'

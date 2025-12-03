@@ -6,6 +6,7 @@
 
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { isValidScenarioUrl, extractDomainFromUrl, extractGameIdFromUrl } from '@/utils/scenario-url'
 
 /** Статус проверки поля */
 export type CheckStatus = 'ok' | 'warning' | 'error'
@@ -97,25 +98,13 @@ export const useCheckerStore = defineStore(
     }))
 
     /** Проверка валидности URL сценария */
-    const isValidScenarioUrl = computed<boolean>(() => {
-      if (!scenarioUrl.value) return false
-      const regex = /^https:\/\/[a-zA-Z0-9-]+\.en\.cx\/GameScenario\.aspx\?gid=\d+$/
-      return regex.test(scenarioUrl.value)
-    })
+    const isValidUrl = computed<boolean>(() => isValidScenarioUrl(scenarioUrl.value))
 
     /** Домен из URL сценария */
-    const scenarioDomain = computed<string | null>(() => {
-      if (!isValidScenarioUrl.value) return null
-      const match = scenarioUrl.value.match(/^https:\/\/([a-zA-Z0-9-]+)\.en\.cx\//)
-      return match ? match[1] : null
-    })
+    const scenarioDomain = computed<string | null>(() => extractDomainFromUrl(scenarioUrl.value))
 
     /** ID игры из URL сценария */
-    const scenarioGameId = computed<string | null>(() => {
-      if (!isValidScenarioUrl.value) return null
-      const match = scenarioUrl.value.match(/gid=(\d+)/)
-      return match ? match[1] : null
-    })
+    const scenarioGameId = computed<string | null>(() => extractGameIdFromUrl(scenarioUrl.value))
 
     // ===== Действия =====
 
@@ -224,7 +213,7 @@ export const useCheckerStore = defineStore(
 
       // Геттеры
       stats,
-      isValidScenarioUrl,
+      isValidScenarioUrl: isValidUrl,
       scenarioDomain,
       scenarioGameId,
 

@@ -201,7 +201,7 @@
                     </div>
                   </template>
                 </Column>
-                <Column v-if="isEncounter" header="Бонусное время" style="max-width: 8Gjxt0px">
+                <Column v-if="isEncounter" header="Бонусное время" style="max-width: 80px">
                   <template #body="{ data }">
                     <span v-if="data.bonusTime" class="text-sm">{{ data.bonusTime }}</span>
                     <span v-else class="text-surface-400">—</span>
@@ -268,6 +268,8 @@ import { useWindowSize } from '@vueuse/core'
 import axios from 'axios'
 import { useCheckerStore, type CheckStatus, GAME_TYPE_LABELS } from '@/store/checker'
 import { parseScenarioHtml } from '@/services/scenario-parser'
+import { checkScenarioHtmlForErrors, SCENARIO_USER_ERRORS } from '@/services/scenario-errors'
+import { parseTimeToSeconds, formatSecondsToString } from '@/utils/time-parser'
 import Card from 'primevue/card'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
@@ -332,72 +334,13 @@ const gameTypeLabel = computed<string>(() => {
 const isEncounter = computed<boolean>(() => checkerStore.gameType === 'encounter')
 
 /**
- * Парсит строку времени и возвращает количество секунд
- * Поддерживает форматы:
- * - "20 минут", "1 час", "1 час 30 минут", "2 часа 15 минут", "1 минуту"
- * - "20м", "1ч", "1ч 30м", "2ч 15м", "30с"
- * - "30 секунд", "1 секунду", "2 секунды"
- */
-function parseTimeToSeconds(timeStr: string | null): number {
-  if (!timeStr) return 0
-
-  let totalSeconds = 0
-
-  // Ищем дни (полный формат: "день/дня/дней", сокращенный: "д")
-  const daysMatch = timeStr.match(/(\d+)\s*(?:день|дня|дней|д)/)
-  if (daysMatch) {
-    totalSeconds += parseInt(daysMatch[1], 10) * 24 * 60 * 60
-  }
-
-  // Ищем часы (полный формат: "час", сокращенный: "ч")
-  const hoursMatch = timeStr.match(/(\d+)\s*(?:час|ч)/)
-  if (hoursMatch) {
-    totalSeconds += parseInt(hoursMatch[1], 10) * 60 * 60
-  }
-
-  // Ищем минуты (полный формат: "минут/минуты/минута/минуту", сокращенный: "м")
-  const minutesMatch = timeStr.match(/(\d+)\s*(?:минут[у|а|ы]?|м(?!\s*ч))/)
-  if (minutesMatch) {
-    totalSeconds += parseInt(minutesMatch[1], 10) * 60
-  }
-
-  // Ищем секунды (полный формат: "секунд/секунды/секунда/секунду", сокращенный: "с")
-  const secondsMatch = timeStr.match(/(\d+)\s*(?:секунд[у|а|ы]?|с(?!\s*ч))/)
-  if (secondsMatch) {
-    totalSeconds += parseInt(secondsMatch[1], 10)
-  }
-
-  return totalSeconds
-}
-
-/**
- * Форматирует секунды в строку "Xд Xч Xм Xс"
- */
-function formatTotalTime(totalSeconds: number): string {
-  if (totalSeconds === 0) return '0м'
-
-  const days = Math.floor(totalSeconds / (24 * 60 * 60))
-  const hours = Math.floor((totalSeconds % (24 * 60 * 60)) / (60 * 60))
-  const minutes = Math.floor((totalSeconds % (60 * 60)) / 60)
-  const seconds = totalSeconds % 60
-
-  const parts: string[] = []
-  if (days > 0) parts.push(`${days}д`)
-  if (hours > 0) parts.push(`${hours}ч`)
-  if (minutes > 0) parts.push(`${minutes}м`)
-  if (seconds > 0) parts.push(`${seconds}с`)
-
-  return parts.join(' ')
-}
-
-/**
  * Суммарное время по всем автопереходам
  */
 const totalAutoTransitionTime = computed<string>(() => {
   const totalSeconds = checkerStore.levels.reduce((sum, level) => {
     return sum + parseTimeToSeconds(level.autoTransition)
   }, 0)
-  return formatTotalTime(totalSeconds)
+  return formatSecondsToString(totalSeconds)
 })
 
 /**
@@ -407,7 +350,7 @@ const totalBonusTime = computed<string>(() => {
   const totalSeconds = checkerStore.levels.reduce((sum, level) => {
     return sum + parseTimeToSeconds(level.bonusTime)
   }, 0)
-  return formatTotalTime(totalSeconds)
+  return formatSecondsToString(totalSeconds)
 })
 
 /**
@@ -428,6 +371,9 @@ const completenessPercent = computed<number>(() => {
   const totalCount = checkerStore.levels.length * checkFields.length
 
   for (const level of checkerStore.levels) {
+    // Проверка на существование checks
+    if (!level.checks) continue
+
     for (const field of checkFields) {
       const status = level.checks[field]
       if (status === 'ok' || status === 'warning') {
@@ -436,7 +382,8 @@ const completenessPercent = computed<number>(() => {
     }
   }
 
-  return Math.round((filledCount / totalCount) * 100)
+  // Защита от деления на 0
+  return totalCount > 0 ? Math.round((filledCount / totalCount) * 100) : 0
 })
 
 /**
@@ -479,17 +426,13 @@ async function loadScenario(): Promise<void> {
 
     // Проверяем что получили HTML
     if (typeof response.data !== 'string') {
-      throw new Error('Неверный формат ответа сервера')
+      throw new Error(SCENARIO_USER_ERRORS.INVALID_RESPONSE)
     }
 
-    // Проверяем на закрытый сценарий
-    if (response.data.includes('Просмотр сценария игры не разрешен')) {
-      throw new Error('Сценарий закрыт. Проверьте правильность логина/пароля или права доступа к игре.')
-    }
-
-    // Проверяем на несуществующую игру
-    if (response.data.includes('Запрошенная игра не существует')) {
-      throw new Error('Игра не найдена. Проверьте правильность URL сценария.')
+    // Проверяем на известные ошибки сервера
+    const serverError = checkScenarioHtmlForErrors(response.data)
+    if (serverError) {
+      throw new Error(serverError)
     }
 
     // Этап 2: Парсинг (70%)
@@ -499,7 +442,7 @@ async function loadScenario(): Promise<void> {
 
     // Проверяем результаты парсинга
     if (parsed.levels.length === 0) {
-      throw new Error('Не удалось найти уровни в сценарии. Проверьте правильность URL.')
+      throw new Error(SCENARIO_USER_ERRORS.NO_LEVELS)
     }
 
     // Этап 3: Сохранение результатов (100%)
@@ -510,12 +453,12 @@ async function loadScenario(): Promise<void> {
   } catch (err: unknown) {
     console.error('[CheckPage] Error loading scenario:', err)
 
-    let errorMessage = 'Ошибка загрузки сценария'
+    let errorMessage = SCENARIO_USER_ERRORS.LOAD_ERROR
     if (axios.isAxiosError(err)) {
       if (err.response?.status === 404) {
-        errorMessage = 'Сценарий не найден. Проверьте правильность URL.'
+        errorMessage = SCENARIO_USER_ERRORS.NOT_FOUND
       } else if (err.response?.status === 403) {
-        errorMessage = 'Доступ к сценарию запрещен. Возможно, требуется авторизация.'
+        errorMessage = SCENARIO_USER_ERRORS.FORBIDDEN
       } else if (err.response?.data?.error) {
         errorMessage = err.response.data.error
       }

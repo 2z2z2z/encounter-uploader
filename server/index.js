@@ -406,6 +406,7 @@ app.get('/api/scenario', async (req, res) => {
   }
 
   // Валидируем URL сценария
+  // SYNC: Regex должен совпадать с frontend/src/utils/scenario-url.ts
   const scenarioUrlRegex = /^https:\/\/[a-zA-Z0-9-]+\.en\.cx\/GameScenario\.aspx\?gid=\d+$/
   if (!scenarioUrlRegex.test(url)) {
     return res.status(400).json({ error: 'Invalid scenario URL format' })
