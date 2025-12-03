@@ -453,7 +453,7 @@ async function loadScenario(): Promise<void> {
   } catch (err: unknown) {
     console.error('[CheckPage] Error loading scenario:', err)
 
-    let errorMessage = SCENARIO_USER_ERRORS.LOAD_ERROR
+    let errorMessage: string = SCENARIO_USER_ERRORS.LOAD_ERROR
     if (axios.isAxiosError(err)) {
       if (err.response?.status === 404) {
         errorMessage = SCENARIO_USER_ERRORS.NOT_FOUND
