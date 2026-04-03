@@ -8,6 +8,9 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3001
+      - SESSION_SECRET=${SESSION_SECRET:-encounter-secret-key-change-in-production}
+    volumes:
+      - ./data:/app/data
     # Внешний порт для server не публикуем (доступен через фронтенд)
     restart: unless-stopped
     healthcheck:

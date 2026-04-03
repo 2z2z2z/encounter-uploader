@@ -35,7 +35,10 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 
 // === МОДУЛЬ СТАТИСТИКИ ===
-const STATS_FILE = path.join(__dirname, 'stats.json')
+const DATA_DIR = process.env.NODE_ENV === 'production'
+  ? path.join(__dirname, 'data')
+  : __dirname
+const STATS_FILE = path.join(DATA_DIR, 'stats.json')
 
 /**
  * Создает анонимный хэш для пользователя на основе домена и сессии
