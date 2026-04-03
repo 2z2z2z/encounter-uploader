@@ -5,6 +5,7 @@
  */
 
 import type { ContentGeneratorContext } from "@/entities/level/types"
+import { processPicContent } from "@/utils/picContent"
 
 interface PicBlock {
 	index: number          // Исходный индекс (для id)
@@ -140,7 +141,7 @@ const generateStyles = (): string => {
  */
 const generateBlock = (block: PicBlock, levelId: string | number, showId: boolean = false): string => {
 	const blockId = `${levelId}_${String(block.index).padStart(2, '0')}`
-	const processedContent = processContent(block.content)
+	const processedContent = processPicContent(block.content)
 
 	// Визуальная метка ID только для preview режима
 	const idLabel = showId ? `<div class="svalka-block-id">${blockId}</div>` : ''
@@ -151,38 +152,4 @@ const generateBlock = (block: PicBlock, levelId: string | number, showId: boolea
   </div>`
 }
 
-/**
- * Обработка содержимого картинки
- *
- * Определяет тип содержимого (URL, HTML с картинкой, текст/SVG) и обрабатывает соответственно.
- *
- * @param content - Содержимое closedPic или openPic
- * @returns Обработанное содержимое
- */
-const processContent = (content: string): string => {
-	const trimmed = content.trim()
-
-	// Проверка на HTML с <a><img></a>
-	if (/<a[^>]*>.*?<img[^>]*>.*?<\/a>/i.test(trimmed)) {
-		return trimmed // Оставляем как есть
-	}
-
-	// Проверка на HTML с <img>
-	if (/<img[^>]*>/i.test(trimmed)) {
-		return trimmed // Оставляем как есть
-	}
-
-	// Проверка на URL картинки (простая регулярка)
-	if (/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i.test(trimmed)) {
-		return `<img src="${trimmed}" alt="" width="120" height="120" />`
-	}
-
-	// Проверка на просто URL
-	if (/^https?:\/\/.+/i.test(trimmed)) {
-		return `<img src="${trimmed}" alt="" width="120" height="120" />`
-	}
-
-	// Иначе вставляем как текст
-	return trimmed
-}
 

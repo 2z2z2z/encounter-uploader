@@ -6,6 +6,7 @@
  */
 
 import type { PayloadBuilder, BonusPayloadData } from "@/entities/level/types"
+import { processPicContent } from "@/utils/picContent"
 
 /**
  * Создает пейлоад для заливки одного бонуса
@@ -146,7 +147,7 @@ function generateAutoHintScript(
 
 		for (let i = 0; i < closedPicIds.length && i < openPic.length; i++) {
 			const targetId = closedPicIds[i]
-			const content = minifyContent(openPic[i])
+			const content = minifyContent(processPicContent(openPic[i]))
 			scripts.push(`<script type="text/javascript">document.getElementById("${targetId}").innerHTML="${content}";</script>`)
 		}
 
@@ -159,7 +160,7 @@ function generateAutoHintScript(
 
 	if (openPic && openPic.length > 0 && openPic[0].trim()) {
 		// Для svalka с одной картинкой (старая логика)
-		const content = minifyContent(openPic[0])
+		const content = minifyContent(processPicContent(openPic[0]))
 		return `<script type="text/javascript">document.getElementById("${targetId}").innerHTML="${content}";</script>`
 	}
 
