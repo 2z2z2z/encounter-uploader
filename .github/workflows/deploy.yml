@@ -14,10 +14,15 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          # Любая упавшая команда должна валить джобу, иначе деплой "успешен" со старым кодом
+          script_stop: true
           script: |
+            set -e
             cd /opt/encounter-uploader
-            git fetch origin main
-            git reset --hard origin/main
+            # Тянем по явному URL: origin на сервере не аутентифицируется и fetch падает
+            git fetch ${{ github.server_url }}/${{ github.repository }}.git main
+            git reset --hard FETCH_HEAD
+            git log --oneline -1
             docker compose up --build -d
             docker image prune -f
             echo "Deploy complete at $(date)"
