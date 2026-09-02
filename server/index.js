@@ -471,6 +471,41 @@ app.get('/api/scenario', async (req, res) => {
   }
 })
 
+// === ENDPOINT СПИСКА ИГР ДОМЕНА ===
+// EN перестал отдавать Access-Control-Allow-Origin, поэтому фронт не может
+// запрашивать https://{domain}.en.cx/home?json=1 напрямую из браузера
+app.get('/api/games-list', async (req, res) => {
+  const { domain } = req.query
+  if (!domain) {
+    return res.status(400).json({ error: 'Missing domain parameter' })
+  }
+
+  if (!/^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/.test(domain)) {
+    return res.status(400).json({ error: 'Invalid domain format' })
+  }
+
+  const url = `https://${domain}.en.cx/home?json=1`
+  console.log('[proxyGetGamesList] ▶', url)
+
+  try {
+    const proxyRes = await axios.get(url, { timeout: 30000 })
+
+    const contentType = proxyRes.headers['content-type'] || ''
+    if (!contentType.includes('application/json')) {
+      console.error('[proxyGetGamesList] Unexpected content type:', contentType)
+      return res.status(502).json({ error: 'Ответ домена содержит неверный формат.' })
+    }
+
+    res.status(200).json(proxyRes.data)
+  } catch (err) {
+    console.error('[proxyGetGamesList] Error:', err.response?.status, err.message)
+    if (err.response?.status === 404) {
+      return res.status(404).json({ error: 'Домен не найден' })
+    }
+    res.status(502).json({ error: 'Не удалось получить список игр домена' })
+  }
+})
+
 // === ENDPOINT СТАТИСТИКИ ===
 app.get('/api/stats', async (_req, res) => {
   try {

@@ -295,8 +295,11 @@ const levelValidationError = ref('')
 const domainValidationError = ref('')
 
 async function fetchGamesList() {
-  const url = `https://${levelStore.domain}.en.cx/home?json=1`
-  return axios.get(url)
+  // Запрос идёт через прокси-сервер: EN не отдаёт CORS-заголовки для прямых
+  // браузерных запросов к https://{domain}.en.cx/home?json=1
+  return axios.get('/api/games-list', {
+    params: { domain: levelStore.domain },
+  })
 }
 
 function onLevelIdInput(event: globalThis.Event) {
@@ -418,7 +421,11 @@ async function onContinue() {
         return
       }
     } catch (e: unknown) {
-      error.value = `Ошибка при проверке домена/игры: ${e instanceof Error ? e.message : String(e)}`
+      const serverError = axios.isAxiosError(e)
+        ? (e.response?.data as { error?: string } | undefined)?.error
+        : undefined
+      const message = serverError ?? (e instanceof Error ? e.message : String(e))
+      error.value = `Ошибка при проверке домена/игры: ${message}`
       return
     }
   }
