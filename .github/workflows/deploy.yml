@@ -8,21 +8,31 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          # Любая упавшая команда должна валить джобу, иначе деплой "успешен" со старым кодом
-          script_stop: true
-          script: |
-            set -e
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Код доставляем с runner'а: git fetch на самом VPS не работает
+      # (GitHub отвечает 401 "could not read Username"), из-за чего деплой
+      # молча пересобирал старый коммит
+      - name: Deploy over SSH
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -e
+          mkdir -p ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          SSH="ssh -i ~/.ssh/deploy_key -o BatchMode=yes"
+
+          # Переносим рабочее дерево коммита; data/ и прочее на сервере не трогаем
+          git archive --format=tar HEAD | gzip \
+            | $SSH "$VPS_USER@$VPS_HOST" 'tar xzf - -C /opt/encounter-uploader'
+
+          $SSH "$VPS_USER@$VPS_HOST" 'set -e
             cd /opt/encounter-uploader
-            # Тянем по явному URL: origin на сервере не аутентифицируется и fetch падает
-            git fetch ${{ github.server_url }}/${{ github.repository }}.git main
-            git reset --hard FETCH_HEAD
-            git log --oneline -1
             docker compose up --build -d
             docker image prune -f
-            echo "Deploy complete at $(date)"
+            echo "Deploy complete at $(date)"'
