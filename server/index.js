@@ -191,6 +191,12 @@ function refreshAuthCookie(req, proxyRes) {
     .join('; ')
 }
 
+// === HEALTHCHECK ===
+// В этот эндпоинт стучатся healthcheck'и из docker-compose.yml и server/Dockerfile
+app.get('/api/health', (_req, res) => {
+  res.status(200).json({ status: 'ok', uptime: process.uptime() })
+})
+
 // === Логин ===
 app.post('/api/auth/login', async (req, res) => {
   const { login, password, domain } = req.body
