@@ -93,9 +93,18 @@ Encounter Uploader — внутренняя утилита для подгото
 - **Особенности:** Мультиблочная структура; множественные картинки на ответ (closedPic/openPic массивы); генератор Task с сеткой блоков 120×120px; предпросмотр с переключением закрытый/открытый режимы; перемешивание порядка блоков с сохранением в blockOrder
 - **Генератор:** `svalka.task` — создает адаптивную сетку квадратных блоков с картинками; стратегия hint = autoContent (генерация скриптов для каждого ID картинки)
 
+#### 4. Корректировка результатов (corrections)
+- **Назначение:** бонусное/штрафное время участникам после игры через форму `GameBonusPenaltyTime.aspx` (официального API у EN нет). Спецификация и контракт формы: `docs/corrections.md`.
+- **Флаги:** `isGameScope` (№ уровня не нужен, игра может быть завершена), `manualCodeAddition` (строки добавляются вручную), без табов.
+- **Поля:** correctionType, participant, correctionLevel, correctionTime (д/ч/м/с), comment, status
+- **Контролы:** correctionGame (загрузка участников и уровней игры, привязка таблицы к игре), correctionType, correctionLevel, correctionTime, correctionComment
+- **Кнопки:** addRow, addAllParticipants, existingCorrections (окно внесённых корректировок), clear, export, import; экшн `uploadCorrections`
+- **Особенности:** участники и уровни берутся из формы EN (`store/corrections.ts`); перед отправкой строки проверяются, а список внесённых корректировок сверяется на дубли; отправленные строки блокируются и не уходят повторно; ошибка строки не останавливает отправку, потеря сессии или доступа — останавливает.
+
 ## Добавление нового типа уровня
 1. Создать конфиг в `frontend/src/entities/level/configs.ts`:
-   - Уникальный `id`, `name`, `category`, флаги (`isMultiBlocks`, `manualCodeAddition`).
+   - Уникальный `id`, `name`, `category`, флаги (`isMultiBlocks`, `manualCodeAddition`, `isGameScope` для типов, работающих со всей игрой без № уровня).
+   - Функциональные кнопки показываются по списку `buttons.functional`.
    - Опциональные `subtypes` со своей `dimension` и настройками по умолчанию.
    - Указать `fields`, `controls`, `buttons`, `payloads`, `defaults`.
    - Вызвать `registerLevelType(newConfig)`.

@@ -314,6 +314,23 @@ export const useLevelStore = defineStore(
 	}
 
 	/**
+	 * Добавляет строки в активный таб: дефолты типа + переданные значения
+	 * Возвращает количество добавленных строк
+	 */
+	function addRows(overridesList: Partial<Answer>[]): number {
+		const tab = activeTab.value
+		if (!tab) return 0
+
+		const rows = overridesList
+			.slice(0, MAX_ANSWERS_PER_TAB - tab.answers.length)
+			.map((overrides, index) => ({ ...createEmptyAnswer(tab.answers.length + index + 1), ...overrides }))
+
+		tab.answers.push(...rows)
+		markDirty()
+		return rows.length
+	}
+
+	/**
 	 * Добавляет несколько ответов в активный таб
 	 */
 	function addMultipleAnswers(answersList: string[][], excludeDuplicates = false): AddCodesResult {
@@ -742,6 +759,7 @@ export const useLevelStore = defineStore(
 
 		// Управление ответами
 		addAnswer,
+		addRows,
 		addMultipleAnswers,
 		addCodesToActiveTab,
 		removeAnswer,

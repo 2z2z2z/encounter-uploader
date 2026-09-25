@@ -53,7 +53,7 @@
                 </FloatLabel>
               </div>
 
-              <div class="space-y-1">
+              <div v-if="!isGameScope" class="space-y-1">
                 <FloatLabel variant="on">
                   <InputText
                     id="levelId"
@@ -83,11 +83,11 @@
                     :options="levelTypeOptions"
                     option-label="label"
                     option-value="value"
-                    placeholder="Выберите тип уровня"
+                    placeholder="Выберите тип заливки"
                     fluid
                     class="transition-all duration-200"
                   />
-                  <label for="uploadType">Тип уровня</label>
+                  <label for="uploadType">Тип заливки</label>
                 </FloatLabel>
               </div>
             </template>
@@ -163,10 +163,11 @@ import axios from 'axios'
 import { useLevelStore } from '@/store/levels'
 import { useCheckerStore, type AppMode, type GameType } from '@/store/checker'
 import type { LevelTypeId } from '@/entities/level/types'
-import { getAllLevelTypes } from '@/entities/level/configs'
+import { getAllLevelTypes, getLevelTypeConfig } from '@/entities/level/configs'
 import { useAuthStore } from '../store/auth'
 import { extractDomainName, isValidEncounterDomain } from '@/utils/domainExtractor'
 import { isValidScenarioUrl } from '@/utils/scenario-url'
+import { getServerErrorMessage } from '@/services/api-types'
 import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
@@ -263,6 +264,11 @@ function parseSelectionKey(value: string): { typeId: LevelTypeId; subtype?: stri
 }
 
 const selectedLevelType = ref(resolveSelectionKey(levelStore.levelType, levelStore.subtypeId))
+
+/** Выбранный тип работает со всей игрой: № уровня не нужен, игра может быть завершена */
+const isGameScope = computed(() => {
+  return getLevelTypeConfig(parseSelectionKey(selectedLevelType.value).typeId)?.isGameScope === true
+})
 
 watch(
   () => resolveSelectionKey(levelStore.levelType, levelStore.subtypeId || undefined),
@@ -396,13 +402,15 @@ async function onContinue() {
     }
   }
 
-  if (!String(levelStore.levelId).trim()) {
-    levelValidationError.value = 'Поле «ID уровня» должно содержать только цифры'
-    return
-  }
-  if (!/^[0-9]+$/.test(levelStore.levelId)) {
-    levelValidationError.value = 'Поле «ID уровня» принимает только цифры'
-    return
+  if (!isGameScope.value) {
+    if (!String(levelStore.levelId).trim()) {
+      levelValidationError.value = 'Поле «ID уровня» должно содержать только цифры'
+      return
+    }
+    if (!/^[0-9]+$/.test(levelStore.levelId)) {
+      levelValidationError.value = 'Поле «ID уровня» принимает только цифры'
+      return
+    }
   }
   levelValidationError.value = ''
 
@@ -416,16 +424,13 @@ async function onContinue() {
       }
       const { ActiveGames = [], ComingGames = [] } = res.data
       const allGames = [...ActiveGames, ...ComingGames]
-      if (!allGames.some((g: GameListItem) => String(g.GameID) === String(levelStore.gameId))) {
+      // Завершённых игр нет в списке домена; доступ к игре проверится при загрузке её данных
+      if (!isGameScope.value && !allGames.some((g: GameListItem) => String(g.GameID) === String(levelStore.gameId))) {
         error.value = 'Игра с указанным ID не найдена на домене.'
         return
       }
     } catch (e: unknown) {
-      const serverError = axios.isAxiosError(e)
-        ? (e.response?.data as { error?: string } | undefined)?.error
-        : undefined
-      const message = serverError ?? (e instanceof Error ? e.message : String(e))
-      error.value = `Ошибка при проверке домена/игры: ${message}`
+      error.value = `Ошибка при проверке домена/игры: ${getServerErrorMessage(e)}`
       return
     }
   }

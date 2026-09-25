@@ -407,6 +407,142 @@ app.get('/api/admin/bonus-form', async (req, res) => {
   }
 })
 
+// === КОРРЕКТИРОВКИ РЕЗУЛЬТАТОВ (GameBonusPenaltyTime.aspx) ===
+const DOMAIN_REGEX = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/
+const GAME_ID_REGEX = /^\d+$/
+
+/**
+ * Проверяет домен и ID игры, из которых строится URL страницы EN
+ */
+function getCorrectionsUrl(domain, gid, query = '') {
+  if (!DOMAIN_REGEX.test(String(domain || '')) || !GAME_ID_REGEX.test(String(gid || ''))) {
+    return null
+  }
+  return `https://${domain}.en.cx/GameBonusPenaltyTime.aspx?gid=${gid}${query}`
+}
+
+/** Ошибка для клиента, когда EN не видит входа (ответ 401/403 со страницей "Требуется вход") */
+const SESSION_ERROR = { status: 401, error: 'Нет входа в Encounter или сессия истекла. Войдите заново.' }
+
+const isRedirect = (status) => status >= 300 && status < 400
+
+/**
+ * Ошибка доступа по ответу EN: нет входа (401/403 или редирект на логин) или нет прав на игру
+ * (редирект куда-то ещё). Возвращает null, если EN ответил страницей корректировок
+ * или редиректом обратно на неё (так EN подтверждает сохранение)
+ */
+function getAccessError(proxyRes) {
+  if (proxyRes.status === 401 || proxyRes.status === 403) return SESSION_ERROR
+  if (!isRedirect(proxyRes.status)) return null
+
+  const location = proxyRes.headers.location || ''
+  if (/GameBonusPenaltyTime\.aspx/i.test(location)) return null
+  if (/Login\.aspx/i.test(location)) return SESSION_ERROR
+  return { status: 403, error: 'Нет доступа к корректировкам этой игры. Проверьте ID игры и что вы её автор.' }
+}
+
+/**
+ * Достаёт текст ошибки со страницы формы, которую EN вернул вместо сохранения
+ */
+function getCorrectionPageError(html = '') {
+  const formError = html.match(/class="error bold"\s*>([\s\S]*?)<\/td>/i)?.[1]
+  if (formError) {
+    return formError.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
+  }
+  if (html.includes('Ошибка в системе')) {
+    return 'Внутренняя ошибка EN. Проверьте длину комментария.'
+  }
+  return 'EN не принял корректировку. Проверьте участника и уровень.'
+}
+
+/**
+ * GET страницы корректировок без авто-редиректов: редирект означает потерю сессии или доступа
+ */
+async function proxyCorrectionsPage(req, res, url, logTag) {
+  if (!url) {
+    return res.status(400).json({ error: 'Некорректный домен или ID игры' })
+  }
+  console.log(`[${logTag}] ▶`, url)
+
+  try {
+    const proxyRes = await axios.get(url, {
+      headers: { Cookie: req.session.authCookie },
+      maxRedirects: 0,
+      validateStatus: null,
+      timeout: 30000,
+    })
+    refreshAuthCookie(req, proxyRes)
+    console.log(`[${logTag}] ◀`, proxyRes.status)
+
+    const accessError = getAccessError(proxyRes)
+    if (accessError) {
+      return res.status(accessError.status).json({ error: accessError.error })
+    }
+    if (proxyRes.status !== 200) {
+      return res.status(502).json({ error: `EN ответил ошибкой ${proxyRes.status}` })
+    }
+    res.status(200).send(proxyRes.data)
+  } catch (err) {
+    console.error(`[${logTag}] Error:`, err.response?.status, err.message)
+    res.status(502).json({ error: 'Не удалось получить страницу корректировок EN' })
+  }
+}
+
+// Форма добавления: участники и уровни игры
+app.get('/api/admin/corrections-form', (req, res) => {
+  const { domain, gid } = req.query
+  return proxyCorrectionsPage(req, res, getCorrectionsUrl(domain, gid, '&action=add&lang=ru'), 'proxyCorrectionsForm')
+})
+
+// Список внесённых корректировок
+app.get('/api/admin/corrections', (req, res) => {
+  const { domain, gid } = req.query
+  return proxyCorrectionsPage(req, res, getCorrectionsUrl(domain, gid, '&lang=ru'), 'proxyCorrectionsList')
+})
+
+// Отправка одной корректировки
+app.post('/api/admin/correction', async (req, res) => {
+  const { domain, gid, ...payload } = req.body
+  const url = getCorrectionsUrl(domain, gid, '&action=save')
+  if (!url) {
+    return res.status(400).json({ error: 'Некорректный домен или ID игры' })
+  }
+  console.log('[proxyAdminCorrection] ▶', url)
+  console.log('[proxyAdminCorrection] ▶ payload →', payload)
+
+  try {
+    const proxyRes = await axios.post(url, new URLSearchParams(payload).toString(), {
+      headers: {
+        Cookie: req.session.authCookie,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      maxRedirects: 0,
+      validateStatus: null,
+      timeout: 30000,
+      // Повтор после таймаута создал бы в EN вторую такую же корректировку
+      'axios-retry': { retries: 0 },
+    })
+    refreshAuthCookie(req, proxyRes)
+    console.log('[proxyAdminCorrection] ◀', proxyRes.status, proxyRes.headers.location || '')
+
+    const accessError = getAccessError(proxyRes)
+    if (accessError) {
+      return res.status(accessError.status).json({ error: accessError.error })
+    }
+    // EN сохраняет корректировку и редиректит на список; иначе возвращает форму с ошибкой
+    if (isRedirect(proxyRes.status)) {
+      return res.status(200).json({ success: true })
+    }
+    if (proxyRes.status === 200) {
+      return res.status(422).json({ error: getCorrectionPageError(String(proxyRes.data)) })
+    }
+    res.status(502).json({ error: `EN ответил ошибкой ${proxyRes.status}` })
+  } catch (err) {
+    console.error('[proxyAdminCorrection] Error:', err.response?.status, err.message)
+    res.status(502).json({ error: 'Не удалось отправить корректировку в EN' })
+  }
+})
+
 // === ENDPOINT СЦЕНАРИЯ (для Проверятора) ===
 app.get('/api/scenario', async (req, res) => {
   const { url } = req.query
@@ -486,7 +622,7 @@ app.get('/api/games-list', async (req, res) => {
     return res.status(400).json({ error: 'Missing domain parameter' })
   }
 
-  if (!/^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/.test(domain)) {
+  if (!DOMAIN_REGEX.test(domain)) {
     return res.status(400).json({ error: 'Invalid domain format' })
   }
 

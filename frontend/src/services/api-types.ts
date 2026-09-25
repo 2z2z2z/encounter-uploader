@@ -117,6 +117,20 @@ export function getErrorStatus(error: unknown): number {
 }
 
 /**
+ * Извлекает текст ошибки, который прокси-сервер вернул в JSON ({ error }),
+ * иначе - обычное сообщение ошибки
+ */
+export function getServerErrorMessage(error: unknown): string {
+  if (isAxiosErrorLike(error)) {
+    const data = error.response?.data
+    if (typeof data === 'object' && data !== null && typeof (data as { error?: unknown }).error === 'string') {
+      return (data as { error: string }).error
+    }
+  }
+  return getErrorMessage(error)
+}
+
+/**
  * Безопасно извлекает сообщение об ошибке
  */
 export function getErrorMessage(error: unknown): string {

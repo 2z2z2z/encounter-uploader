@@ -10,6 +10,7 @@ import { useProgressStore } from '../store/progress'
 import {
   getErrorMessage,
   getErrorStatus,
+  getServerErrorMessage,
   isHtmlString,
   isBonusLevelsArray,
   type BonusLevel
@@ -275,5 +276,75 @@ export async function fetchBonusLevels(
   } catch (error: unknown) {
     console.error('[fetchBonusLevels] Ошибка получения списка уровней:', error)
     throw new Error(`Не удалось получить список уровней: ${getErrorMessage(error)}`)
+  }
+}
+/**
+ * Пауза между последовательными запросами к EN (с поддержкой паузы заливки)
+ */
+export async function waitBetweenRequests(): Promise<void> {
+  await sleep(SLEEP_MS)
+}
+
+/**
+ * Получение HTML страницы корректировок игры через прокси
+ */
+async function fetchCorrectionsPage(path: string, domain: string, gameId: string | number): Promise<string> {
+  try {
+    const res = await axios.get(path, {
+      params: { domain, gid: String(gameId) },
+      withCredentials: true
+    })
+    if (!isHtmlString(res.data)) {
+      throw new Error('Ответ сервера не содержит валидный HTML')
+    }
+    return res.data
+  } catch (error: unknown) {
+    console.error(`[fetchCorrectionsPage] ${path}:`, error)
+    throw new Error(getServerErrorMessage(error))
+  }
+}
+
+/**
+ * Форма добавления корректировки (участники и уровни игры)
+ */
+export function fetchCorrectionForm(domain: string, gameId: string | number): Promise<string> {
+  return fetchCorrectionsPage('/api/admin/corrections-form', domain, gameId)
+}
+
+/**
+ * Страница со списком внесённых корректировок игры
+ */
+export function fetchCorrectionsList(domain: string, gameId: string | number): Promise<string> {
+  return fetchCorrectionsPage('/api/admin/corrections', domain, gameId)
+}
+
+export type CorrectionSendResult =
+  | { ok: true }
+  | { ok: false, message: string, isFatal: boolean }
+
+/** HTTP статусы прокси, после которых продолжать заливку бессмысленно */
+const FATAL_CORRECTION_STATUSES = [400, 401, 403]
+
+/**
+ * Отправка одной корректировки. Не бросает исключений: результат нужен,
+ * чтобы пометить строку и решить, продолжать ли заливку
+ */
+export async function sendCorrection(payload: globalThis.URLSearchParams): Promise<CorrectionSendResult> {
+  await checkPauseStatus()
+  console.log('[sendCorrection] ▶ payload →', payload.toString())
+
+  try {
+    await axios.post('/api/admin/correction', payload.toString(), {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      withCredentials: true
+    })
+    return { ok: true }
+  } catch (error: unknown) {
+    console.error('[sendCorrection] Ошибка отправки корректировки:', error)
+    return {
+      ok: false,
+      message: getServerErrorMessage(error),
+      isFatal: FATAL_CORRECTION_STATUSES.includes(getErrorStatus(error))
+    }
   }
 }

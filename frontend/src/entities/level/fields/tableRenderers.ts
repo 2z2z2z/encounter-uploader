@@ -9,9 +9,28 @@ import InputNumber from 'primevue/inputnumber'
 import Checkbox from 'primevue/checkbox'
 import Button from 'primevue/button'
 import Textarea from 'primevue/textarea'
-import type { Answer } from '@/entities/level/types'
+import Select from 'primevue/select'
+import SelectButton from 'primevue/selectbutton'
+import Tag from 'primevue/tag'
+import type { Answer, CorrectionType, RowUploadState } from '@/entities/level/types'
 import { useLevelStore } from '@/store/levels'
-import { DEFAULT_OPEN_PIC_SVG } from '@/entities/level/constants'
+import { useCorrectionsStore } from '@/store/corrections'
+import {
+  DEFAULT_OPEN_PIC_SVG,
+  DEFAULT_DURATION,
+  DEFAULT_ROW_STATUS,
+  DURATION_UNITS,
+  CORRECTION_TYPE_OPTIONS,
+  MAX_CORRECTION_COMMENT_LENGTH
+} from '@/entities/level/constants'
+import {
+  editRow,
+  findParticipant,
+  fromLevelSelectValue,
+  getCorrectionTypePt,
+  isRowSent,
+  toLevelSelectValue
+} from '@/utils/corrections'
 
 // Тип для функции рендеринга поля в DataTable
 export type FieldRenderer = (data: { data: Answer, index: number }) => VNode
@@ -454,6 +473,150 @@ export const renderOpenPic: FieldRenderer = ({ data }) => {
   )
 }
 
+// ===== Корректировки результатов =====
+
+/** Подписи и цвета статуса отправки строки */
+const ROW_STATUS_VIEW: Record<RowUploadState, { label: string, severity: string }> = {
+  pending: { label: 'Не отправлено', severity: 'secondary' },
+  sent: { label: 'Отправлено', severity: 'success' },
+  error: { label: 'Ошибка', severity: 'danger' }
+}
+
+/**
+ * Рендер поля CorrectionType - бонус или штраф
+ */
+export const renderCorrectionType: FieldRenderer = ({ data }) => {
+  return h(SelectButton, {
+    modelValue: data.correctionType,
+    'onUpdate:modelValue': (value: CorrectionType) => editRow(data, row => { row.correctionType = value }),
+    options: CORRECTION_TYPE_OPTIONS,
+    optionLabel: 'label',
+    optionValue: 'value',
+    allowEmpty: false,
+    disabled: isRowSent(data),
+    size: 'small',
+    pt: getCorrectionTypePt(data.correctionType)
+  })
+}
+
+/**
+ * Рендер поля Participant - выбор участника из списка игры
+ * Участник, которого нет в загруженном списке, остаётся видимым и подсвечивается
+ */
+export const renderParticipant: FieldRenderer = ({ data }) => {
+  const correctionsStore = useCorrectionsStore()
+  const current = data.participant
+  const found = findParticipant(current, correctionsStore.participants)
+  const isLoaded = correctionsStore.participants.length > 0
+  const isMissing = Boolean(current?.name) && !found && isLoaded
+  const unlistedValue = current?.id || `unlisted:${current?.name}`
+
+  // Копия списка нужна только чтобы показать участника, которого в нём нет
+  const options = current?.name && !found
+    ? [{ id: unlistedValue, name: isMissing ? `${current.name} (нет в игре)` : current.name }, ...correctionsStore.participants]
+    : correctionsStore.participants
+
+  return h(Select, {
+    modelValue: found ? found.id : (current?.name ? unlistedValue : undefined),
+    'onUpdate:modelValue': (id: string) => {
+      const selected = correctionsStore.participants.find(participant => participant.id === id)
+      if (selected) {
+        editRow(data, row => { row.participant = { ...selected } })
+      }
+    },
+    options,
+    optionLabel: 'name',
+    optionValue: 'id',
+    placeholder: correctionsStore.isLoading ? 'Загрузка...' : 'Выберите участника',
+    filter: true,
+    filterPlaceholder: 'Поиск',
+    emptyMessage: 'Список участников не загружен',
+    emptyFilterMessage: 'Не найдено',
+    invalid: isMissing,
+    disabled: isRowSent(data),
+    size: 'small',
+    class: 'w-full'
+  })
+}
+
+/**
+ * Рендер поля CorrectionLevel - номер уровня или все уровни
+ */
+export const renderCorrectionLevel: FieldRenderer = ({ data }) => {
+  const correctionsStore = useCorrectionsStore()
+  const level = toLevelSelectValue(data.correctionLevel)
+  const isMissing = !correctionsStore.levelOptions.some(option => option.value === level)
+
+  // Копия списка нужна только чтобы показать уровень, которого в нём нет
+  const options = isMissing
+    ? [...correctionsStore.levelOptions, { label: correctionsStore.levels.length > 0 ? `${level} (нет в игре)` : level, value: level }]
+    : correctionsStore.levelOptions
+
+  return h(Select, {
+    modelValue: level,
+    'onUpdate:modelValue': (value: string) => editRow(data, row => { row.correctionLevel = fromLevelSelectValue(value) }),
+    options,
+    optionLabel: 'label',
+    optionValue: 'value',
+    invalid: isMissing && correctionsStore.levels.length > 0,
+    disabled: isRowSent(data),
+    size: 'small',
+    class: 'w-full'
+  })
+}
+
+/**
+ * Рендер поля CorrectionTime - дни, часы, минуты, секунды
+ */
+export const renderCorrectionTime: FieldRenderer = ({ data }) => {
+  const time = data.correctionTime ?? DEFAULT_DURATION
+
+  return h('div', { class: 'flex items-center gap-1' }, DURATION_UNITS.map(({ key, suffix }) =>
+    h(InputNumber, {
+      modelValue: time[key] || 0,
+      'onUpdate:modelValue': (value: number | null) => editRow(data, row => {
+        row.correctionTime = { ...DEFAULT_DURATION, ...row.correctionTime, [key]: value || 0 }
+      }),
+      min: 0,
+      suffix,
+      disabled: isRowSent(data),
+      size: 'small',
+      class: 'z-w-3'
+    })
+  ))
+}
+
+/**
+ * Рендер поля Comment - комментарий к корректировке
+ */
+export const renderComment: FieldRenderer = ({ data }) => {
+  return h(Textarea, {
+    modelValue: data.comment || '',
+    'onUpdate:modelValue': (value: string) => editRow(data, row => { row.comment = value }),
+    placeholder: 'Причина бонуса или штрафа',
+    maxlength: MAX_CORRECTION_COMMENT_LENGTH,
+    autoResize: true,
+    rows: 1,
+    disabled: isRowSent(data),
+    class: 'w-full textarea-collapsible'
+  })
+}
+
+/**
+ * Рендер поля Status - статус отправки строки
+ */
+export const renderStatus: FieldRenderer = ({ data }) => {
+  const status = data.status ?? DEFAULT_ROW_STATUS
+  const view = ROW_STATUS_VIEW[status.state]
+
+  return h('div', { class: 'flex flex-col items-start gap-1' }, [
+    h(Tag, { value: view.label, severity: view.severity }),
+    status.message
+      ? h('span', { class: status.state === 'error' ? 'text-xs text-red-600' : 'text-xs text-surface-500' }, status.message)
+      : null
+  ])
+}
+
 // Мапа рендеров по ID поля
 export const fieldRenderers: Record<string, FieldRenderer> = {
   answer: renderAnswer,
@@ -470,7 +633,13 @@ export const fieldRenderers: Record<string, FieldRenderer> = {
   sectorName: renderSectorName,
   bonusName: renderBonusName,
   bonusTask: renderBonusTask,
-  hint: renderHint
+  hint: renderHint,
+  correctionType: renderCorrectionType,
+  participant: renderParticipant,
+  correctionLevel: renderCorrectionLevel,
+  correctionTime: renderCorrectionTime,
+  comment: renderComment,
+  status: renderStatus
 }
 
 // Функция получения рендера по ID поля

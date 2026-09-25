@@ -21,7 +21,7 @@
         v-for="field in visibleFields" 
         :key="field.id"
         :header="field.columnLabel"
-        :style="{ minWidth: getColumnWidth(field.id) }"
+        :style="{ minWidth: field.columnWidth ?? '150px' }"
       >
         <template #body="slotProps">
           <template v-if="field.id === 'bonusLevels'">
@@ -160,21 +160,6 @@ const showDeleteColumn = computed<boolean>(() => {
 
 const getFieldRenderer = (fieldId: string): FieldRenderer | VNode | undefined => {
   return fieldRenderers[fieldId]
-}
-
-const getColumnWidth = (fieldId: string): string => {
-  switch (fieldId) {
-    case 'answer': return '250px'
-    case 'sector': return '70px'
-    case 'bonus': return '70px'
-    case 'bonusTime':
-    case 'delay': return '160px'
-    case 'limit': return '160px'
-    case 'bonusLevels': return '160px'
-    case 'bonusTask': return '180px'
-    case 'hint': return '180px'
-    default: return '150px'
-  }
 }
 
 const deleteRow = (index: number): void => {

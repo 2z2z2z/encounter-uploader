@@ -22,7 +22,7 @@
       <span>автор: <strong class="text-surface-900">{{ authStore.username }}</strong></span>
       <span>домен: <strong class="text-surface-900">{{ levelStore.domain }}</strong></span>
       <span>игра: <strong class="text-surface-900">{{ levelStore.gameId }}</strong></span>
-      <span>уровень: <strong class="text-surface-900">{{ levelStore.levelId }}</strong></span>
+      <span v-if="!isGameScope">уровень: <strong class="text-surface-900">{{ levelStore.levelId }}</strong></span>
     </div>
   </div>
 </template>
@@ -58,6 +58,9 @@ const authStore = useAuthStore()
 // Computed properties for props
 const showTitle = computed(() => props.showTitle)
 const showMeta = computed(() => props.showMeta)
+
+// Тип работает со всей игрой - номер уровня в шапке не нужен
+const isGameScope = computed(() => getLevelTypeConfig(props.typeId)?.isGameScope === true)
 
 // Универсальное формирование заголовка через конфиги
 const title = computed(() => {

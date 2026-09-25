@@ -21,6 +21,12 @@ export type FieldId =
 	| 'bonusName'       // Название бонуса
 	| 'bonusTask'       // Бонусное задание
 	| 'hint'            // Подсказка
+	| 'correctionType'  // Тип корректировки (бонус/штраф)
+	| 'participant'     // Участник игры (команда или игрок)
+	| 'correctionLevel' // Уровень корректировки (номер или все)
+	| 'correctionTime'  // Время корректировки (д, ч, м, с)
+	| 'comment'         // Комментарий
+	| 'status'          // Статус отправки строки
 
 // Тип значения поля
 export type FieldType =
@@ -31,6 +37,9 @@ export type FieldType =
 	| 'timeSimple'      // Время без флага negative
 	| 'html'            // HTML/многострочный текст
 	| 'levels'          // Выбор уровней
+	| 'select'          // Выбор одного значения из списка
+	| 'duration'        // Время с днями (дни, часы, минуты, секунды)
+	| 'status'          // Статус отправки (только чтение)
 
 // Определение поля
 export interface FieldDefinition {
@@ -38,6 +47,7 @@ export interface FieldDefinition {
 	label: string
 	type: FieldType
 	columnLabel?: string     // Название колонки в таблице
+	columnWidth?: string     // Минимальная ширина колонки (по умолчанию 150px)
 	controlId?: string       // ID связанного контрола
 	required?: boolean       // Обязательное поле
 	defaultValue?: unknown   // Значение по умолчанию
@@ -51,6 +61,48 @@ export interface TimeValue {
 	minutes: number
 	seconds: number
 	negative?: boolean  // Только для bonusTime
+}
+
+// Длительность с днями (для корректировок результатов)
+export interface DurationValue extends TimeValue {
+	days: number
+}
+
+// Тип корректировки результатов
+export type CorrectionType = 'bonus' | 'penalty'
+
+// Участник игры (команда в командной игре, игрок в одиночной)
+export interface GameParticipant {
+	id: string    // ID участника в EN (пусто, если не найден в игре)
+	name: string  // Имя участника
+}
+
+// Уровень игры из формы корректировок
+export interface GameLevelOption {
+	id: string      // ID уровня в EN
+	number: string  // Порядковый номер уровня
+}
+
+// Корректировка, уже внесённая в игру (строка списка EN)
+export interface ExistingCorrection {
+	id: string            // ID корректировки в EN
+	dateTime: string      // Дата и время начисления
+	participant: string   // Команда или игрок
+	level: string         // Номер уровня ('' - все уровни)
+	reason: string        // Причина (действие)
+	isManual: boolean     // Добавлена администратором вручную
+	type: CorrectionType
+	seconds: number       // Время в секундах
+	comment: string
+}
+
+// Состояние отправки строки
+export type RowUploadState = 'pending' | 'sent' | 'error'
+
+// Статус отправки строки
+export interface RowUploadStatus {
+	state: RowUploadState
+	message?: string  // Причина ошибки или пояснение
 }
 
 /**
@@ -76,6 +128,12 @@ export interface Answer {
 	bonusName?: string            // Название бонуса
 	bonusTask?: string            // Бонусное задание
 	hint?: string                 // Подсказка
+	correctionType?: CorrectionType       // Тип корректировки
+	participant?: GameParticipant | null  // Участник корректировки
+	correctionLevel?: string              // Номер уровня ('' - все уровни)
+	correctionTime?: DurationValue        // Время корректировки
+	comment?: string                      // Комментарий
+	status?: RowUploadStatus              // Статус отправки строки
 }
 
 // Данные таба
@@ -125,6 +183,11 @@ export type ControlId =
 	| 'bonusTasks'           // Бонусные задания
 	| 'hints'                // Подсказки (по факту выполнения)
 	| 'bonusLevels'          // Уровни бонусов
+	| 'correctionGame'       // Данные игры для корректировок (участники, уровни)
+	| 'correctionType'       // Тип корректировки для всех строк
+	| 'correctionLevel'      // Уровень корректировки для всех строк
+	| 'correctionTime'       // Время корректировки для всех строк
+	| 'correctionComment'    // Комментарий для всех строк
 
 // Идентификаторы кнопок
 export type ButtonId =
@@ -136,13 +199,17 @@ export type ButtonId =
 	| 'export'               // Экспорт
 	| 'import'               // Импорт
 	| 'preview'              // Предпросмотр
+	| 'addRow'               // Добавить строку
+	| 'addAllParticipants'   // Добавить всех участников игры
+	| 'existingCorrections'  // Внесённые корректировки
 	// Экшн-кнопки
 	| 'uploadTask'           // Залить задание
 	| 'uploadSectors'        // Залить секторы
 	| 'uploadBonuses'        // Залить бонусы
+	| 'uploadCorrections'    // Отправить корректировки
 
 // Тип пейлоада
-export type PayloadType = 'task' | 'sector' | 'bonus'
+export type PayloadType = 'task' | 'sector' | 'bonus' | 'correction'
 
 // Конфигурация кнопки
 export interface ButtonConfig {
@@ -240,6 +307,7 @@ export interface PayloadsConfig {
 	task?: TaskPayloadConfig | boolean  // Конфиг генератора или false
 	sector?: boolean                    // Простая поддержка пейлоада
 	bonus?: boolean                     // Простая поддержка пейлоада
+	correction?: boolean                // Корректировки результатов игры
 }
 
 /**
@@ -263,6 +331,7 @@ export interface LevelTypeConfig {
 	manualCodeAddition: boolean   // Ручное добавление кодов
 	maxAnswers?: number           // Максимум ответов (для ручного добавления)
 	maxTabs?: number              // Максимум табов (по умолчанию 10)
+	isGameScope?: boolean         // Работает со всей игрой: № уровня не нужен, игра может быть завершена
 
 	// Подтипы (опционально, для типов с фиксированной размерностью)
 	subtypes?: LevelSubtype[]
@@ -326,6 +395,14 @@ export interface BonusPayloadData extends BasePayloadData {
 	levelMapping?: Record<string, string>  // Маппинг уровней для выбора
 	hintStrategy?: BonusHintStrategy
 	closedPicIds?: string[]  // Массив ID закрытых картинок для hint (например, ["1_02", "1_03"])
+}
+
+// Данные для пейлоада корректировки результатов (levelId - ID уровня в EN, '0' - все уровни)
+export interface CorrectionPayloadData extends BasePayloadData {
+	correctionType: CorrectionType
+	participantId: string
+	time: DurationValue
+	comment: string
 }
 
 // Параметры URLSearchParams для задания

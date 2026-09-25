@@ -125,7 +125,8 @@ const progressIcon = computed(() => {
   const iconMap = {
     'sector': 'pi pi-cloud-upload',
     'bonus': 'pi pi-star', 
-    'task': 'pi pi-file'
+    'task': 'pi pi-file',
+    'correction': 'pi pi-clock'
   } as const
   
   return iconMap[progress.type as keyof typeof iconMap] || 'pi pi-spinner pi-spin'
@@ -146,7 +147,8 @@ const progressTitle = computed(() => {
   const titleMap = {
     'sector': 'Заливка секторов',
     'bonus': 'Заливка бонусов',
-    'task': 'Заливка задания'
+    'task': 'Заливка задания',
+    'correction': 'Отправка корректировок'
   } as const
   
   const baseTitle = titleMap[progress.type as keyof typeof titleMap] || 'Заливка'
@@ -220,7 +222,8 @@ const calculateEstimatedEndTime = () => {
     const delayMap = {
       'task': 1500,     // Задание - обычно одно, но сложнее
       'sector': 1200,   // Сектора - базовая задержка из uploader.ts
-      'bonus': 1400     // Бонусы - чуть дольже из-за сложности данных
+      'bonus': 1400,    // Бонусы - чуть дольже из-за сложности данных
+      'correction': 1400 // Корректировки - пауза между запросами плюс ответ EN
     } as const
     
     const delayMs = delayMap[progress.type as keyof typeof delayMap] || 1200
@@ -320,7 +323,8 @@ watch(() => [progress.current, progress.total, progress.hasErrors, progress.succ
       const typeNames = {
         'task': 'Задание',
         'sector': 'Секторы', 
-        'bonus': 'Бонусы'
+        'bonus': 'Бонусы',
+        'correction': 'Корректировки'
       }
       
       const typeName = typeNames[progress.type as keyof typeof typeNames] || 'Элементы'

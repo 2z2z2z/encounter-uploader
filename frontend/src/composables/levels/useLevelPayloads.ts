@@ -6,12 +6,26 @@ import { useLevelStore } from "@/store/levels"
 import { buildSectorPayload } from '@/services/levelPayloads/SectorPayload'
 import { buildBonusPayload } from '@/services/levelPayloads/BonusPayload'
 import { createTaskPayload } from '@/services/levelPayloads/TaskPayload'
+import { buildCorrectionPayload } from '@/services/levelPayloads/CorrectionPayload'
 import { getLevelTypeConfig } from "@/entities/level/configs"
 import { useProgressStore } from '@/store/progress'
+import { useCorrectionsStore } from '@/store/corrections'
 import { useNotification } from '@/composables/useNotification'
 import { useAuthStore } from '@/store/auth'
-import { sendTask, sendSector, sendBonus, fetchBonusForm } from '@/services/transport'
-import type { SectorPayloadData, BonusPayloadData, Answer, TabData } from "@/entities/level/types"
+import { useConfirm } from 'primevue/useconfirm'
+import { sendTask, sendSector, sendBonus, sendCorrection, fetchBonusForm, waitBetweenRequests } from '@/services/transport'
+import {
+	formatCorrectionLevel,
+	getExistingCorrectionKey,
+	getRowCorrectionKey,
+	isRowSent,
+	validateCorrectionRow
+} from '@/utils/corrections'
+import { CORRECTION_TYPES, DEFAULT_DURATION } from '@/entities/level/constants'
+import type { SectorPayloadData, BonusPayloadData, Answer, TabData, LevelTypeConfig } from "@/entities/level/types"
+
+/** Решение пользователя о строках, которые уже есть в игре */
+type DuplicatesDecision = 'skip' | 'all' | 'cancel'
 
 export function useLevelPayloads() {
 	const store = useLevelStore()
@@ -480,12 +494,190 @@ export function useLevelPayloads() {
 		}
 	}
 
+	const correctionsStore = useCorrectionsStore()
+	const confirm = useConfirm()
+
+	/**
+	 * Строки для отправки: все табы для мульти-блочных типов, иначе активный таб
+	 */
+	function collectRows(config: LevelTypeConfig): Answer[] {
+		return config.isMultiBlocks ? store.allAnswers : store.activeTab?.answers ?? []
+	}
+
+	/**
+	 * Короткое описание корректировки для прогресса и диалогов
+	 */
+	function describeCorrection(row: Answer): string {
+		const type = row.correctionType ? CORRECTION_TYPES[row.correctionType].label.toLowerCase() : ''
+		return `${row.participant?.name || '?'}, ${formatCorrectionLevel(row.correctionLevel)}, ${type}`
+	}
+
+	/**
+	 * Спрашивает, отправлять ли корректировки, которые уже есть в игре
+	 */
+	function askAboutDuplicates(duplicates: Answer[]): Promise<DuplicatesDecision> {
+		const MAX_SHOWN = 5
+		const shown = duplicates.slice(0, MAX_SHOWN).map(describeCorrection).join('; ')
+		const more = duplicates.length > MAX_SHOWN ? ` и ещё ${duplicates.length - MAX_SHOWN}` : ''
+
+		return new Promise<DuplicatesDecision>((resolve) => {
+			confirm.require({
+				header: 'Такие корректировки уже есть в игре',
+				message: `Совпадений с внесёнными в EN: ${duplicates.length} (${shown}${more}). Пропустить их и отправить остальные?`,
+				icon: 'pi pi-exclamation-triangle',
+				acceptLabel: 'Пропустить совпадения',
+				rejectLabel: 'Отправить всё',
+				rejectClass: 'p-button-outlined',
+				accept: () => resolve('skip'),
+				reject: () => resolve('all'),
+				onHide: () => resolve('cancel')
+			})
+		})
+	}
+
+	/**
+	 * Отправляет корректировки результатов по одной с паузой между запросами.
+	 * Отправленные строки пропускаются; ошибка строки не останавливает заливку,
+	 * потеря сессии или доступа к игре - останавливает
+	 */
+	async function uploadCorrections(): Promise<void> {
+		// Параллельный запуск отправил бы ещё не отправленные строки второй раз
+		if (correctionsStore.isUploading) {
+			notify.warn('Отправка уже идёт', 'Дождитесь окончания текущей отправки')
+			return
+		}
+		correctionsStore.isUploading = true
+		let isStarted = false
+		try {
+			const config = getLevelTypeConfig(store.levelType)
+			if (!config?.payloads.correction) {
+				throw new Error(`Тип ${store.levelType} не поддерживает отправку корректировок`)
+			}
+			if (!store.domain || !store.gameId) {
+				throw new Error('Не установлены данные игры (domain, gameId)')
+			}
+
+			const pendingRows = collectRows(config).filter(row => !isRowSent(row))
+			if (pendingRows.length === 0) {
+				notify.info('Нечего отправлять', 'Нет неотправленных строк')
+				return
+			}
+
+			const game = { domain: store.domain, gameId: store.gameId }
+
+			// Свежие списки участников и уровней: строки проверяются по текущему состоянию игры
+			await correctionsStore.loadGameData(game, true)
+			correctionsStore.syncRows(pendingRows)
+
+			const invalidCount = pendingRows.reduce((count, row) => {
+				const message = validateCorrectionRow(row, correctionsStore.participants, correctionsStore.levels)
+				if (!message) return count
+				row.status = { state: 'error', message }
+				return count + 1
+			}, 0)
+			if (invalidCount > 0) {
+				notify.error('Исправьте строки перед отправкой', `Строк с ошибками: ${invalidCount}. Причина - в колонке «Статус».`)
+				return
+			}
+
+			// Авторизация только что обновлена загрузкой данных игры
+			const existing = await correctionsStore.loadExisting(game, false)
+			const existingKeys = new Set(existing.map(getExistingCorrectionKey))
+			const duplicates = pendingRows.filter(row => existingKeys.has(getRowCorrectionKey(row)))
+			let rowsToSend = pendingRows
+
+			if (duplicates.length > 0) {
+				const decision = await askAboutDuplicates(duplicates)
+				if (decision === 'cancel') return
+				if (decision === 'skip') {
+					duplicates.forEach(row => { row.status = { state: 'sent', message: 'Уже была в игре' } })
+					rowsToSend = pendingRows.filter(row => !duplicates.includes(row))
+				}
+			}
+
+			if (rowsToSend.length === 0) {
+				notify.info('Нечего отправлять', 'Все корректировки уже есть в игре')
+				return
+			}
+
+			const levelIdByNumber = new Map(correctionsStore.levels.map(level => [level.number, level.id]))
+
+			progress.start('correction', rowsToSend.length)
+			isStarted = true
+
+			for (let idx = 0; idx < rowsToSend.length; idx++) {
+				const row = rowsToSend[idx]
+				const label = describeCorrection(row)
+
+				await progress.waitForResume()
+
+				// Строку удалили из таблицы во время отправки - она больше не часть заливки
+				if (!store.allAnswers.includes(row)) {
+					progress.total -= 1
+					continue
+				}
+				progress.updateTitle(label)
+
+				const payload = buildCorrectionPayload({
+					...game,
+					levelId: row.correctionLevel ? levelIdByNumber.get(row.correctionLevel) || '' : '0',
+					// Участник и время гарантированы проверкой строк и syncRows выше
+					correctionType: row.correctionType ?? 'bonus',
+					participantId: row.participant?.id ?? '',
+					time: row.correctionTime ?? DEFAULT_DURATION,
+					comment: row.comment?.trim() || ''
+				})
+				const result = await sendCorrection(payload)
+
+				if (result.ok) {
+					row.status = { state: 'sent' }
+					progress.updateSuccess(`${label}: отправлено`)
+				} else {
+					row.status = { state: 'error', message: result.message }
+					progress.reportError(`${label}: ${result.message}`)
+					if (result.isFatal) {
+						progress.abort()
+						notify.error('Отправка остановлена', result.message)
+						return
+					}
+				}
+
+				if (idx < rowsToSend.length - 1) {
+					await waitBetweenRequests()
+					// Каждые 25 корректировок обновляем авторизацию
+					if ((idx + 1) % 25 === 0) {
+						await authStore.authenticate(store.domain)
+					}
+				}
+			}
+
+			// Все строки удалили во время отправки - завершать нечего
+			if (progress.total === 0) {
+				progress.close()
+				return
+			}
+			progress.finish()
+
+		} catch (error: unknown) {
+			const message = error instanceof Error ? error.message : String(error)
+			if (isStarted) {
+				progress.reportError(`Ошибка отправки корректировок: ${message}`)
+				progress.abort()
+			}
+			notify.error('Ошибка отправки корректировок', message)
+			throw error
+		} finally {
+			correctionsStore.isUploading = false
+		}
+	}
+
 	return {
 		createSectorPayload,
 		createBonusPayload,
 		uploadTask,
 		uploadSectors,
-		uploadBonuses
+		uploadBonuses,
+		uploadCorrections
 	}
 }
 

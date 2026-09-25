@@ -28,6 +28,13 @@ import BonusLevelsControl from './BonusLevelsControl.vue'
 import ClosedPicNamesControl from './ClosedPicNamesControl.vue'
 import OpenPicNamesControl from './OpenPicNamesControl.vue'
 
+// Импорты контролов для корректировок результатов
+import CorrectionGameControl from './CorrectionGameControl.vue'
+import CorrectionTypeControl from './CorrectionTypeControl.vue'
+import CorrectionLevelControl from './CorrectionLevelControl.vue'
+import CorrectionTimeControl from './CorrectionTimeControl.vue'
+import CorrectionCommentControl from './CorrectionCommentControl.vue'
+
 // Тип для контрол-компонента
 export type ControlComponent = Component
 
@@ -52,7 +59,14 @@ export const controls: Record<ControlId, ControlComponent> = {
 
 	// Контролы для svalka
 	closedPicNames: ClosedPicNamesControl,
-	openPicNames: OpenPicNamesControl
+	openPicNames: OpenPicNamesControl,
+
+	// Контролы для корректировок результатов
+	correctionGame: CorrectionGameControl,
+	correctionType: CorrectionTypeControl,
+	correctionLevel: CorrectionLevelControl,
+	correctionTime: CorrectionTimeControl,
+	correctionComment: CorrectionCommentControl
 }
 
 // Функция получения контрола по ID
@@ -75,6 +89,11 @@ export {
 	BonusLevelsControl,
 	ClosedPicNamesControl,
 	OpenPicNamesControl,
+	CorrectionGameControl,
+	CorrectionTypeControl,
+	CorrectionLevelControl,
+	CorrectionTimeControl,
+	CorrectionCommentControl,
 }
 
 

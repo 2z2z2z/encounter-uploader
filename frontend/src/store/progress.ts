@@ -1,12 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import type { PayloadType } from '@/entities/level/types'
 
 export const useProgressStore = defineStore('uploadProgress', () => {
   const visible = ref(false)
   const total = ref(0)
   const current = ref(0)
   const title = ref('')
-  const type = ref<'sector' | 'bonus' | 'task' | ''>('')
+  const type = ref<PayloadType | ''>('')
   const completedAt = ref<Date | null>(null)
   const startedAt = ref<Date | null>(null)
   const isPaused = ref(false)
@@ -21,7 +22,7 @@ export const useProgressStore = defineStore('uploadProgress', () => {
   const successCount = ref(0)
   const errors = ref<string[]>([])
 
-  function start(t: 'sector' | 'bonus' | 'task', count: number) {
+  function start(t: PayloadType, count: number) {
     type.value = t
     total.value = count
     current.value = 0
@@ -53,6 +54,14 @@ export const useProgressStore = defineStore('uploadProgress', () => {
   function finish() {
     title.value = 'Готово'
     completedAt.value = new Date()
+  }
+
+  /**
+   * Досрочно завершает заливку: необработанные элементы не считаются ни успехом, ни ошибкой
+   */
+  function abort() {
+    total.value = current.value
+    finish()
   }
 
   function close() {
@@ -113,6 +122,6 @@ export const useProgressStore = defineStore('uploadProgress', () => {
   return { 
     visible, total, current, title, type, percent, completedAt, startedAt, isPaused, pauseRequested,
     hasErrors, errorCount, successCount, errors,
-    start, updateSuccess, updateTitle, finish, close, pause, resume, waitForResume, reportError, clearErrors
+    start, updateSuccess, updateTitle, finish, abort, close, pause, resume, waitForResume, reportError, clearErrors
   }
 })

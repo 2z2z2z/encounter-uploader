@@ -266,7 +266,39 @@ export const svalkaConfig: LevelTypeConfig = {
 	}
 }
 
+/**
+ * Конфигурация типа заливки "Корректировка результатов"
+ * Бонусное и штрафное время участникам после игры (GameBonusPenaltyTime.aspx)
+ */
+export const correctionsConfig: LevelTypeConfig = {
+	id: 'corrections',
+	category: 'corrections',
+	name: 'Корректировка результатов',
+	isMultiBlocks: false,
+	manualCodeAddition: true,
+	isGameScope: true,
+	maxAnswers: 10000,
+	subtypes: undefined,
+
+	fields: ['correctionType', 'participant', 'correctionLevel', 'correctionTime', 'comment', 'status'],
+
+	controls: ['correctionGame', 'correctionType', 'correctionLevel', 'correctionTime', 'correctionComment'],
+
+	buttons: {
+		navigation: ['back'],
+		functional: ['addRow', 'addAllParticipants', 'existingCorrections', 'clear', 'export', 'import'],
+		action: [
+			{ id: 'uploadCorrections', label: 'Отправить корректировки', variant: 'primary' }
+		]
+	},
+
+	payloads: {
+		correction: true
+	}
+}
+
 // Авто-регистрация при импорте модуля
 registerLevelType(olympConfig)
 registerLevelType(type100500Config)
 registerLevelType(svalkaConfig)
+registerLevelType(correctionsConfig)

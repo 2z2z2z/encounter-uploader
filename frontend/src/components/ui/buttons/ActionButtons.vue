@@ -50,7 +50,7 @@ import type { ButtonId } from '@/entities/level/types'
 
 const store = useLevelStore()
 const confirm = useConfirm()
-const { uploadTask, uploadSectors, uploadBonuses } = useLevelPayloads()
+const { uploadTask, uploadSectors, uploadBonuses, uploadCorrections } = useLevelPayloads()
 
 const levelConfig = computed(() => {
   return getLevelTypeConfig(store.levelType)
@@ -82,6 +82,10 @@ const handleUpload = async (buttonId: ButtonId): Promise<void> => {
         
       case 'uploadBonuses':
         await uploadBonuses()
+        break
+
+      case 'uploadCorrections':
+        await uploadCorrections()
         break
         
       default:

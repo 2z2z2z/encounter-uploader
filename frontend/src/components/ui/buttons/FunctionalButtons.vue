@@ -1,8 +1,41 @@
 <template>
   <div class="functional-buttons flex flex-wrap gap-2">
-    <!-- Добавить коды - только для типов с ручным добавлением -->
+    <!-- Добавить строку -->
     <Button
-      v-if="showAddCodesButton"
+      v-if="hasButton('addRow')"
+      label="Добавить строку"
+      icon="pi pi-plus"
+      severity="secondary"
+      :disabled="isTabLimitExceeded"
+      @click="handleAddRow"
+      class="h-10 px-4 text-nowrap max-xs:w-full"
+    />
+
+    <!-- Все участники игры -->
+    <Button
+      v-if="hasButton('addAllParticipants')"
+      label="Все участники"
+      icon="pi pi-users"
+      severity="secondary"
+      :disabled="isTabLimitExceeded"
+      :loading="isAddingParticipants"
+      @click="handleAddAllParticipants"
+      class="h-10 px-4 text-nowrap max-xs:w-full"
+    />
+
+    <!-- Внесённые корректировки -->
+    <Button
+      v-if="hasButton('existingCorrections')"
+      label="Внесённые"
+      icon="pi pi-list"
+      severity="secondary"
+      @click="correctionsModalVisible = true"
+      class="h-10 px-4 text-nowrap max-xs:w-full"
+    />
+
+    <!-- Добавить коды -->
+    <Button
+      v-if="hasButton('addCodes')"
       label="Добавить коды"
       icon="pi pi-plus"
       severity="secondary"
@@ -13,6 +46,7 @@
     
     <!-- Очистить -->
     <Button
+      v-if="hasButton('clear')"
       label="Очистить"
       icon="pi pi-trash"
       severity="secondary"
@@ -23,6 +57,7 @@
     
     <!-- Экспорт -->
     <Button
+      v-if="hasButton('export')"
       label="Экспорт"
       icon="pi pi-download"
       severity="secondary"
@@ -33,6 +68,7 @@
     
     <!-- Импорт -->
     <Button
+      v-if="hasButton('import')"
       label="Импорт"
       icon="pi pi-upload"
       severity="secondary"
@@ -42,7 +78,7 @@
     
     <!-- Предпросмотр - только для Task -->
     <Button
-      v-if="showPreviewButton"
+      v-if="hasButton('preview')"
       label="Предпросмотр"
       icon="pi pi-eye"
       severity="secondary"
@@ -76,6 +112,8 @@
       v-model="codesModalVisible"
       @apply="onAddCodes"
     />
+
+    <CorrectionsListModal v-model="correctionsModalVisible" />
   </div>
 </template>
 
@@ -89,16 +127,35 @@ import ExportModal from '@/components/common/modals/ExportModal.vue'
 import ImportModal from '@/components/common/modals/ImportModal.vue'
 import PreviewModal from '@/components/common/modals/PreviewModal.vue'
 import CodesModal from '@/components/common/modals/CodesModal.vue'
-import type { Answer, LevelStoreState, TabData, TimeValue, AddCodesResult } from '@/entities/level/types'
+import CorrectionsListModal from '@/components/common/modals/CorrectionsListModal.vue'
+import type {
+  Answer,
+  LevelStoreState,
+  TabData,
+  TimeValue,
+  AddCodesResult,
+  ButtonId,
+  CorrectionType,
+  DurationValue,
+  GameParticipant,
+  RowUploadState,
+  RowUploadStatus
+} from '@/entities/level/types'
 import { useNotification } from '@/composables/useNotification'
+import { useCorrectionsStore } from '@/store/corrections'
+import { CORRECTION_TYPES, DEFAULT_ROW_STATUS, GAME_KEY_CONFIG_FIELD } from '@/entities/level/constants'
+import { createGameKey } from '@/utils/corrections'
 
 const store = useLevelStore()
+const correctionsStore = useCorrectionsStore()
 const { success: showSuccess, warn: showWarn, error: showError } = useNotification()
 
 const exportModalVisible = ref(false)
 const importModalVisible = ref(false)
 const previewModalVisible = ref(false)
 const codesModalVisible = ref(false)
+const correctionsModalVisible = ref(false)
+const isAddingParticipants = ref(false)
 const previewContent = ref('')
 const previewAlternativeContent = ref('')
 const previewSupportsToggle = ref(false)
@@ -128,6 +185,22 @@ const CSV_HEADERS = [
   'hint'
 ] as const
 
+/** Колонки CSV для корректировок результатов (совпадают с ID полей) */
+const CORRECTION_CSV_COLUMNS = [
+  'correctionType',
+  'participant',
+  'correctionLevel',
+  'correctionTime',
+  'comment',
+  'status'
+] as const
+
+type CsvColumn = typeof CSV_HEADERS[number] | typeof CORRECTION_CSV_COLUMNS[number]
+
+/** Значения уровня в CSV, означающие все уровни */
+const ALL_LEVELS_CSV_VALUES = ['', 'все', 'all', '0']
+const ROW_UPLOAD_STATES: RowUploadState[] = ['pending', 'sent', 'error']
+
 interface LevelExportPayload {
   version: number
   type: string
@@ -154,12 +227,25 @@ const levelConfig = computed(() => {
   return getLevelTypeConfig(store.levelType)
 })
 
-const showAddCodesButton = computed(() => {
-  return levelConfig.value?.manualCodeAddition === true
-})
+/**
+ * Видимость функциональной кнопки определяется конфигом типа
+ */
+const hasButton = (buttonId: ButtonId): boolean => {
+  return levelConfig.value?.buttons?.functional?.includes(buttonId) === true
+}
 
-const showPreviewButton = computed(() => {
-  return levelConfig.value?.buttons?.functional?.includes('preview') === true
+const typeFields = computed(() => levelConfig.value?.fields ?? [])
+
+/** № уровня для экспорта: типу со всей игрой он не нужен */
+const exportLevelId = computed(() => (levelConfig.value?.isGameScope ? '' : String(store.levelId || '')))
+
+/**
+ * Колонки CSV: типы уровней с полем answer выгружают полный набор колонок уровня,
+ * остальные - номер строки и свои поля
+ */
+const csvHeaders = computed<CsvColumn[]>(() => {
+  const base: CsvColumn[] = typeFields.value.includes('answer') ? [...CSV_HEADERS] : ['number']
+  return [...base, ...CORRECTION_CSV_COLUMNS.filter(column => typeFields.value.includes(column))]
 })
 const isTabEmpty = computed(() => {
   return !store.activeTab || store.activeTab.answers.length === 0
@@ -200,6 +286,57 @@ watch(dataStructureHash, () => {
 })
 
 // Обработчики кнопок
+const handleAddRow = (): void => {
+  store.addAnswer()
+}
+
+/**
+ * Загружает участников игры; при ошибке показывает её и возвращает false
+ */
+const ensureParticipantsLoaded = async (): Promise<boolean> => {
+  try {
+    await correctionsStore.loadGameData({ domain: store.domain, gameId: store.gameId })
+    return true
+  } catch {
+    showError('Не удалось загрузить участников игры', correctionsStore.error)
+    return false
+  }
+}
+
+const handleAddAllParticipants = async (): Promise<void> => {
+  isAddingParticipants.value = true
+  const isLoaded = await ensureParticipantsLoaded()
+  isAddingParticipants.value = false
+  if (!isLoaded) return
+
+  if (correctionsStore.participants.length === 0) {
+    showWarn('В игре нет участников')
+    return
+  }
+
+  const added = store.addRows(correctionsStore.participants.map(participant => ({ participant: { ...participant } })))
+  showSuccess(`Добавлено строк: ${added}`)
+}
+
+/**
+ * Статусы отправки из файла другой игры к текущей игре не относятся - сбрасываем их
+ */
+const resetForeignStatuses = (meta: Record<string, unknown>): void => {
+  const fileGameKey = createGameKey(String(meta.domain ?? ''), String(meta.gameId ?? ''))
+  if (!typeFields.value.includes('status') || fileGameKey === createGameKey(store.domain, store.gameId)) return
+  store.allAnswers.forEach(row => { row.status = { ...DEFAULT_ROW_STATUS } })
+}
+
+/**
+ * После импорта подставляет ID участников текущей игры по именам
+ */
+const syncImportedParticipants = async (): Promise<void> => {
+  if (!typeFields.value.includes('participant')) return
+  if (await ensureParticipantsLoaded()) {
+    correctionsStore.syncRows(store.allAnswers)
+  }
+}
+
 const handleAddCodes = (): void => {
   codesModalVisible.value = true
 }
@@ -375,7 +512,7 @@ const exportJSON = (): void => {
     meta: {
       domain: store.domain ? String(store.domain) : undefined,
       gameId: store.gameId ? String(store.gameId) : undefined,
-      levelId: store.levelId ? String(store.levelId) : undefined,
+      levelId: exportLevelId.value || undefined,
       dimension: typeof store.dimension === 'number' ? store.dimension : undefined
     },
     config: cloneConfig(store.config as LevelStoreState['config']),
@@ -396,7 +533,7 @@ const exportCSV = (): void => {
   }
 
   const rows: string[] = []
-  rows.push(CSV_HEADERS.join(','))
+  rows.push(csvHeaders.value.join(','))
 
   store.tabs.forEach((tab: TabData, tabIndex: number) => {
     const tabName = sanitizeTabName(tab.name, tabIndex)
@@ -445,24 +582,34 @@ const importJSON = async (content: string): Promise<void> => {
 
     applyImportedTabs(tabs, activeIndex)
 
+    // Тип со всей игрой привязан к игре из настроек: файл не должен её подменять
+    const isGameScope = levelConfig.value?.isGameScope === true
+    const meta = data.meta && typeof data.meta === 'object' ? data.meta as Record<string, unknown> : {}
+
     if (data.config && typeof data.config === 'object') {
-      store.updateConfig(data.config as Partial<LevelStoreState['config']>)
+      const importedConfig = { ...(data.config as Partial<LevelStoreState['config']>) }
+      if (isGameScope) {
+        delete importedConfig[GAME_KEY_CONFIG_FIELD]
+      }
+      store.updateConfig(importedConfig)
     }
 
-    if (data.meta && typeof data.meta === 'object') {
-      const meta = data.meta as Record<string, unknown>
+    if (isGameScope) {
+      resetForeignStatuses(meta)
+    } else {
       if (typeof meta.domain === 'string') store.domain = meta.domain
       if (typeof meta.gameId === 'string') store.gameId = meta.gameId
       if (typeof meta.levelId === 'string') store.levelId = meta.levelId
-      if (typeof meta.dimension === 'number' && Number.isFinite(meta.dimension)) {
-        store.dimension = meta.dimension
-      }
+    }
+    if (typeof meta.dimension === 'number' && Number.isFinite(meta.dimension)) {
+      store.dimension = meta.dimension
     }
 
     if (typeof (data as { subtype?: unknown }).subtype === 'string') {
       store.subtypeId = String((data as { subtype: string }).subtype)
     }
 
+    await syncImportedParticipants()
     globalThis.alert(`Импортировано ${totalAnswers} записей из ${tabs.length} табов`)
     return
   }
@@ -476,6 +623,7 @@ const importJSON = async (content: string): Promise<void> => {
 
     store.activeTab.answers = answers
     store.markDirty()
+    await syncImportedParticipants()
     globalThis.alert(`Импортировано ${answers.length} записей в таб "${store.activeTab.name}"`)
     return
   }
@@ -496,6 +644,8 @@ const importCSV = async (content: string): Promise<void> => {
 
   const columnIndex = buildColumnIndex(header)
   const tabsMap = new Map<string, { name: string; answers: Answer[] }>()
+  // Строки без названия таба (или CSV без колонки tab) попадают в последний названный таб
+  let currentTabName = DEFAULT_TAB_NAME
 
   rows.forEach(row => {
     if (row.every(cell => cell.trim().length === 0)) {
@@ -503,22 +653,26 @@ const importCSV = async (content: string): Promise<void> => {
     }
 
     const tabNameRaw = getCsvValue(row, columnIndex, 'tab')
-    const tabIndex = tabsMap.size
-    const tabName = sanitizeTabName(tabNameRaw, tabIndex)
+    if (tabNameRaw.trim().length > 0) {
+      currentTabName = sanitizeTabName(tabNameRaw, tabsMap.size)
+    }
+    const tabName = currentTabName
 
     if (!tabsMap.has(tabName)) {
       tabsMap.set(tabName, { name: tabName, answers: [] })
     }
 
-    const numberToken = getCsvValue(row, columnIndex, 'number').trim()
-    if (numberToken.length === 0) {
+    // Строка только с названием таба - служебная (пустой таб)
+    const tabColumn = columnIndex.get('tab')
+    if (row.every((cell, index) => index === tabColumn || cell.trim().length === 0)) {
       return
     }
 
+    const numberToken = getCsvValue(row, columnIndex, 'number').trim()
     const fallbackNumber = tabsMap.get(tabName)!.answers.length + 1
     const rawAnswer: Record<string, unknown> = {
       id: getCsvValue(row, columnIndex, 'id') || undefined,
-      number: Number.parseInt(numberToken, 10)
+      number: numberToken ? Number.parseInt(numberToken, 10) : fallbackNumber
     }
 
     rawAnswer.variants = splitVariants(getCsvValue(row, columnIndex, 'variants'))
@@ -540,6 +694,7 @@ const importCSV = async (content: string): Promise<void> => {
     rawAnswer.bonusName = getCsvValue(row, columnIndex, 'bonusName')
     rawAnswer.bonusTask = getCsvValue(row, columnIndex, 'bonusTask')
     rawAnswer.hint = getCsvValue(row, columnIndex, 'hint')
+    Object.assign(rawAnswer, parseCorrectionCsvColumns(row, columnIndex))
 
     // Валидация: количество closedPic должно равняться количеству openPic
     const closedPicArray = Array.isArray(rawAnswer.closedPic) ? rawAnswer.closedPic as string[] : []
@@ -567,6 +722,7 @@ const importCSV = async (content: string): Promise<void> => {
   const totalAnswers = tabs.reduce((sum, tab) => sum + tab.answers.length, 0)
 
   applyImportedTabs(tabs, 0)
+  await syncImportedParticipants()
   globalThis.alert(`Импортировано ${totalAnswers} записей из ${tabs.length} табов`)
 }
 
@@ -582,7 +738,7 @@ const downloadFile = (blob: globalThis.Blob, filename: string): void => {
 }
 
 function buildExportFilename(extension: string): string {
-  const parts = [store.domain, store.gameId, store.levelId, store.levelType, store.subtypeId]
+  const parts = [store.domain, store.gameId, exportLevelId.value, store.levelType, store.subtypeId]
     .map(part => (part ? String(part) : ''))
     .filter(part => part.length > 0)
 
@@ -669,8 +825,112 @@ function sanitizeAnswer(source: Partial<Answer> | Record<string, unknown>, fallb
     sectorName: sanitizeString((source as Partial<Answer>).sectorName, defaults.sectorName ?? ''),
     bonusName: sanitizeString((source as Partial<Answer>).bonusName, defaults.bonusName ?? ''),
     bonusTask: sanitizeString((source as Partial<Answer>).bonusTask, defaults.bonusTask ?? ''),
-    hint: sanitizeString((source as Partial<Answer>).hint, defaults.hint ?? '')
+    hint: sanitizeString((source as Partial<Answer>).hint, defaults.hint ?? ''),
+    ...sanitizeCorrectionFields(source as Partial<Answer>)
   }
+}
+
+/**
+ * Поля корректировок результатов: переносятся только для типов, в конфиге которых они есть
+ */
+function sanitizeCorrectionFields(source: Partial<Answer>): Partial<Answer> {
+  const fields = typeFields.value
+  const result: Partial<Answer> = {}
+
+  if (fields.includes('correctionType')) {
+    result.correctionType = source.correctionType === 'penalty' ? 'penalty' : 'bonus'
+  }
+  if (fields.includes('participant')) {
+    result.participant = sanitizeParticipant(source.participant)
+  }
+  if (fields.includes('correctionLevel')) {
+    result.correctionLevel = sanitizeString(source.correctionLevel, '').trim()
+  }
+  if (fields.includes('correctionTime')) {
+    result.correctionTime = sanitizeDuration(source.correctionTime)
+  }
+  if (fields.includes('comment')) {
+    result.comment = sanitizeString(source.comment, '')
+  }
+  if (fields.includes('status')) {
+    result.status = sanitizeStatus(source.status)
+  }
+
+  return result
+}
+
+function sanitizeParticipant(value: unknown): GameParticipant | null {
+  if (typeof value !== 'object' || value === null) return null
+  const { id, name } = value as Partial<GameParticipant>
+  const safeName = sanitizeString(name, '').trim()
+  return safeName ? { id: sanitizeString(id, ''), name: safeName } : null
+}
+
+function sanitizeDuration(value: Partial<DurationValue> | undefined): DurationValue {
+  return {
+    days: toPositiveInteger(value?.days, 0),
+    hours: toPositiveInteger(value?.hours, 0),
+    minutes: toPositiveInteger(value?.minutes, 0),
+    seconds: toPositiveInteger(value?.seconds, 0)
+  }
+}
+
+function sanitizeStatus(value: Partial<RowUploadStatus> | undefined): RowUploadStatus {
+  const state = ROW_UPLOAD_STATES.find(item => item === value?.state) ?? 'pending'
+  return typeof value?.message === 'string' && value.message ? { state, message: value.message } : { state }
+}
+
+/**
+ * Разбирает колонки корректировок из строки CSV (только присутствующие в заголовке)
+ */
+function parseCorrectionCsvColumns(row: string[], columnIndex: Map<string, number>): Partial<Answer> {
+  const result: Partial<Answer> = {}
+  const has = (column: CsvColumn): boolean => columnIndex.has(column.toLowerCase())
+  const value = (column: CsvColumn): string => getCsvValue(row, columnIndex, column).trim()
+
+  if (has('correctionType')) {
+    result.correctionType = parseCorrectionType(value('correctionType'))
+  }
+  if (has('participant')) {
+    result.participant = value('participant') ? { id: '', name: value('participant') } : null
+  }
+  if (has('correctionLevel')) {
+    const level = value('correctionLevel')
+    result.correctionLevel = ALL_LEVELS_CSV_VALUES.includes(level.toLowerCase()) ? '' : level
+  }
+  if (has('correctionTime')) {
+    result.correctionTime = parseDurationLiteral(value('correctionTime'))
+  }
+  if (has('comment')) {
+    result.comment = getCsvValue(row, columnIndex, 'comment')
+  }
+  if (has('status')) {
+    result.status = sanitizeStatus({ state: value('status') as RowUploadState })
+  }
+
+  return result
+}
+
+function parseCorrectionType(value: string): CorrectionType {
+  const normalized = value.toLowerCase()
+  const isPenalty = normalized === 'penalty'
+    || normalized === CORRECTION_TYPES.penalty.enValue
+    || normalized === CORRECTION_TYPES.penalty.label.toLowerCase()
+  return isPenalty ? 'penalty' : 'bonus'
+}
+
+/**
+ * Время корректировки в CSV: Д:ЧЧ:ММ:СС, недостающие части считаются слева (10:00 - 10 минут)
+ */
+function parseDurationLiteral(literal: string): DurationValue {
+  const parts = literal.split(':').slice(-4).map(part => toPositiveInteger(part.trim(), 0))
+  const [days, hours, minutes, seconds] = [...Array<number>(4 - parts.length).fill(0), ...parts]
+  return sanitizeDuration({ days, hours, minutes, seconds })
+}
+
+function formatDuration(value: DurationValue | undefined): string {
+  const safe = sanitizeDuration(value)
+  return `${safe.days}:${padTimeUnit(safe.hours)}:${padTimeUnit(safe.minutes)}:${padTimeUnit(safe.seconds)}`
 }
 
 function createAnswerDefaults(number: number): Answer {
@@ -777,7 +1037,7 @@ function padTimeUnit(value: number): string {
 }
 
 function buildCsvRow(tabName: string, answer: Answer | null): string {
-  const values = CSV_HEADERS.map(column => {
+  const values = csvHeaders.value.map(column => {
     if (column === 'tab') {
       return tabName
     }
@@ -819,6 +1079,18 @@ function buildCsvRow(tabName: string, answer: Answer | null): string {
         return answer.bonusTask ?? ''
       case 'hint':
         return answer.hint ?? ''
+      case 'correctionType':
+        return answer.correctionType ? CORRECTION_TYPES[answer.correctionType].label.toLowerCase() : ''
+      case 'participant':
+        return answer.participant?.name ?? ''
+      case 'correctionLevel':
+        return answer.correctionLevel || 'все'
+      case 'correctionTime':
+        return formatDuration(answer.correctionTime)
+      case 'comment':
+        return answer.comment ?? ''
+      case 'status':
+        return answer.status?.state ?? 'pending'
       default:
         return ''
     }

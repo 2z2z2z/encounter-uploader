@@ -12,5 +12,6 @@ export * from './utils'
 export * from './TaskPayload'      // ✅ Task пейлоады с Content Generators
 export * from './SectorPayload'    // ✅ Sector пейлоады
 export * from './BonusPayload'     // ✅ Bonus пейлоады
+export * from './CorrectionPayload' // ✅ Корректировки результатов
 
 

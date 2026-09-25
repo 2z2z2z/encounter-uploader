@@ -1,12 +1,18 @@
 /**
  * Определения полей для системы level-system
  *
- * Содержит канонический набор из 15 полей с метаданными.
+ * Содержит канонический набор полей с метаданными.
  * Порядок полей определяет порядок колонок в DataTable.
  */
 
 import type { FieldDefinition, FieldId, FieldType } from "@/entities/level/types"
-import { DEFAULT_OPEN_PIC_SVG, DEFAULT_BONUS_TIME, DEFAULT_TIME_SIMPLE } from '@/entities/level/constants'
+import {
+	DEFAULT_OPEN_PIC_SVG,
+	DEFAULT_BONUS_TIME,
+	DEFAULT_TIME_SIMPLE,
+	DEFAULT_DURATION,
+	DEFAULT_ROW_STATUS
+} from '@/entities/level/constants'
 
 /**
  * Канонические определения полей
@@ -20,6 +26,7 @@ export const FIELD_DEFINITIONS: readonly FieldDefinition[] = [
 		label: 'Ответ',
 		type: 'string[]',
 		columnLabel: 'Ответ',
+		columnWidth: '250px',
 		required: true,
 		placeholder: 'Введите варианты ответов',
 		defaultValue: ['']
@@ -29,6 +36,7 @@ export const FIELD_DEFINITIONS: readonly FieldDefinition[] = [
 		label: 'Сектор',
 		type: 'boolean',
 		columnLabel: 'Сектор',
+		columnWidth: '70px',
 		controlId: 'sectorMode',
 		defaultValue: false
 	},
@@ -37,6 +45,7 @@ export const FIELD_DEFINITIONS: readonly FieldDefinition[] = [
 		label: 'Бонус', 
 		type: 'boolean',
 		columnLabel: 'Бонус',
+		columnWidth: '70px',
 		defaultValue: false
 	},
 	{
@@ -44,6 +53,7 @@ export const FIELD_DEFINITIONS: readonly FieldDefinition[] = [
 		label: 'Бонусное время',
 		type: 'time',
 		columnLabel: 'Бонусное время',
+		columnWidth: '160px',
 		controlId: 'bonusTime',
 		defaultValue: DEFAULT_BONUS_TIME
 	},
@@ -88,6 +98,7 @@ export const FIELD_DEFINITIONS: readonly FieldDefinition[] = [
 		label: 'Уровни бонуса',
 		type: 'levels',
 		columnLabel: 'Уровни бонуса',
+		columnWidth: '160px',
 		controlId: 'bonusLevels',
 		defaultValue: []
 	},
@@ -96,6 +107,7 @@ export const FIELD_DEFINITIONS: readonly FieldDefinition[] = [
 		label: 'Задержка',
 		type: 'timeSimple',
 		columnLabel: 'Задержка',
+		columnWidth: '160px',
 		controlId: 'delay',
 		defaultValue: DEFAULT_TIME_SIMPLE
 	},
@@ -104,6 +116,7 @@ export const FIELD_DEFINITIONS: readonly FieldDefinition[] = [
 		label: 'Ограничение',
 		type: 'timeSimple',
 		columnLabel: 'Ограничение',
+		columnWidth: '160px',
 		controlId: 'limit',
 		defaultValue: DEFAULT_TIME_SIMPLE
 	},
@@ -130,6 +143,7 @@ export const FIELD_DEFINITIONS: readonly FieldDefinition[] = [
 		label: 'Бонусное задание',
 		type: 'html',
 		columnLabel: 'Бонусное задание',
+		columnWidth: '180px',
 		controlId: 'bonusTask',
 		expandable: true,
 		placeholder: 'HTML код задания',
@@ -140,10 +154,68 @@ export const FIELD_DEFINITIONS: readonly FieldDefinition[] = [
 		label: 'Подсказка',
 		type: 'html',
 		columnLabel: 'Подсказка',
+		columnWidth: '180px',
 		controlId: 'hint',
 		expandable: true,
 		placeholder: 'HTML код подсказки',
 		defaultValue: ''
+	},
+	{
+		id: 'correctionType',
+		label: 'Тип корректировки',
+		type: 'select',
+		columnLabel: 'Тип',
+		columnWidth: '170px',
+		controlId: 'correctionType',
+		defaultValue: 'bonus'
+	},
+	{
+		id: 'participant',
+		label: 'Участник',
+		type: 'select',
+		columnLabel: 'Участник',
+		columnWidth: '220px',
+		required: true,
+		placeholder: 'Выберите участника',
+		defaultValue: null
+	},
+	{
+		id: 'correctionLevel',
+		label: 'Уровень',
+		type: 'select',
+		columnLabel: 'Уровень',
+		columnWidth: '110px',
+		controlId: 'correctionLevel',
+		defaultValue: ''
+	},
+	{
+		id: 'correctionTime',
+		label: 'Время',
+		type: 'duration',
+		columnLabel: 'Время',
+		columnWidth: '240px',
+		controlId: 'correctionTime',
+		required: true,
+		defaultValue: DEFAULT_DURATION
+	},
+	{
+		id: 'comment',
+		label: 'Комментарий',
+		type: 'html',
+		columnLabel: 'Комментарий',
+		columnWidth: '260px',
+		controlId: 'correctionComment',
+		required: true,
+		placeholder: 'Причина бонуса или штрафа',
+		defaultValue: ''
+	},
+	{
+		id: 'status',
+		label: 'Статус',
+		type: 'status',
+		columnLabel: 'Статус',
+		columnWidth: '140px',
+		defaultValue: DEFAULT_ROW_STATUS
 	}
 ] as const
 
